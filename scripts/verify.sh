@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Smoke test: import 3 skills và in version. Fail fast nếu không load được.
+# Smoke test: import 4 skills và in version. Fail fast nếu không load được.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,26 +13,34 @@ failures = []
 
 try:
     creator = importlib.import_module('creator')
-    print(f"creator:      {creator.info()['version']}")
+    print(f"creator:        {creator.info()['version']}")
 except Exception as e:
     failures.append(f"creator: {e}")
     print(f"❌ creator: {e}")
 
 try:
     composer = importlib.import_module('composer_grid')
-    print(f"page-builder: {composer.catalog()['version']}")
+    print(f"page-builder:   {composer.catalog()['version']}")
 except Exception as e:
     failures.append(f"page-builder: {e}")
     print(f"❌ page-builder: {e}")
 
 try:
     import decorator
-    print(f"decorator:    {decorator.__version__}")
+    print(f"decorator:      {decorator.__version__}")
 except Exception as e:
     failures.append(f"decorator: {e}")
     print(f"❌ decorator: {e}")
 
+try:
+    import diagram_builder
+    primitives = diagram_builder.list_primitives()
+    print(f"diagram-builder:{diagram_builder.VERSION}  ({len(primitives)} primitives)")
+except Exception as e:
+    failures.append(f"diagram-builder: {e}")
+    print(f"❌ diagram-builder: {e}")
+
 if failures:
     sys.exit(1)
-print("\n✅ All 3 skills loaded successfully")
+print("\n✅ All 4 skills loaded successfully")
 PY

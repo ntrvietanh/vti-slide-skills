@@ -39,21 +39,33 @@ PYTHONPATH=.claude/skills/vti-slide-creator-v3:.claude/skills/vti-slide-page-bui
 
 5. **Final HTML deck output** đi vào `work/deck-composed.html` (sau page-builder) và `work/deck-decorated.html` (sau decorator). Đừng output vào root.
 
-## Phases recap (vti-slide-creator-v3)
+## Phases recap (vti-slide-creator-v3 ≥ 4.0)
 
-5 phases với checkpoint sau mỗi phase. Đọc `.claude/skills/vti-slide-creator-v3/SKILL.md` cho chi tiết. Ngắn gọn:
+**6 phases**, 2 mandatory checkpoints (★). Đọc `.claude/skills/vti-slide-creator-v3/SKILL.md` cho chi tiết.
 
-- Phase 1: source ingestion + summary
-- Phase 2: deck planning (sections, slide count)
-- Phase 3: per-slide content drafting
-- Phase 4: component selection + grid layout
-- Phase 5: HTML composition (gọi page-builder)
+- Phase 1 ANALYZE — source ingestion → ContextDoc
+- Phase 2 PLAN-OUTLINE-AND-REVIEW ★ — deck arc + slide list (merged with review)
+- Phase 3 CONTENT-PLAN — per-slide blocks + diagram-draw via `vti-slide-diagram-builder` + lift filter via `classify_image_kind`
+- Phase 4 LAYOUT-DESIGN — explicit row heights + cell aspect-ratio (no-crop + ≥70% fill assertions)
+- Phase 5 COMPONENT-PICK — mostly mechanical; SlideLayoutPlan → slide_input descriptors
+- Phase 6 REVIEW-AND-COMPOSE ★ — layout-review widget + final HTML deck
 
-Sau Phase 5 → optional: chạy decorator.
+Sau Phase 6 → optional: chạy decorator (user-triggered, not auto).
+
+## Driver scripts
+
+```
+scripts/build_phase_1.py  # ANALYZE
+scripts/build_phase_2.py  # PLAN-OUTLINE-AND-REVIEW
+scripts/build_phase_3.py  # CONTENT-PLAN (writes work/diagrams/*.svg)
+scripts/build_phase_4.py  # LAYOUT-DESIGN
+scripts/build_phase_5.py  # COMPONENT-PICK
+scripts/build_phase_6.py  # REVIEW-AND-COMPOSE → work/deck-composed.html
+```
 
 ## Density mode
 
-Set `plan['density_mode']` ở Phase 4. Options: `standard` (default) | `sparse-ok` | `dense`. Cả creator và page-builder đọc cùng giá trị này.
+Set `plan['density_mode']` ở Phase 3. Options: `standard` (default) | `sparse-ok` | `dense`. Cả creator và page-builder đọc cùng giá trị này.
 
 ## Reference
 

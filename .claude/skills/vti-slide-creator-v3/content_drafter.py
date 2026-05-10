@@ -250,34 +250,61 @@ def make_slide_content_plan(slide_id: str,
                             blocks: list[dict],
                             image_decision: dict,
                             section_name: str = "",
-                            layout_hint: str = "") -> dict:
+                            layout_hint: str = "",
+                            diagram_spec: dict | None = None,
+                            resolved_image: dict | None = None) -> dict:
     """Wrap typed blocks + image decision into a SlideContentPlan.
 
-    The plan is the unit of communication between Phase 4 (this module)
-    and Phase 5 (layout brainstorm). Phase 5 reads `blocks` and consults
-    `component_catalog.picks_for_kind()` to pick components for each.
+    The plan is the unit of communication between Phase 3 (this module)
+    and Phase 4 (LAYOUT-DESIGN, in v4.0). Phase 4 reads ``blocks``,
+    ``diagram_spec``, and ``resolved_image`` to size cells correctly so
+    no image is cropped.
 
     Title routing
     -------------
-    `topic` is the slide's per-page title and `section_name` is its
+    ``topic`` is the slide's per-page title and ``section_name`` is its
     breadcrumb section. Both flow straight into the chrome breadcrumb at
-    Phase 5 (slide_meta.slide_title and slide_meta.section_name) — they
-    are NOT content blocks. The breadcrumb renders them as
-    "SECTION | TITLE" at the top-left of the slide.
+    compose time (slide_meta.slide_title and slide_meta.section_name).
+
+    v4.0 — diagram_spec (NEW)
+    -------------------------
+    When ``image_decision.strategy == 'synthesize'``, Phase 3 calls into
+    the ``vti-slide-diagram-builder`` skill, writes the SVG to
+    ``work/diagrams/<slide_id>.svg``, and stores the spec here::
+
+        {
+            "primitive":    "flow_diagram",       # name from diagram-builder
+            "args":         {...},                # caller args (stored for resume)
+            "svg_path":     "work/diagrams/...",
+            "natural_w":    1180,
+            "natural_h":    460,
+        }
+
+    Phase 4 reads ``natural_w / natural_h`` to set the hosting
+    image-tile cell aspect_ratio so the diagram is never cropped.
+
+    v4.0 — resolved_image (NEW)
+    ---------------------------
+    When ``image_decision.strategy == 'lift'``, Phase 3's
+    ``resolve_lift_image()`` filters source-image candidates via
+    ``classify_image_kind()`` and stores the chosen file::
+
+        {
+            "path":         "work/sources/_images/foo.jpg",
+            "natural_w":    1920,
+            "natural_h":    1080,
+            "kind":         "content",  # never 'chrome' or 'stock'
+            "score":        0.78,
+        }
 
     Layout hint (v3.17, Principle 9)
     --------------------------------
-    Optional `layout_hint` directs Phase 5 to a specific image-layout
-    pattern instead of the default vertical row stack:
+    Optional ``layout_hint`` is a HINT only — Phase 4 may override.
 
-    - ``"pattern-a-content-first"`` — content dominates; image is small
-      side-by-side support (image col_span=4, content col_span=8)
-    - ``"pattern-b-image-narrative-side-by-side"`` — image dominates as
-      side-by-side with narrative (image col_span=8, narrative col_span=4),
-      stats below as full-width band
-    - ``"pattern-b-full-width-image"`` — image dominates as full-width
-      hero (col_span=12, large height), narrative + stats stacked below
-    - ``""`` (empty) — default vertical stack (one block per row)
+    - ``"pattern-a-content-first"`` — content dominates; image small
+    - ``"pattern-b-image-narrative-side-by-side"`` — image dominates
+    - ``"pattern-b-full-width-image"`` — image full-width hero
+    - ``""`` (empty) — default vertical stack
     """
     return {
         "slide_id":       slide_id,
@@ -286,6 +313,8 @@ def make_slide_content_plan(slide_id: str,
         "blocks":         blocks,
         "image_decision": image_decision,
         "layout_hint":    layout_hint,
+        "diagram_spec":   diagram_spec,    # None unless synthesize
+        "resolved_image": resolved_image,  # None unless lift+resolved
     }
 
 
@@ -632,3 +661,93 @@ def has_block_kind(plan: dict, kind: str) -> bool:
 def list_block_kinds() -> list[str]:
     """Return all valid block kinds (for documentation)."""
     return sorted(CONTENT_BLOCK_SCHEMAS.keys())
+
+
+# ---------------------------------------------------------------------------
+# v4.0 — Phase 3 lift-image resolver (content-aware, not positional)
+# ---------------------------------------------------------------------------
+def resolve_lift_image(hint: str,
+                       search_dir: str,
+                       *,
+                       prefix_filter: str | None = None,
+                       min_confidence: float = 0.2,
+                       allow_kinds: tuple[str, ...] = ("content",),
+                       ) -> dict | None:
+    """Pick the best lift-candidate image matching ``hint``.
+
+    Replaces the positional heuristic (``matches[len(matches)//4]``) that
+    Phase 5 of v3.x used to pick the 25th-percentile filename — which
+    consistently selected icons / logos because those tend to be early
+    in the PPTX media folder.
+
+    Filters via ``source_ingester.classify_image_kind()`` so only files
+    classified as ``content`` (or any kind in ``allow_kinds``) are
+    eligible. Falls back to None when no candidate clears the bar.
+
+    Args:
+        hint:           free-text hint, e.g. "Olive Young dashboard
+                        keyframe" or "MINISTOP app screenshot"
+        search_dir:     directory to scan (relative paths resolve against
+                        the current working directory)
+        prefix_filter:  optional filename prefix glob (e.g.
+                        ``"vti-group-retail-capability"``) to scope
+                        the candidate set
+        min_confidence: minimum classifier confidence to accept
+                        (default 0.2 — the classifier is conservative
+                        with content-class scoring; lower bar lets
+                        mid-confidence content images through, while
+                        kind!='content' images are still excluded)
+        allow_kinds:    tuple of accepted ``kind`` values
+
+    Returns:
+        ``{"path": str, "natural_w": int, "natural_h": int,
+           "kind": str, "confidence": float, "reasons": [str]}``
+        on success, or ``None`` if no acceptable candidate.
+    """
+    from pathlib import Path
+    # Lazy import to avoid circular dependency at module load
+    from source_ingester import classify_image_kind  # noqa: PLC0415
+
+    base = Path(search_dir)
+    if not base.exists():
+        return None
+
+    glob_pat = f"{prefix_filter}*" if prefix_filter else "*"
+    candidates = sorted(p for p in base.glob(glob_pat)
+                        if p.is_file()
+                        and p.suffix.lower() in (".png", ".jpg", ".jpeg"))
+    if not candidates:
+        return None
+
+    hint_tokens = [t.lower() for t in hint.split()
+                   if len(t) > 2 and t.isalnum()]
+
+    best: tuple[float, Path, dict] | None = None
+    for path in candidates:
+        cls = classify_image_kind(path)
+        if cls.get("kind") not in allow_kinds:
+            continue
+        if cls.get("confidence", 0.0) < min_confidence:
+            continue
+        # Score = classifier confidence + 0.1 per matching hint token
+        score = float(cls.get("confidence", 0.0))
+        fn = path.name.lower()
+        for tok in hint_tokens:
+            if tok in fn:
+                score += 0.1
+        if best is None or score > best[0]:
+            best = (score, path, cls)
+
+    if best is None:
+        return None
+    score, path, cls = best
+    metrics = cls.get("metrics") or {}
+    return {
+        "path":        str(path),
+        "natural_w":   int(metrics.get("width") or 0),
+        "natural_h":   int(metrics.get("height") or 0),
+        "kind":        cls.get("kind"),
+        "confidence":  float(cls.get("confidence", 0.0)),
+        "score":       float(score),
+        "reasons":     cls.get("reasons", []),
+    }

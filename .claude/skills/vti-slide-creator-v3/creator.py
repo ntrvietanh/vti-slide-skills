@@ -1,28 +1,43 @@
 """
-vti-slide-creator-v3 — main orchestrator for the 5-phase pipeline.
+vti-slide-creator-v3 — main orchestrator for the 6-phase pipeline (v4.0).
 
-Phases (per the architectural agreement):
+Phases:
 
-    1. ANALYZE        — parse source + extract images + propose audience/
-                        purpose/customer; user confirms ContextDoc.
-    2. PLAN-OUTLINE   — design deck arc + slide list with topics.
-    3. PLAN-REVIEW    — brainstorm DeckOutline with user; iterate.
-    4. CONTENT-PER-SLIDE — for each slide draft typed content blocks +
-                        decide per-slide image strategy (lift / synthesize /
-                        web-search / text-only); brainstorm with user.
-    5. LAYOUT-PER-SLIDE — for each slide pick components + compose
-                        12-col grid → render preview widget → iterate.
-
-Implementation status:
-    - Sprint 2 → Phase 5 ✓
-    - Sprint 3 → Phase 4 ✓
-    - Sprint 4 → Phase 1 (pending)
-    - Sprint 5 → Phase 2 + 3 (pending)
+    1. ANALYZE              — parse source + extract images + propose
+                              audience / purpose / customer; user confirms
+                              ContextDoc.
+    2. PLAN-OUTLINE-AND-REVIEW — design deck arc + slide list AND review
+                              with user inline (single phase, single
+                              checkpoint).
+    3. CONTENT-PLAN         — for each slide draft typed content blocks,
+                              resolve image strategy (lift / synthesize),
+                              and DRAW the SVG diagram via the
+                              vti-slide-diagram-builder skill so its
+                              natural dimensions feed Phase 4. Also
+                              filters lift candidates with
+                              `classify_image_kind()` so junk icons
+                              never reach the deck.
+    4. LAYOUT-DESIGN        — for each slide, given content blocks +
+                              diagram dims + lift dims, design the
+                              12-col grid: row heights, image cell
+                              col_span and aspect_ratio, fill metric.
+                              Output: SlideLayoutPlan with no-crop +
+                              ≥70% screen-fill assertions.
+    5. COMPONENT-PICK       — translate SlideLayoutPlan → render-ready
+                              slide_input descriptors. Mostly mechanical
+                              now since layout is pre-decided.
+    6. REVIEW-AND-COMPOSE   — render layout review widget for ALL
+                              slides as 16:9 wireframes → user confirms →
+                              compose final HTML deck.
 
 Public surface (re-exported)
 ----------------------------
-- Phase 4: SlideContentPlan / block schemas + validators / image strategies
-- Phase 5: render_inline_preview, grid helpers, component catalog
+- Phase 1: ContextDoc / source ingestion
+- Phase 2: DeckOutline (single-phase outline+review)
+- Phase 3: SlideContentPlan with diagram_spec / lift_resolver
+- Phase 4: SlideLayoutPlan (NEW module: layout_designer)
+- Phase 5: grid helpers, component catalog
+- Phase 6: render_layout_review_widget, deck_stats
 """
 from __future__ import annotations
 
@@ -38,15 +53,24 @@ from grid_helpers import (                                       # noqa: F401
     cards_row, kpi_strip_row,
 )
 
-# --- Phase 4 (Sprint 3) ---------------------------------------------------
+# --- Phase 3 (was Phase 4 in v3.x — content drafting) -------------------
 from content_drafter import (                                    # noqa: F401
     CONTENT_BLOCK_SCHEMAS, IMAGE_STRATEGIES,
     make_block, make_image_decision, make_slide_content_plan,
     validate_block, validate_plan,
     block_kinds_in, has_block_kind, list_block_kinds,
+    resolve_lift_image,                                          # v4.0
 )
 from image_decisions import (                                    # noqa: F401
     STRATEGY_GUIDE, describe_strategies, suggest_strategy,
+)
+
+# --- Phase 4 (NEW in v4.0 — layout design with no-crop + fill metric) -----
+from layout_designer import (                                    # noqa: F401
+    SLIDE_W_PX, SLIDE_H_PX, CONTENT_AREA_W_PX, CONTENT_AREA_H_PX,
+    make_layout_row, make_layout_cell, make_layout_plan,
+    design_slide_layout,
+    validate_layout_plan, layout_metrics,
 )
 
 # --- v3.14 — capacity model + cross-phase validation -----------------------
@@ -91,7 +115,7 @@ from deck_planner import (                                       # noqa: F401
     renumber_slide_ids,                                          # v3.14
 )
 
-__version__ = "3.19.0"
+__version__ = "4.0.1"
 
 
 def info() -> dict:
@@ -99,7 +123,7 @@ def info() -> dict:
     return {
         "skill":   "vti-slide-creator-v3",
         "version": __version__,
-        "phases_implemented": [1, 2, 3, 4, 5],
+        "phases_implemented": [1, 2, 3, 4, 5, 6],
         "phases_pending":     [],
         "components_known":   list_components(),
         "block_kinds_known":  list_block_kinds(),
@@ -401,23 +425,41 @@ DECK_SHELL_DEFAULT = """<!DOCTYPE html>
 <html lang="{lang}">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
 <title>{title}</title>
 <style>
 {css}
+/* === deck preview shell — scrollable card stack ===
+   Each composed slide is a fixed 1280×720 card with rounded corners
+   and a drop shadow, sitting on a pale-blue page background. The
+   flex column with gap prevents any chrome of slide N+1 from
+   visually overlapping the footer of slide N (the bug that the
+   pre-v4.0.1 driver-side preview shell was working around).
+
+   IMPORTANT: nothing else is injected here. The chrome system already
+   provides slide page-numbers (footer chevron) — never add a parallel
+   per-slide number badge from the shell. Doing so produced the v4.0
+   "16 in top-left of every slide" bug. */
 html, body {{
   margin: 0; padding: 0;
-  background: #ECECEC;
-  font-family: 'Inter', sans-serif;
+  background: #DAE9F6;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
 }}
 body {{
   display: flex; flex-direction: column;
-  align-items: center; gap: 32px; padding: 40px;
+  align-items: center; gap: 40px;
+  padding: 40px 0;
   min-height: 100vh;
 }}
-.slide.layout-grid,
 .slide {{
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
+  width:  1280px !important;
+  height: 720px  !important;
+  margin: 0;
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(5, 25, 52, 0.18);
+  overflow: hidden;
 }}
 </style>
 </head>

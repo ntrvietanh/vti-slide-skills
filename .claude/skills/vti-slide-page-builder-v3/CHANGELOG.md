@@ -1,5 +1,33 @@
 # vti-slide-page-builder-v3 — CHANGELOG
 
+## v3.13.2 (2026-05-10) — Fix: image-tile soft frame no longer crops
+
+Patch release. The v3.19 deck output had every SVG architecture
+diagram cropped on the right side because:
+
+- Caller (v3.19 build scripts) passed `aspect_ratio: "16:9"` for cells
+  hosting SVGs whose viewBox was 1180×460 (≈2.56:1).
+- `image-tile` `<img>` styled with `object-fit: cover` cropped the SVG
+  to fit the 16:9 frame, losing the right ~30% of every diagram.
+
+The clean architectural fix (creator-v3 v4.0) is to set the cell's
+`aspect_ratio` to match the image's natural ratio so cropping never
+applies. This patch is the **defense-in-depth complement**: even if a
+future caller passes a wrong `aspect_ratio`, the `--soft` frame variant
+now uses `object-fit: contain` so the image is at least fully visible
+(letterboxed in pale-blue) instead of cropped.
+
+The default `cover` behaviour is preserved for `--rounded` and
+`--square` frames where cinematic edge-crop is the desired aesthetic
+(hero photos, group shots).
+
+### Files
+
+- `components/image-tile/component.css` — added
+  `.vti-image-tile--soft .vti-image-tile__img { object-fit: contain; }`
+
+---
+
 ## v3.13.1 (2026-05-10) — Fix: TOC entry-text aliasing
 
 Patch release. The TOC special-page template uses

@@ -1,18 +1,43 @@
-# vti-slide-skills · Coordinated 3-Skill Baseline · 2026-05-10
+# vti-slide-skills · Coordinated 4-Skill Baseline · 2026-05-10
 
-This bundle pins three skills at versions that work together as a coordinated set. Use these together — they share contracts that previous-version mixes did not.
+This bundle pins four skills at versions that work together as a coordinated set. Use these together — they share contracts that previous-version mixes did not. **v4.0 baseline** — phase pipeline restructured 5 → 6, new `vti-slide-diagram-builder` skill added.
 
 ## Versions
 
 | Skill | Version | Bumped from |
 |---|---|---|
-| `vti-slide-creator-v3` | **3.19.0** | 3.17.1 (prior session) |
-| `vti-slide-page-builder-v3` | **3.13.1** | 3.12.0 |
-| `vti-slide-decorator` | **0.5.2** | v0.1 (W3.6 stub) |
+| `vti-slide-creator-v3` | **4.0.0** | 3.19.0 (5-phase → 6-phase, breaking) |
+| `vti-slide-page-builder-v3` | **3.13.2** | 3.13.1 (image-tile soft-frame no-crop fix) |
+| `vti-slide-decorator` | **0.5.2** | unchanged |
+| `vti-slide-diagram-builder` | **0.1.0** | NEW — 7 SVG primitives consuming page-builder tokens |
 
 ## What this baseline closes
 
-All gaps from the v3.17.1 deferred list, plus the gaps surfaced by the v3.18 audit rerun, plus the decorator W3.6 pipeline that was a `NotImplementedError`. End-to-end the trio now supports:
+**v4.0 (2026-05-10):** restructures the pipeline to fix three structural bugs the v3.19 deck output exposed (SVG cropping in `image-tile`, lift resolver picking junk, sparse layouts when image was small):
+
+| # | Bug / change | Closed in |
+|---:|---|---|
+| 50 | SVG diagrams cropped because of hardcoded 16:9 aspect | creator 4.0 (`layout_designer` sets cell aspect = natural) + page-builder 3.13.2 (`object-fit: contain` for soft frames as defense-in-depth) |
+| 51 | Lift resolver picked icons / chrome via positional heuristic | creator 4.0 (`resolve_lift_image()` uses `classify_image_kind` from source_ingester) |
+| 52 | No layout-design phase — Phase 5 ran component-pick + layout in one step | creator 4.0 (Phase 4 LAYOUT-DESIGN split out of Phase 5) |
+| 53 | Diagram drawing was per-deck ad-hoc Python; no VTI Standard | new sibling `vti-slide-diagram-builder` v0.1.0 (7 primitives, brand-token-driven) |
+| 54 | Outline review was a separate phase, redundant | creator 4.0 (Phase 2 merged outline + review) |
+| 55 | No batch wireframe review before final compose | creator 4.0 (Phase 6 REVIEW-AND-COMPOSE) |
+
+End-to-end the four skills now support the 6-phase pipeline:
+
+```
+Phase 1 ANALYZE                       → ContextDoc
+Phase 2 PLAN-OUTLINE-AND-REVIEW       → DeckOutline                     ★ checkpoint
+Phase 3 CONTENT-PLAN                  → SlideContentPlan + diagram_spec + resolved_image
+Phase 4 LAYOUT-DESIGN                 → SlideLayoutPlan (no-crop, ≥70% fill)
+Phase 5 COMPONENT-PICK                → slide_input descriptors
+Phase 6 REVIEW-AND-COMPOSE            → layout-review.html + deck-composed.html ★ checkpoint
+```
+
+**v3.19 (prior baseline):** kept here for history.
+
+End-to-end the trio now supports:
 
 | # | Gap | Closed in |
 |---:|---|---|
@@ -64,20 +89,15 @@ The three modes share thresholds across creator audits and page-builder fill-hon
 ## Quick start
 
 ```bash
-tar xzf vti-slide-skills-2026-05-10-baseline.tar.gz
-cd vti-slide-skills-2026-05-10-baseline/
-
-# Add all three to PYTHONPATH (any order):
-export PYTHONPATH=$(pwd)/vti-slide-creator-v3:$(pwd)/vti-slide-page-builder-v3:$(pwd)/vti-slide-decorator:$(pwd)/vti-slide-decorator/strategies
+# Add all four skills to PYTHONPATH:
+source scripts/setup.sh
 
 # Verify
-python3 -c "
-import sys, importlib
-print('creator:     ', importlib.import_module('creator').info()['version'])
-print('page-builder:', importlib.import_module('composer_grid').catalog()['version'])
-import decorator; print('decorator:   ', decorator.__version__)
-"
-# → creator: 3.19.0 / page-builder: 3.13.0 / decorator: 0.5.0
+bash scripts/verify.sh
+# → creator:        4.0.0
+# → page-builder:   3.13.2
+# → decorator:      0.5.2
+# → diagram-builder:0.1.0  (7 primitives)
 ```
 
 ## End-to-end: build + decorate a deck

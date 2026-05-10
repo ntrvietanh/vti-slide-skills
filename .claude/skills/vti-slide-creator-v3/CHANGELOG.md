@@ -1,5 +1,124 @@
 # vti-slide-creator-v3 — CHANGELOG
 
+## v4.0.1 (2026-05-10) — Fix: deck preview shell owns its own card layout
+
+Patch release. The Phase 6 driver (`scripts/build_phase_6.py`) was
+hand-rolling its own deck-shell HTML wrapper around `compose_deck()`
+output AND injecting a per-slide `<div class="deck-slide-num">NN</div>`
+badge in the top-left of every slide via regex. Result: every composed
+slide had a duplicate page number floating outside the chrome system
+(the chrome footer chevron already shows the page number).
+
+Root cause: the skill exposed a complete-page builder (`build_deck_html`)
+since v3.17.1, but the driver did not use it — so it had to re-implement
+the preview shell, and that hand-rolled implementation drifted in a
+buggy direction.
+
+### Fix
+
+- `DECK_SHELL_DEFAULT` upgraded to the cards aesthetic the driver had
+  evolved toward: 1280×720 fixed cards, 10px radius, deep blue-tinted
+  drop shadow, pale-blue (#DAE9F6) page background, flex column with
+  40px gap to prevent slide-N+1 chrome from overlapping slide-N footer.
+- Inline guardrail comment in `DECK_SHELL_DEFAULT`: never inject a
+  parallel per-slide number badge from the shell. The chrome footer
+  already owns page numbering.
+- `scripts/build_phase_6.py` now calls `build_deck_html(descriptors,
+  title=…)` directly. Driver shrinks from ~120 lines (with regex
+  injection + inline CSS) to ~45 lines. There is no longer a place for
+  ad-hoc HTML mutation between `compose_deck` and disk-write.
+
+### Files
+
+- `creator.py` — `__version__` 4.0.0 → 4.0.1; `DECK_SHELL_DEFAULT`
+  upgraded; comment block warning against per-slide badge injection.
+- `scripts/build_phase_6.py` — rewritten to use `build_deck_html`.
+
+---
+
+## v4.0.0 (2026-05-10) — 6-phase pipeline · diagram skill integration · no-crop / fill guarantees
+
+**MAJOR / breaking.** Splits Phase 5 (was: layout + component-pick) into
+two distinct phases, merges P2+P3 (was: outline + review) into one,
+adds new Phase 3 diagram-drawing step, and adds new Phase 6 review +
+compose. Driver scripts of v3.19 are not source-compatible.
+
+### Why
+
+The v3.19 deck output (`work/deck-composed.html`, 42 slides) surfaced
+three bugs whose root cause was structural:
+
+1. **SVG diagrams cropped** — `make_image_cell()` set
+   `aspect_ratio: "16:9"` while SVG viewBoxes were 1180×460 (≈2.56:1).
+   `image-tile`'s `object-fit: cover` cut the right side. Phase 5
+   could not fix this because diagrams were generated inside Phase 5
+   with no feedback path back to layout decisions.
+2. **Lift resolver picked junk** — the positional heuristic
+   `matches[len(matches)//4]` consistently selected logo / icon images
+   because those tend to be early in the PPTX media folder.
+3. **Sparse layouts** — `pattern-b-image-narrative-side-by-side`
+   placed image col_span=8 + narrative col_span=4 even when the image
+   was small, leaving >30% empty bottom while content ran short.
+
+v3.x architecture squashed layout-design + component-pick into one
+phase, so none of the three bugs had a clean fix point.
+
+### Phase structure (5 → 6)
+
+| New | Was | Output |
+|---:|---|---|
+| 1 ANALYZE | 1 (unchanged) | ContextDoc |
+| 2 PLAN-OUTLINE-AND-REVIEW | 2 + 3 (merged) | DeckOutline |
+| 3 CONTENT-PLAN | 4 + diagram-draw | SlideContentPlan + diagram_spec + resolved_image |
+| 4 LAYOUT-DESIGN (NEW) | (split from 5) | SlideLayoutPlan |
+| 5 COMPONENT-PICK | 5 (rump) | render-ready slide_input |
+| 6 REVIEW-AND-COMPOSE (NEW) | (new) | layout-review.html + deck-composed.html |
+
+### What's new
+
+- **`layout_designer.py`** (NEW) — Phase 4 module. `design_slide_layout`
+  picks one of 4 patterns (vertical-stack / image-stacked-top /
+  image-side-by-side / image-tall-side) based on the image's natural
+  aspect ratio. Sets `image_cell_aspect == image_natural_aspect` so
+  the cell never crops. Asserts ≥70% screen-fill via `layout_metrics`.
+- **`SlideContentPlan` shape extended** — adds optional
+  `diagram_spec` and `resolved_image` fields. Phase 3 populates them;
+  Phase 4 reads `natural_w / natural_h` from them.
+- **`resolve_lift_image(hint, search_dir, ...)`** in `content_drafter`
+  — replaces the v3.x positional heuristic with content-aware filtering
+  via `source_ingester.classify_image_kind()`. Junk icons, banners, and
+  chrome strips are filtered out before reaching the deck.
+- **New sibling skill `vti-slide-diagram-builder` v0.1.0** — 7 SVG
+  primitives (flow_diagram, quadrant, footprint_map, layered_stack,
+  fanout_pipeline, hybrid_swimlane, data_path). Standardised brand
+  tokens, canonical viewBox, accessibility metadata. Phase 3 calls
+  into this skill at synthesize time; the SVG is written to
+  `work/diagrams/<slide_id>.svg` and the natural dimensions feed
+  Phase 4. Replaces the ad-hoc `scripts/diagrams.py` of v3.19.
+
+### Public API (additions)
+
+- `creator.resolve_lift_image(hint, search_dir, *, prefix_filter, ...)`
+- `creator.design_slide_layout(content_plan)`
+- `creator.validate_layout_plan(plan)`, `creator.layout_metrics(plan)`
+- `creator.make_layout_row`, `creator.make_layout_cell`,
+  `creator.make_layout_plan`
+- Constants `SLIDE_W_PX`, `SLIDE_H_PX`, `CONTENT_AREA_W_PX`,
+  `CONTENT_AREA_H_PX`
+
+Changed:
+- `make_slide_content_plan(...)` accepts `diagram_spec=None` and
+  `resolved_image=None` kwargs.
+
+### Migration
+
+This is a development-test repo with no production users; the v3.19
+driver scripts under `scripts/` have been rewritten in place. External
+consumers must update Phase 4 / Phase 5 calls — see SKILL.md for the
+new pipeline contract.
+
+---
+
 ## v3.19.0 (2026-05-10) — Coordinated 3-skill baseline · gap #42 · density_mode propagation
 
 Minor release. Closes gap #42 (audit framework block→cell mismatch

@@ -3983,7 +3983,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder-v3",
-        "version":    "3.13.1",
+        "version":    "3.13.2",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }

@@ -1,7 +1,16 @@
 # vti-slide-creator-v3
 
+**Version: 4.0.1**
+
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder-v3` (the renderer).
+
+> **Phase 6 contract.** The final HTML deck MUST be assembled via
+> `build_deck_html(descriptors, title=…)`. Drivers must NOT hand-roll
+> their own `<html><head><body>` shell around `compose_deck()`, and
+> must NOT mutate the deck HTML between compose and disk-write. Page
+> numbers are owned by the chrome footer chevron — there is no second
+> badge. (Removed in v4.0.1 after the "16 in top-left" regression.)
 
 ## Output scope — HTML ONLY
 
@@ -75,35 +84,36 @@ to the creator — no syncing of two hardcoded lists.
 See `vti-slide-page-builder-v3/COMPONENTS.md` for the full catalog with
 schema details, use cases, and best col_spans for every component.
 
-## The 5-phase pipeline
+## The 6-phase pipeline (v4.0)
 
-The creator turns raw source content into a polished deck through 5
-phases, with **brainstorm checkpoints** between most of them. The
-intelligence lives in Claude's reasoning over typed content + components,
-supported by deterministic Python helpers.
+The creator turns raw source content into a polished deck through 6
+phases. **Two mandatory checkpoints** (Phase 2 outline-and-review,
+Phase 6 review-and-compose) gate the user-visible decisions; the
+others are optional skip points.
 
 ```
-Phase 1 ANALYZE         ──▶ ContextDoc          ─checkpoint─┐
-Phase 2 PLAN-OUTLINE    ──▶ DeckOutline                     │
-Phase 3 PLAN-REVIEW     ──▶ approved DeckOutline ─checkpoint┤
-Phase 4 CONTENT (×N)    ──▶ SlideContentPlan    ─checkpoint─┤  (loop per slide)
-Phase 5 LAYOUT (×N)     ──▶ SlideLayoutPlan     ─checkpoint─┤  (loop per slide)
-                                                            │
-                          ┌─────────────────────────────────┘
-                          ▼
-                       BUILD ──▶ deck-plan.json ──▶ deck.html
+Phase 1 ANALYZE                ──▶ ContextDoc
+Phase 2 PLAN-OUTLINE-AND-REVIEW ──▶ DeckOutline                   ★ checkpoint
+Phase 3 CONTENT-PLAN (×N)      ──▶ SlideContentPlan
+                                    + diagram_spec (synthesize)
+                                    + resolved_image (lift)
+Phase 4 LAYOUT-DESIGN (×N)     ──▶ SlideLayoutPlan
+                                    (no-crop + ≥70% fill assertions)
+Phase 5 COMPONENT-PICK (×N)    ──▶ slide_input descriptors
+Phase 6 REVIEW-AND-COMPOSE     ──▶ layout-review.html             ★ checkpoint
+                                    + deck-composed.html
 ```
 
-| Phase | What | Output | Sprint |
-|---|---|---|---|
-| 1 ANALYZE  | parse source + extract images + propose audience/purpose | `ContextDoc` | **4 ✓** |
-| 2 PLAN-OUTLINE | design deck arc + slide list | `DeckOutline` | **5 ✓** |
-| 3 PLAN-REVIEW  | brainstorm outline with user | approved DeckOutline | **5 ✓** |
-| 4 CONTENT    | per-slide typed blocks + image strategy | `SlideContentPlan` | **3 ✓** |
-| 5 LAYOUT     | per-slide component pick + grid + widget preview | `SlideLayoutPlan` | **2 ✓** |
-| BUILD      | assemble deck-plan.json + render | `deck.html` | inherits from page-builder |
+| # | Phase | Output | Notes |
+|---:|---|---|---|
+| 1 | ANALYZE | `ContextDoc` | source ingest + audience/purpose proposal |
+| 2 | PLAN-OUTLINE-AND-REVIEW | `DeckOutline` | merged outline+review, single ★ checkpoint |
+| 3 | CONTENT-PLAN | `SlideContentPlan` (×N) | typed blocks + diagram-draw via vti-slide-diagram-builder + lift filter via classify_image_kind |
+| 4 | LAYOUT-DESIGN | `SlideLayoutPlan` (×N) | no-crop guarantee, ≥70% screen-fill assertion |
+| 5 | COMPONENT-PICK | `slide_input` (×N) | mostly mechanical translation |
+| 6 | REVIEW-AND-COMPOSE | `deck-composed.html` | render layout-review widget → user confirms → compose final HTML |
 
-All 5 phases implemented. The creator package surface:
+The creator package surface:
 
 ```python
 from creator import (
@@ -126,13 +136,21 @@ from creator import (
     # ====== Phase 3 — PLAN-REVIEW (slide-list manipulation) ======
     add_slide, remove_slide, move_slide, replace_slide,
 
-    # ====== Phase 4 — CONTENT ======
+    # ====== Phase 3 — CONTENT-PLAN (was Phase 4 in v3.x) ======
     make_block, make_image_decision, make_slide_content_plan,
     validate_block, validate_plan,
     suggest_strategy,         # image strategy heuristic
-    plan_to_slide_input,      # Phase 4 → 5 bridge
+    plan_to_slide_input,      # legacy Phase 4 → 5 bridge (kept for back-compat)
+    resolve_lift_image,       # v4.0 — content-aware lift filter (uses classify_image_kind)
 
-    # ====== Phase 5 — LAYOUT ======
+    # ====== Phase 4 — LAYOUT-DESIGN (NEW in v4.0) ======
+    design_slide_layout,      # ContentPlan → LayoutPlan with no-crop + fill assertions
+    validate_layout_plan,
+    layout_metrics,           # fill_pct, no_crop_ok, low_fill, high_fill flags
+    make_layout_row, make_layout_cell, make_layout_plan,
+    SLIDE_W_PX, SLIDE_H_PX, CONTENT_AREA_W_PX, CONTENT_AREA_H_PX,
+
+    # ====== Phase 5 — COMPONENT-PICK (was the rest of Phase 5 in v3.x) ======
     picks_for_kind, describe, # component catalog lookup
     even_split, asymmetric_split, with_divider,
     narrative_row, stat_plus_narrative_row,

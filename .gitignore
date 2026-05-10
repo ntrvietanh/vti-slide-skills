@@ -26,6 +26,10 @@ work/
 # Test outputs (keep inputs + expected)
 tests/outputs/
 
+# Per-session driver scripts (regenerated each iteration; wiped by scripts/reset.sh)
+scripts/build_phase_*.py
+scripts/ingest_*.py
+
 # IDE
 .vscode/
 !.vscode/settings.json

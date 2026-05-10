@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>layered — vti-slide-diagram-builder example</title>
+<style>
+  body { font-family: system-ui; max-width: 1240px; margin: 40px auto;
+         padding: 0 20px; color: #1F2A3A; }
+  h1   { color: #0844A4; margin-bottom: 4px; }
+  .meta { color: #6B7785; font-size: 13px; margin-bottom: 24px; }
+  .frame { border: 1px solid #E4ECF5; border-radius: 8px;
+            padding: 16px; background: white; }
+</style>
+</head>
+<body>
+  <h1>layered</h1>
+  <div class="meta">natural viewBox = 1180 × 600 px</div>
+  <div class="frame"><svg viewBox="0 0 1180 600" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="diag-title diag-desc" style="width:100%;height:auto;display:block;">
+  <title id="diag-title">Multi-protocol IoT gateway — layered architecture</title>
+  <desc id="diag-desc">Layered architecture with arrows between layers</desc>
+  <rect width="1180" height="600" fill="#EAF2FB"/>
+  <text x="40" y="50" font-size="14" font-weight="700" fill="#051934" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" letter-spacing="2">MULTI-PROTOCOL IOT GATEWAY — LAYERED ARCHITECTURE</text>
+  <rect x="40" y="90" width="199" height="405" rx="8" fill="white" stroke="#1F2A3A" stroke-width="2"/>
+  <text x="139" y="122" font-size="13" font-weight="700" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">PHYSICAL</text>
+  <text x="139" y="160" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Wi-Fi</text>
+  <text x="139" y="180" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">BLE Mesh</text>
+  <text x="139" y="200" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Zigbee</text>
+  <text x="139" y="220" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">LoRa</text>
+  <text x="139" y="240" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">NB-IoT</text>
+  <text x="139" y="260" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">5G</text>
+  <path d="M 241 292 L 263 292" stroke="#6B7A8D" stroke-width="2" fill="none"/>
+  <path d="M 263.0 292.0 L 253.4 298.0 L 253.4 286.0 Z" fill="#6B7A8D"/>
+  <rect x="265" y="90" width="199" height="405" rx="8" fill="white" stroke="#004AAD" stroke-width="2"/>
+  <text x="364" y="122" font-size="13" font-weight="700" fill="#004AAD" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">LINK</text>
+  <text x="364" y="160" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Multi-proto stack</text>
+  <path d="M 466 292 L 488 292" stroke="#6B7A8D" stroke-width="2" fill="none"/>
+  <path d="M 488.0 292.0 L 478.4 298.0 L 478.4 286.0 Z" fill="#6B7A8D"/>
+  <rect x="490" y="90" width="199" height="405" rx="8" fill="white" stroke="#0844A4" stroke-width="2"/>
+  <text x="589" y="122" font-size="13" font-weight="700" fill="#0844A4" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">CONVERGENCE</text>
+  <text x="589" y="160" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Rules engine</text>
+  <text x="589" y="180" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Edge compute</text>
+  <text x="589" y="200" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Offline ctrl</text>
+  <path d="M 691 292 L 713 292" stroke="#6B7A8D" stroke-width="2" fill="none"/>
+  <path d="M 713.0 292.0 L 703.4 298.0 L 703.4 286.0 Z" fill="#6B7A8D"/>
+  <rect x="715" y="90" width="199" height="405" rx="8" fill="white" stroke="#43C9B7" stroke-width="2"/>
+  <text x="814" y="122" font-size="13" font-weight="700" fill="#43C9B7" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">APP</text>
+  <text x="814" y="160" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">IoT PaaS</text>
+  <text x="814" y="180" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Catalog</text>
+  <text x="814" y="200" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">Geo</text>
+  <path d="M 916 292 L 938 292" stroke="#6B7A8D" stroke-width="2" fill="none"/>
+  <path d="M 938.0 292.0 L 928.4 298.0 L 928.4 286.0 Z" fill="#6B7A8D"/>
+  <rect x="940" y="90" width="199" height="405" rx="8" fill="#051934"/>
+  <text x="1039" y="122" font-size="13" font-weight="700" fill="#FFFFFF" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">CLOUD</text>
+  <text x="1039" y="160" font-size="11" fill="#DAE9F6" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">App PaaS</text>
+  <text x="1039" y="180" font-size="11" fill="#DAE9F6" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="middle">+ SaaS</text>
+  <rect x="40" y="525" width="1100" height="55" rx="8" fill="#DAE9F6"/>
+  <text x="60" y="547" font-size="12" font-weight="700" fill="#051934" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="start">Quantified specs</text>
+  <text x="60" y="567" font-size="11" fill="#1F2A3A" font-family="'Plus Jakarta Sans', 'Arial', system-ui, sans-serif" text-anchor="start">&gt;128 nodes per gateway · &lt;120 ms latency · &lt;3 s onboarding · &lt;1 s recovery</text>
+</svg>
+</div>
+</body>
+</html>

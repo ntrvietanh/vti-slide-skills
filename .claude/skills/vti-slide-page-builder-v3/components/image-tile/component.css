@@ -24,6 +24,21 @@
   display: block;
 }
 
+/* v4.0 — soft frame uses 'contain' instead of 'cover'.
+   Rationale: soft frames are typically architecture diagrams / SVG
+   exports / screenshots where every pixel carries meaning — cropping
+   the right side (as in v3.x with hardcoded aspect_ratio: 16:9)
+   loses content. The 'cover' default is preserved for rounded /
+   square hero photos where cinematic crop is desired. The creator's
+   Phase 4 layout-designer sets cell aspect_ratio to match image
+   natural aspect, so neither fit mode crops in practice — but
+   'contain' is the safer fallback when an upstream caller forgets
+   to compute the natural ratio. */
+.vti-image-tile--soft .vti-image-tile__img {
+  object-fit: contain;
+  background: var(--vti-paleblue);
+}
+
 /* Overlay caption — fades from transparent at top to deep navy at bottom
    so white text reads cleanly over any image. */
 .vti-image-tile__caption--overlay {
