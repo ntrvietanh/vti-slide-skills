@@ -1,5 +1,13 @@
 # vti-slide-diagram-builder — CHANGELOG
 
+## v0.2.0 (2026-05-10) — Tighter canvases (remove vertical whitespace)
+
+`CANVAS_H_WIDE: 460 → 280` and `CANVAS_H_TALL: 600 → 480`. The v0.1 defaults padded ~150-200px of vertical whitespace below content in every flow / quadrant / layered-stack output (boxes 130px tall centered in a 460px canvas left ~165px gap top + ~165px gap bottom). Visible in deck render as "diagrams stretched long with whitespace underneath".
+
+New defaults size close to the minimum each primitive actually needs (~210-230 for a 4-step horizontal flow with title; ~430 for a quadrant 2x2 with 5-item cells). Aspect of `flow_diagram` now ~4.21 (1180/280) instead of 2.57 — flatter banner that tucks naturally into the new `vti-slide-creator` 4.5 `image-banner-top` slot without forcing aside fallback.
+
+No API change; primitive signatures unchanged.
+
 ## v0.1.0 (2026-05-10) — Initial primitives
 
 First release. Extracted 7 diagram primitives from the ad-hoc

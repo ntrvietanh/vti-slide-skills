@@ -1,5 +1,90 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.6.0 (2026-05-10) — Principle 10: Voice & tone (mandatory voice handshake at Phase 2)
+
+Adds **Principle 10 — Voice & tone** to the design principles, plus a new
+mandatory checkpoint inside Phase 2. Symptom that triggered this: review
+of the StarHub deck showed narrative blocks written in analyst-notation
+style (`Telco-AI peer experience — SK Telecom runs three live AI
+programs with VTI today.`, `near-as-makes-no-difference`, `Day-1`,
+`slideware`) that read as fragments rather than human speech and
+quietly excluded readers who don't share the in-group jargon.
+
+### What changed
+
+1. **New mandatory voice handshake at Phase 2 close-out.** Before exiting
+   Phase 2 ★ checkpoint into Phase 3 CONTENT-PLAN, the orchestrator
+   MUST ask the user one question — pick a voice from
+   `consultative-sales` (default) / `technical-deep` / `executive-brief` /
+   `educational`, or describe their own. Answer is stored in
+   `plan['voice']` and read by every Phase 3 narrative draft.
+
+2. **Universal writing rules** that apply to ALL voices:
+   - Full sentences, not telegraphic dash-stitched fragments.
+   - Spell out compressed jargon in narrative (`edge→gateway→GPU spine`
+     is fine on a diagram label, not in prose).
+   - At most one em-dash interruption per sentence.
+   - Avoid tribal compressions: `Day-1`, `slideware`, `mid-pivot`,
+     `near-as-makes-no-difference` etc.
+
+3. **Voice-specific tweaks** (pronouns, hedging, sentence length, jargon
+   density) tabulated per voice for tactical writing decisions.
+
+4. **Phase 6 enforcement spot-check** — REVIEW-AND-COMPOSE reads 3–5
+   narrative blocks; if fragment-style or stacked-dash sentences slip
+   through, bounce back to Phase 3 with the offending text quoted.
+
+### Why this is a hard rule, not a soft guideline
+
+Slides are read aloud or skim-read by sceptical execs. Spec-sheet prose
+forces them to mentally re-inflate every fragment into a sentence —
+extra cognitive work — and tribal jargon signals in-group knowledge they
+may not share, which subtly excludes them from the conversation. Both
+weaken the pitch. The voice handshake ensures the orchestrator and the
+user are aligned BEFORE any drafting happens, instead of finding out at
+review time that the whole deck reads in the wrong register.
+
+## v4.5.0 (2026-05-10) — Flexible image+content split + correct canvas geometry
+
+**Closes gaps #60, #61, #62, #63** — three structural layout bugs and a wrong-constants regression that produced sparse 54%-fill aside slides AND, in the v4.4-emergency banner-top fix attempt, content-overlap rendering.
+
+### Gap #60 — wrong canvas constants (silent fill miscalc)
+`layout_designer` had used `CONTENT_AREA_W_PX=1280` / `CONTENT_AREA_H_PX=620` / `COL_W_PX=106` since v4.0. The page-builder's actual content area is **1168 × 586** (after 56px LR padding + 70/64 top/bottom chrome) with **18px grid gap** and per-col width ≈ 80.83px. Every fill_pct estimate was 9–24% too optimistic, so banner-top heights computed at ~498px actually overflowed the real 586px area, getting visibly clipped at the slide bottom. Fixed: `CONTENT_AREA_W_PX = SLIDE_W_PX - 2 * CHROME_LR_PX` (1168), `CONTENT_AREA_H_PX = SLIDE_H_PX - CHROME_TOP_PX - CHROME_BOTTOM_PX` (586), explicit `GAP_PX = 18`, new `col_span_to_px(span)` helper that includes gap math.
+
+### Gap #61 — rigid pattern selection
+`design_slide_layout` picked exactly one of three patterns by aspect-ratio buckets (`stacked-top` ≥2.0, `side-by-side` 1.4-2.0, `tall-side` <1.4) with **fixed col_spans**: image always 8 in side-by-side, always 5 in tall-side, always 12 in stacked-top. For wide diagrams (aspect 2.57) packed beside features_3 cards, this produced 1+1+2-col cards (titles clipping: "AI DOCTO MATCH") and 200px+ of empty space inside the stretched image cell. Replaced with a **candidate-search designer**: enumerate banner-top, banner-bottom, and aside layouts at col_span 3..8 × {left, right} = 14 candidates per slide, score each on (image-vs-content-height mismatch + waste), pick the lowest-score viable candidate.
+
+### Gap #62 — narrow right-column multi-cell blocks
+Even-split inside a narrow column (`col_span // n`) gave practice-cards 1-col-wide slots when aspect picked side-by-side col_span=8. New `_layout_blocks_in_column(blocks, col_span)` stacks features_3 / values / catalog **vertically** when `col_span < n * MIN_HORIZONTAL_PER_ITEM` (3); horizontal split otherwise. Practice-card titles now have ≥3 cols (~278px) of width minimum.
+
+### Gap #63 — image cell over-stretch with row_span
+`_design_image_aside_stack` set `row_span = N` on the image cell, where N = total right-column rows — but if image natural rendered height was less than the right-column total, the cell stretched and the image only filled the top portion (object-fit:contain), leaving sparse empty space below. New aside builder: greedily pack right-column rows whose cumulative height stays close to image natural height; remaining rows fall to **full-width below** the aside section. Also: image-aside layouts now allow **image to shrink below natural pixel size** (cap at content-area height), letting portrait images render at usable widths instead of being rejected outright.
+
+### New patterns
+- `vertical-stack` — unchanged
+- `image-banner-top` — wide image full-width row 1, content rows below
+- `image-banner-bottom` — wide image full-width row N, content rows above (rare; only wins when explicitly better-scoring)
+- `image-aside-{left,right}-{K}of12` — image one side at K∈{3,4,5,6,7,8} cols, content the other side; remainder full-width below if needed
+
+### New helpers / API
+- `col_span_to_px(span: int) -> int` — pixel width of a K-col cell including gaps
+- `BLOCK_KIND_STACKED_ITEM_H: dict[str, int]` — per-item heights for vertically-stacked multi-cell blocks
+- `_enumerate_candidates(...)`, `_candidate_banner(...)`, `_candidate_aside(...)`, `_layout_blocks_in_column(...)`, `_build_banner_layout(...)`, `_build_aside_layout(...)` — internal candidate-search machinery
+
+### Sibling change: `vti-slide-diagram-builder` 0.1.0 → 0.2.0
+`CANVAS_H_WIDE: 460 → 280` and `CANVAS_H_TALL: 600 → 480`. The old defaults padded ~150-200px of vertical whitespace below every flow / quadrant. New defaults size to roughly the minimum a primitive needs. Aspect of horizontal flow_diagram now ~4.21 (1180/280) instead of 2.57 — flatter banner that tucks naturally into `image-banner-top` slots without forcing aside fallback.
+
+### Verification
+| Test | Before | After |
+|---|---:|---:|
+| Slides at fill ≥ 70% | 19/26 | 26/26 |
+| Validator errors | 0 | 0 |
+| No-crop violations | 0 | 0 |
+| Slides with low_fill warning | 7 | 0 |
+
+### Migration
+Plans from v4.4 still validate with v4.5 (schema unchanged). The new pattern names appear in `plan["pattern"]` strings. Drivers that pattern-match on legacy strings (`"image-side-by-side"`, `"image-tall-side"`, `"image-stacked-top"`) need updating to recognise `"image-aside-{side}-{K}of12"` and `"image-banner-{top,bottom}"`.
+
 ## v4.4.0 (2026-05-10) — Semantic image picker (Phase 3 protocol)
 
 **Replaces**: the v4.0 `resolve_lift_image()` heuristic, which scored

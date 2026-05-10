@@ -36,10 +36,10 @@
    flex + gap gives predictable section spacing regardless of body length. */
 .page-pmm .pmm-panel {
   position: absolute;
-  top: 250px; left: 870px; right: 30px; height: 335px;
+  top: 230px; left: 870px; right: 30px; height: 360px;
   padding: 0 22px 0 18px;
   display: flex; flex-direction: column;
-  gap: var(--vti-space-xl);     /* 32px */
+  gap: var(--vti-space-md);     /* 16px — tighter so 4 sections fit */
 }
 .page-pmm .pmm-sec { padding: 0; }
 

@@ -1,6 +1,6 @@
 # vti-slide-creator
 
-**Version: 4.4.0**
+**Version: 4.6.0**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder` (the renderer).
@@ -764,13 +764,85 @@ image-bearing slides must specify:
 Phase 4 plan_to_slide_input must compose the corresponding row
 structure (cell col_spans, row heights) accordingly.
 
+### Principle 10 · Voice & tone — write like a person, not a spec sheet (v4.6)
+
+Slide narrative blocks are read as if a presenter is speaking them out
+loud. Telegraphic, dash-stitched fragments — `Telco-AI peer experience —
+SK Telecom runs three live AI programs with VTI today.` — read as
+analyst notation, not human speech. The reader has to mentally re-inflate
+each fragment into a sentence, which is friction.
+
+**Mandatory voice handshake (Phase 2, before slide-content drafting):**
+
+When the deck outline is approved at the Phase 2 ★ checkpoint, **before
+moving into Phase 3 CONTENT-PLAN, ask the user one question**:
+
+> *"What voice should this deck use? Pick one (or describe your own):*
+> *— **Consultative-sales** (peer-to-peer, confident, plain language; default for client decks)*
+> *— **Technical-deep** (precise, jargon-OK, dense; for engineering audiences)*
+> *— **Executive-brief** (terse, outcomes-first, minimal hedging; for C-suite)*
+> *— **Educational** (explanatory, pedagogical; for training/onboarding decks)"*
+
+Lock the answer into `plan['voice']`. All Phase 3 narrative drafting reads
+this field and writes accordingly. If the user does not answer, default to
+**consultative-sales** — it is the most common deck purpose.
+
+**Writing rules that apply to ALL voices (after handshake):**
+
+1. **Full sentences, not fragments.** `Compliance-by-design — 3-Ministry,
+   HL7 FHIR, GDPR, PIPA — translatable directly to PDPA, IMDA, HSA.` →
+   `Compliance is built in — the 3-Ministry, HL7 FHIR, GDPR and PIPA
+   work we already do maps cleanly onto Singapore's PDPA, IMDA and HSA.`
+
+2. **Spell out compressed jargon when it appears in narrative.**
+   `edge→gateway→GPU spine` is fine on a diagram label; in prose, write
+   `the same edge / gateway / GPU pipeline` or `edge servers feeding into
+   gateway GPUs`. The arrow notation reads as code, not English.
+
+3. **No more than ONE em-dash interruption per sentence.** Stacked dashes
+   (`X — Y — Z`) make the reader parse three clauses at once.
+
+4. **Avoid tribal compressions** — `near-as-makes-no-difference`,
+   `Day-1`, `mid-pivot`, `slideware`. They are insider shorthand that
+   reads as cleverness rather than clarity. Prefer `almost
+   one-for-one`, `from day one`, `is in the middle of moving`,
+   `slides`.
+
+5. **The reader should never need to re-inflate a phrase into a sentence
+   to understand it.** If they do, the phrase is too compressed.
+
+**Voice-specific tweaks** (applied on top of the universal rules):
+
+| Voice | Pronouns | Hedging | Sentence length | Jargon density |
+|---|---|---|---|---|
+| Consultative-sales | "we" / "you" | mild ("almost", "roughly") | 12–22 words | low–mid |
+| Technical-deep | "the system" / "we" | minimal | 15–30 words | high (acceptable) |
+| Executive-brief | omitted subject ok | none | 8–14 words | low |
+| Educational | "we" / "you" / "this" | explanatory | 10–25 words | low, defined on first use |
+
+**Enforcement points:**
+- Phase 2 close-out: **MUST** ask the voice question before Phase 3
+  starts. This is a checkpoint, not optional.
+- Phase 3 CONTENT-PLAN: every `narrative-paragraph` and
+  `bullet-list-checked` block must conform to the locked voice + the
+  universal rules above.
+- Phase 6 REVIEW-AND-COMPOSE: spot-read 3–5 narrative blocks. If any
+  fragment-style or stacked-dash sentences slipped through, bounce back
+  to Phase 3 with the offending text quoted.
+
+The reason this is now a hard principle: presenter-mode slides are read
+aloud or skim-read by a sceptical exec. Spec-sheet prose forces them to
+do extra work — and tribal jargon (`Day-1`, `slideware`) signals
+in-group knowledge they may not have, which subtly excludes them from
+the conversation. Both weaken the pitch.
+
 ### How these principles bind to the 5-phase pipeline
 
 | Phase | Where the principles apply |
 |---|---|
 | Phase 1 ANALYZE  | Identify potential hero elements per slide topic; flag slides where existing components likely won't carry the message (custom-build candidates) |
-| Phase 2 OUTLINE  | Each slide row in the outline table commits to **layout sketch + char budget** (P6 v3.4). Image strategy column commits to "lift / synthesize / custom-svg" — not just "no image". Already at this phase the slide's projected fill rate must be ≥70%. |
-| Phase 4 CONTENT  | Draft content to the budget declared in Phase 2 (P6 v3.4). If draft falls below 70%, BOUNCE BACK to Phase 2 with a narrower-layout proposal — do not proceed. |
+| Phase 2 OUTLINE  | Each slide row in the outline table commits to **layout sketch + char budget** (P6 v3.4). Image strategy column commits to "lift / synthesize / custom-svg" — not just "no image". Already at this phase the slide's projected fill rate must be ≥70%. **Voice handshake (P10):** before exiting Phase 2, ask the user which voice the deck uses (consultative-sales / technical-deep / executive-brief / educational); store in `plan['voice']`. |
+| Phase 4 CONTENT  | Draft content to the budget declared in Phase 2 (P6 v3.4). If draft falls below 70%, BOUNCE BACK to Phase 2 with a narrower-layout proposal — do not proceed. **Voice (P10):** every narrative paragraph and bullet conforms to the locked `plan['voice']` and the universal rules (full sentences, no stacked dashes, no tribal compressions like `Day-1`/`slideware`/`mid-pivot`). |
 | Phase 5 LAYOUT   | Default row height = `auto` (P7 Loop 1). `1fr` only with documented justification + content-fill verification. Wireframe MUST show focal point clearly. After Loop 1 settles, evaluate Loop 2 slide-bottom whitespace per P7 decision table. |
 | BUILD            | Re-screenshot each slide and audit DOM for type/color violations (`audit_typography.py`). Spot-check 3-5 slides for content-fill ratio AND slide-bottom whitespace (visual judgment under P7). |
 

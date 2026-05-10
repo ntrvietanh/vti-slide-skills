@@ -20,8 +20,15 @@ import html as _html
 from tokens_bridge import accent, font_body, token
 
 CANVAS_W = 1180
-CANVAS_H_WIDE = 460
-CANVAS_H_TALL = 600
+# v4.5 (2026-05-10): canvas heights reduced to remove the ~150-200px of
+# vertical whitespace below diagrams that the v4.4 generator left at the
+# bottom of every flow / quadrant. Old defaults (460, 600) padded the
+# canvas far beyond actual content. New defaults size to roughly the
+# minimum a primitive needs; primitives that pack densely (quadrant +
+# medallions) still pass an explicit `height_override` if they need
+# more.
+CANVAS_H_WIDE = 280   # was 460 — a 4-step horizontal flow needs ~210px
+CANVAS_H_TALL = 480   # was 600 — quadrant 2x2 with 5-item cells needs ~430px
 STROKE_NORMAL = 2
 STROKE_THICK = 3
 ARROW_HEAD_SIZE = 6

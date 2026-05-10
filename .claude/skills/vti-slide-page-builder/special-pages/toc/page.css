@@ -144,6 +144,16 @@
   font-size: 15px;
 }
 
+/* Sub-item page numbers: lighter + smaller to match the lvl2 text. */
+.page-toc .toc-row--lvl2 .toc-pg {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+}
+.page-toc .toc-grid[data-cols="2"] .toc-row--lvl2 .toc-pg {
+  font-size: 11px;
+}
+
 /* Floating white pill straddling header/box boundary */
 .page-toc .toc-pill {
   position: absolute;

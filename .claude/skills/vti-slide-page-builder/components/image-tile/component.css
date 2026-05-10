@@ -39,6 +39,16 @@
   background: var(--vti-paleblue);
 }
 
+/* bg='none' modifier — strips both the figure-level frame fill AND the
+   soft-variant's pale-blue letterbox, leaving the embed transparent on
+   the slide canvas. Used when the embedded image (typically an SVG
+   diagram) already paints its own background and the outer pale-blue
+   frame becomes a redundant double-band. */
+.vti-image-tile--no-bg,
+.vti-image-tile--no-bg .vti-image-tile__img {
+  background: transparent;
+}
+
 /* Overlay caption — fades from transparent at top to deep navy at bottom
    so white text reads cleanly over any image. */
 .vti-image-tile__caption--overlay {

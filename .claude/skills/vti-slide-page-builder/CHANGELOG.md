@@ -1,6 +1,81 @@
 # vti-slide-page-builder — CHANGELOG
 
-## v3.13.4 (2026-05-10) — Fix: image-tile / logo-grid normalize dict-shaped image prop
+## v3.13.9 (2026-05-10) — practice-card: elevation shadow
+
+Cosmetic only. Adds a two-layer `box-shadow` to `.vti-practice-card` so cards
+lift off the slide background instead of relying solely on the 0.5px hairline
+border. Tuned at rgba ≈0.04 / ≈0.08 with larger blur (6px / 28px) and a -4px
+spread on the diffuse layer — soft, diffused lift well short of Material
+elevation.
+
+## v3.13.8 (2026-05-10) — slide_meta.vertical_align flag for vertical centering
+
+Additive opt-in. Default behavior unchanged. New `slide_meta.vertical_align`
+field accepts `"start"` (default) or `"center"`. When `"center"`, the inner
+grid container gets a `vti-grid--center` modifier class which overrides
+`align-content: start` to `align-content: center` — leftover space is split
+between the top and bottom of the canvas instead of dumping it all under the
+last row.
+
+Use case: sparse slides like `engagement-models` (3 practice-cards + narrative
++ kpi-row) that fill ~60% of vertical space and look bottom-anchored. Authors
+opt in per-slide, so dense slides still anchor from the top.
+
+`row.height: 1fr` rows continue to work as before (1fr expands to fill, so
+align-content has no effect on those rows). Pure-`auto` slides are the ones
+that benefit from this flag.
+
+## v3.13.7 (2026-05-10) — icon palette: 6 additions (eye, message, sparkles, wifi, cpu, bell)
+
+Additive only. Existing 16 icon names unchanged. Adds:
+
+- `eye` — vision / Computer Vision
+- `message` — NLP / chat / conversational
+- `sparkles` — Generative AI / innovation
+- `wifi` — wireless / connectivity / RF tier
+- `cpu` — edge compute / gateway hardware
+- `bell` — alert / rules engine / notification
+
+Motivation: KPI cards on the StarHub deck (and `icon-list` rows on
+slides 7 + 25) were rendering blue empty discs because authors used
+glyphs (`◎`, `◯`) or non-existent names — `render_icon` returned `''`
+which the icon-disc CSS still paints as a flat blue circle. The
+existing palette covered structural / business semantics but had gaps
+for AI capability bands (CV / NLP / GenAI) and IoT eldercare RF-tier
+labels. These 6 additions close those gaps without changing any
+existing renderer.
+
+`catalog()` now reports 22 icons (was 16). No prop schema changes.
+
+## v3.13.6 (2026-05-10) — image-tile: optional `bg` flag to suppress frame background
+
+Additive prop. The default soft frame paints `--vti-paleblue` behind
+the image — fine for screenshots/photos, but redundant when the
+embedded SVG diagram already carries its own pale-blue rectangle (e.g.
+`s22-omron`, `s27-eldercare-pillars`, `s28-telemedicine`). The double
+band reads as two stacked frames.
+
+New prop `bg: 'default' | 'none'` (default `'default'`, fully
+backwards-compatible). Setting `bg: 'none'` adds a
+`vti-image-tile--no-bg` modifier that zeros out both the figure-level
+fill and the soft-variant's letterbox color. No effect on caption,
+aspect, or frame radius — purely the background paint.
+
+## v3.13.5 (2026-05-10) — practice-card: compact horizontal header for icon variant
+
+Layout tweak. The icon variant of `practice-card` previously stacked
+the icon ABOVE the title with `min-height: 144px` on the top region
+and a 48-px icon. That hero footprint forced 5/6/7-card capability
+grids to drop their trailing narrator paragraph for vertical space —
+slides 10, 14, 25 lost their "synthesis" copy.
+
+Fix: switch the icon variant's `.vti-practice-card__top-content` from
+`flex-direction: column` to `row` (icon-left, title-right), shrink the
+icon to 36 px, drop `min-height` to 88 px, tighten padding. The
+no-icon variant is unchanged. Saves ~55 px of card height — the
+narrator paragraph now fits below the grid on dense capability slides.
+
+
 
 Patch release. `image-tile` and per-entry `logo-grid` images previously
 crashed silently when an upstream drafter handed in a dict like

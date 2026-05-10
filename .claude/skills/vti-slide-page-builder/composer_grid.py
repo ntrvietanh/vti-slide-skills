@@ -215,6 +215,32 @@ ICON_SVGS: dict[str, str] = {
 <path d="M2 12h20"/>
 <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
 </svg>''',
+    "eye": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+<circle cx="12" cy="12" r="3"/>
+</svg>''',
+    "message": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+</svg>''',
+    "sparkles": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>
+<path d="M12 8a4 4 0 0 0 4 4 4 4 0 0 0-4 4 4 4 0 0 0-4-4 4 4 0 0 0 4-4z"/>
+</svg>''',
+    "wifi": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M5 12.55a11 11 0 0 1 14 0"/>
+<path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+<path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+<line x1="12" y1="20" x2="12.01" y2="20"/>
+</svg>''',
+    "cpu": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<rect x="4" y="4" width="16" height="16" rx="2"/>
+<rect x="9" y="9" width="6" height="6"/>
+<path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/>
+</svg>''',
+    "bell": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg>''',
 }
 
 
@@ -443,17 +469,23 @@ def _r_practice_card(props: dict) -> str:
         )
 
     icon_svg = render_icon(icon) if icon else ""
+    icon_html = (
+        f'<span class="vti-practice-card__icon">{icon_svg}</span>'
+        if icon_svg else ""
+    )
+    has_icon_class = " vti-practice-card--has-icon" if icon_svg else ""
     number_html = (
         f'<span class="vti-practice-card__num">{_esc(number)}</span>'
         if number else ""
     )
 
     return _fill(_component_template("practice-card"), {
-        "BG_COLOR":    bg_color,
-        "NUMBER_HTML": number_html,
-        "ICON_SVG":    icon_svg,
-        "TITLE":       title,
-        "BODY":        body,
+        "BG_COLOR":       bg_color,
+        "NUMBER_HTML":    number_html,
+        "ICON_HTML":      icon_html,
+        "HAS_ICON_CLASS": has_icon_class,
+        "TITLE":          title,
+        "BODY":           body,
     })
 
 
@@ -741,6 +773,7 @@ def _r_vs_divider(props: dict) -> str:
 
 _VALID_FRAME = {"rounded", "soft", "square"}
 _VALID_CAPTION_POS = {"overlay", "below", "none"}
+_VALID_BG = {"default", "none"}
 _VALID_ASPECT_RE = re.compile(r"^\s*\d+\s*:\s*\d+\s*$")
 
 
@@ -763,7 +796,8 @@ _VALID_ASPECT_RE = re.compile(r"^\s*\d+\s*:\s*\d+\s*$")
     "schema_brief": "image: str (path or URL), caption?: str≤120, "
                     "aspect_ratio?: 'W:H' (default '16:9'), "
                     "frame?: 'rounded'|'soft'|'square', "
-                    "caption_position?: 'overlay'|'below'|'none'",
+                    "caption_position?: 'overlay'|'below'|'none', "
+                    "bg?: 'default'|'none' (default 'default')",
     "font_levels_used":  ["caption"],
     "font_weights_used": [400],
     "capacity_chars_fixed":   60,
@@ -776,6 +810,7 @@ def _r_image_tile(props: dict) -> str:
     aspect   = props.get("aspect_ratio", "16:9")
     frame    = props.get("frame", "rounded")
     cap_pos  = props.get("caption_position", "below" if caption else "none")
+    bg       = props.get("bg", "default")
 
     if not _VALID_ASPECT_RE.match(aspect):
         raise ValidationError(
@@ -791,6 +826,11 @@ def _r_image_tile(props: dict) -> str:
         raise ValidationError(
             "invalid_value", "image-tile.props.caption_position",
             f"must be one of {sorted(_VALID_CAPTION_POS)}",
+        )
+    if bg not in _VALID_BG:
+        raise ValidationError(
+            "invalid_value", "image-tile.props.bg",
+            f"must be one of {sorted(_VALID_BG)}",
         )
     if caption:
         _check_max_chars(caption, 120, "image-tile.props.caption")
@@ -810,6 +850,8 @@ def _r_image_tile(props: dict) -> str:
             f'<figcaption class="vti-image-tile__caption '
             f'vti-image-tile__caption--below">{_esc(caption)}</figcaption>'
         )
+    if bg == "none":
+        frame_class = f"{frame_class} vti-image-tile--no-bg"
 
     return _fill(_component_template("image-tile"), {
         "FRAME_CLASS":      frame_class,
@@ -3376,6 +3418,11 @@ _GRID_CSS = """
    */
   align-content: start;
 }
+/* v3.13.8 — opt-in vertical centering for sparse slides.
+ * Set slide_meta.vertical_align = "center" to distribute leftover space
+ * above + below content instead of dumping it all at the bottom.
+ */
+.layout-grid .vti-grid--center { align-content: center; }
 .layout-grid .vti-grid-cell {
   display: flex;
   align-items: stretch;
@@ -3803,6 +3850,7 @@ def _validate_fill_honesty(rows: list, where_prefix: str,
 def _compose_grid_body(rows: list, where_prefix: str = "rows",
                         layout_class: str = "default",
                         density_mode: str = "standard",
+                        vertical_align: str = "start",
                         ) -> tuple[str, set[str], list[str]]:
     """Render rows × cells into the inner grid HTML.
 
@@ -3894,8 +3942,15 @@ def _compose_grid_body(rows: list, where_prefix: str = "rows",
     row_heights = [str(r.get("height", "auto")) for r in rows]
     grid_rows_css = " ".join(row_heights)
 
+    if vertical_align not in ("start", "center"):
+        raise ValidationError(
+            "invalid_value", f"{where_prefix}.vertical_align",
+            f"must be 'start' or 'center', got {vertical_align!r}",
+        )
+    grid_class = "vti-grid" + (" vti-grid--center" if vertical_align == "center" else "")
+
     body_html = (
-        f'<div class="vti-grid" '
+        f'<div class="{grid_class}" '
         f'style="grid-template-rows: {grid_rows_css};">\n'
         f'    ' + "\n    ".join(cell_html_parts) + '\n'
         f'  </div>'
@@ -3927,6 +3982,9 @@ def compose_slide_grid(slide_input: dict) -> dict:
             f"must be one of {sorted(_DENSITY_MODE_THRESHOLDS.keys())}, "
             f"got {density_mode!r}",
         )
+    # v3.13.8 — vertical_align distributes leftover space top+bottom
+    # ('center') vs dumping it all at the bottom ('start', default).
+    vertical_align = slide_meta.get("vertical_align", "start")
 
     # Reset transitive-component tracker for this render -----------------
     _USED_COMPONENTS_THIS_RENDER.clear()
@@ -3937,7 +3995,8 @@ def compose_slide_grid(slide_input: dict) -> dict:
 
     # Render body grid (delegates to shared helper) ----------------------
     grid_html, top_level_components, warnings = _compose_grid_body(
-        rows, layout_class=layout_class, density_mode=density_mode)
+        rows, layout_class=layout_class, density_mode=density_mode,
+        vertical_align=vertical_align)
 
     # Chrome --------------------------------------------------------------
     if show_chrome:
@@ -4018,7 +4077,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.13.3",
+        "version":    "3.13.9",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }
