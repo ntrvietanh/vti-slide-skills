@@ -1,0 +1,33 @@
+<!--
+  ============================================================================
+  SPECIAL PAGE · section-divider
+  ----------------------------------------------------------------------------
+  Chapter intro page. Background is a single composite PNG (chevron pill
+  + drop-shadow triangle frame + photo) extracted from the reference PPTX.
+
+  Per-slide bg override: pass `bg_asset_url` in data → typically a base64
+  data URL of an alternate composite (e.g. GDC s08 has a 4-photo triangle
+  showing data/cities/people; default has the office building photo).
+  When omitted, falls back to assets/divider-visual.png via page.css.
+
+  We overlay only: section title, description, VTI logo. Chevron and
+  triangle frame are part of the bg asset by design — no CSS substitutes.
+  ============================================================================
+-->
+<div class="slide page-section-divider">
+  <!-- Background image: full composite (chevron + triangle + photo).
+       Inline style allows per-slide override; defaults to the asset
+       referenced in page.css when the placeholder is empty. -->
+  <div class="dv-bg" style="{{DV_BG_STYLE}}"></div>
+
+  <!-- Centered title block on the left -->
+  <div class="dv-content">
+    <h1 class="dv-title">{{SECTION_TITLE}}</h1>
+    <p class="dv-desc">{{SECTION_DESCRIPTION}}</p>
+  </div>
+
+  <!-- Bottom-left logo -->
+  <div class="dv-logo">
+    <!-- VTI_LOGO_INJECT position="bottom-left" variant="full-color" size="100px" -->
+  </div>
+</div>

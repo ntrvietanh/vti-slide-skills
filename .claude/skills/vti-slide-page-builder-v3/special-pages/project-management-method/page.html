@@ -1,0 +1,41 @@
+<!--
+  project-management-method — lifted from GDC PPTX p.20 (Project Management
+  Method). Background = pre-cleaned slide visual (Sprint cycle diagram,
+  role icons + labels, side-panel BG). Editable overlays:
+    • intro paragraph (top)
+    • 4 side-panel sections (Sprint Period, Internal Demo, Release & UAT,
+      Backlog Preparation) — each with title + body
+  All structural visual (Sprint flow + role labels) is baked into the JPEG.
+-->
+<div class="slide page-pmm" data-show-chrome="{{SHOW_CHROME}}">
+  <div class="lift-bg" style="{{BG_STYLE}}"></div>
+
+  <p class="pmm-intro">{{INTRO_TEXT}}</p>
+
+  <div class="pmm-panel">
+    <div class="pmm-sec">
+      <h4 class="pmm-title">{{SECTION_1_TITLE}}</h4>
+      <p  class="pmm-body">{{SECTION_1_BODY}}</p>
+    </div>
+    <div class="pmm-sec">
+      <h4 class="pmm-title">{{SECTION_2_TITLE}}</h4>
+      <p  class="pmm-body">{{SECTION_2_BODY}}</p>
+    </div>
+    <div class="pmm-sec">
+      <h4 class="pmm-title">{{SECTION_3_TITLE}}</h4>
+      <p  class="pmm-body">{{SECTION_3_BODY}}</p>
+    </div>
+    <div class="pmm-sec">
+      <h4 class="pmm-title">{{SECTION_4_TITLE}}</h4>
+      <p  class="pmm-body">{{SECTION_4_BODY}}</p>
+    </div>
+  </div>
+
+  <div class="bc"><span class="bc-bar"></span><span class="bc-text">{{BREADCRUMB}}</span></div>
+  <!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->
+  <div class="fbar">
+    <div class="fbar-chev"><span class="fbar-num">{{PAGE_NUM}}</span></div>
+    <span class="fbar-sep"></span><span class="fbar-doc">{{DOC_TITLE}}</span>
+  </div>
+  <div class="fbar-copy">© {{COPYRIGHT_YEAR}} VTI APAC. All rights reserved.</div>
+</div>

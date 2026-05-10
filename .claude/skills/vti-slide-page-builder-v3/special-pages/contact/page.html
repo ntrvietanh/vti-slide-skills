@@ -1,0 +1,85 @@
+<!--
+  ============================================================================
+  SPECIAL PAGE · contact
+  ----------------------------------------------------------------------------
+  Penultimate slide listing all VTI offices. Layout sampled from the VTI
+  Contact reference deck (2026-05-06):
+
+    LEFT (~57%): white area
+      - "CONTACT US" headline preceded by an 8 px deep-blue vertical bar.
+      - 4 social/contact channel rows (Facebook, Email, LinkedIn, Website),
+        each rendered as a circular blue mini-icon + label. Channels are
+        data-driven via a CHANNELS each-block; type in facebook|email|
+        linkedin|website|phone determines the icon glyph (creator.py
+        injects the inline SVG via this.icon_svg).
+      - Per-country office sections. Each section has:
+          * A country header: small flag (in a white-bordered box) +
+            uppercase country/region name.
+          * One or more "branch" lines: bold label ("Hanoi head office:")
+            followed by free-form address/phone text.
+        Backward compat: legacy `addresses[]` schema is converted by
+        creator.py into branches[] with empty labels (rendered as plain
+        paragraph lines).
+
+    RIGHT (~43%): the hero photo (default: `contact-photo-globe.jpg`,
+      the blue-glass-globe-on-keyboard image from the Contact reference
+      deck). The white VTI logo overlays the top-right corner of the
+      photo (same anchor as the chrome header logo on content slides).
+
+    BOTTOM-LEFT: full-color VTI logo, replacing the standard chevron
+      footer. Contact slide intentionally has NO page-number / doc-title
+      / copyright — it's a brand-only closing surface.
+  ============================================================================
+-->
+<div class="slide page-contact">
+  <!-- Right photo panel -->
+  <aside class="ct-photo"></aside>
+
+  <!-- Top-right white logo (overlays the photo) — same size as chrome top-right logo -->
+  <div class="ct-logo-tr">
+    <!-- VTI_LOGO_INJECT position="contact-photo" variant="full-white" size="110px" -->
+  </div>
+
+  <!-- Left content -->
+  <main class="ct-l">
+    <h1 class="ct-h">
+      <span class="ct-h-bar"></span>
+      <span class="ct-h-text">{{CONTACT_HEADLINE}}</span>
+    </h1>
+
+    <div class="ct-channels">
+      {{#each CHANNELS}}
+      <div class="ct-ch ct-ch--{{this.type}}">
+        <span class="ct-ch-ico">{{this.icon_svg}}</span>
+        <span class="ct-ch-text">{{this.text}}</span>
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="ct-offices">
+      {{#each OFFICES}}
+      <div class="ct-office">
+        <div class="ct-region">
+          <span class="ct-flag-frame">
+            <img src="{{this.flag}}" class="ct-flag" alt="">
+          </span>
+          <span class="ct-region-name">{{this.region}}</span>
+        </div>
+        <div class="ct-branches">
+          {{#each this.branches}}
+          <p class="ct-branch">
+            <strong class="ct-branch-label">{{this.label}}</strong>
+            <span class="ct-branch-text">{{this.text}}</span>
+          </p>
+          {{/each}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </main>
+
+  <!-- Bottom-left full-color logo (replaces chevron + page-num footer) -->
+  <div class="ct-logo-bl">
+    <!-- VTI_LOGO_INJECT position="bottom-left" variant="full-color" size="110px" -->
+  </div>
+</div>

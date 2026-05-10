@@ -1,0 +1,8 @@
+# Core deps for VTI slide skills
+Pillow>=10.0.0       # image processing in vti-slide-creator-v3 (image_decisions.py, preview.py)
+numpy>=1.24.0        # used in decorator/whitespace_analyzer
+
+# Dev/test (optional — uncomment when needed)
+# pytest>=7.0
+# ruff>=0.1.0
+# mypy>=1.0

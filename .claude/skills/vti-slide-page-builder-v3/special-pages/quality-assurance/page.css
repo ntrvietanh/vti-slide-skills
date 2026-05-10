@@ -1,0 +1,69 @@
+/* quality-assurance · page.css
+   ---------------------------------------------------------------------
+   All typography & color values consume canonical --vti-* tokens per
+   TYPOGRAPHY.md.
+*/
+.page-qa {
+  width: var(--sw); height: var(--sh); position: relative;
+  background: var(--vti-white);
+  font-family: var(--vti-font-body);
+  overflow: hidden;
+}
+.page-qa .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-qa[data-show-chrome="false"] .bc,
+.page-qa[data-show-chrome="false"] .logo-tr,
+.page-qa[data-show-chrome="false"] .fbar,
+.page-qa[data-show-chrome="false"] .fbar-copy { display: none; }
+
+/* Blue callout — overlays the rounded blue rect in the lifted JPEG
+   (rect bounds: y=101→193, x=63→539). flex-centered for vertical
+   alignment regardless of 1- or 2-line text. Pattern: TYPOGRAPHY.md §8. */
+.page-qa .qa-callout {
+  position: absolute;
+  top: 101px; left: 63px; width: 476px; height: 92px;
+  margin: 0; padding: 8px 36px;
+  box-sizing: border-box;
+  display: flex; align-items: center;
+  font-size: var(--vti-fs-body);
+  font-weight: var(--vti-fw-regular);
+  line-height: 1.4;
+  color: var(--vti-white);
+}
+
+/* Quality Management Activities — heading + 5 bullets. Pattern: TYPOGRAPHY.md §8. */
+.page-qa .qa-acts {
+  position: absolute;
+  top: 230px; left: 60px; width: 625px;
+  background: var(--vti-white);
+  padding: 6px 4px;
+}
+.page-qa .qa-acts-title {
+  margin: 0 0 var(--vti-space-sm) 0;
+  font-size: var(--vti-fs-h2);
+  font-weight: var(--vti-fw-bold);
+  line-height: var(--vti-leading-tight);
+  letter-spacing: var(--vti-tracking-title);
+  color: var(--vti-ink);
+}
+.page-qa .qa-acts-list {
+  margin: 0; padding: 0; list-style: none;
+}
+.page-qa .qa-acts-list li {
+  position: relative;
+  margin: 0 0 var(--vti-space-xs) 0;
+  padding: 0 0 0 18px;
+  font-size: var(--vti-fs-body);
+  line-height: 1.45;
+  color: var(--vti-ink);
+}
+.page-qa .qa-acts-list li::before {
+  content: ""; position: absolute;
+  left: 0; top: 7px;
+  width: 7px; height: 7px;
+  background: var(--vti-ink);
+  border-radius: 50%;
+}

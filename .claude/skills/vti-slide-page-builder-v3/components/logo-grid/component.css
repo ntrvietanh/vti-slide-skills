@@ -1,0 +1,65 @@
+/* =========================================================================
+   logo-grid — even N-column grid of partner / customer / award logos.
+   Three tone modes:
+     • color       — full color, for partners with explicit branding rights
+     • muted       — soft grayscale + slight opacity (the safe default)
+     • monochrome  — full grayscale; useful when many tones clash
+   ========================================================================= */
+
+.vti-logo-grid {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  gap: 24px 32px;
+  padding: 8px 0;
+}
+
+.vti-logo-grid--compact { gap: 14px 22px; }
+.vti-logo-grid--loose   { gap: 28px 40px; }
+
+.vti-logo-grid__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 78px;
+  padding: 14px 20px;
+  background: var(--vti-white);
+  border: 1px solid var(--vti-divider);
+  border-radius: 10px;
+  transition: filter 0.18s ease, opacity 0.18s ease;
+}
+
+.vti-logo-grid--muted .vti-logo-grid__cell {
+  filter: grayscale(0.85);
+  opacity: 0.85;
+}
+
+.vti-logo-grid--monochrome .vti-logo-grid__cell {
+  filter: grayscale(1);
+  opacity: 0.92;
+}
+
+/* On hover (interactive contexts), show the full color treatment.
+   Inert in print — safe no-op there. */
+.vti-logo-grid__cell:hover {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+.vti-logo-grid__img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Fallback when no logo image is supplied — render the name as text.
+   Same height as a real logo so the grid stays aligned. */
+.vti-logo-grid__name {
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-ink-soft);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+}

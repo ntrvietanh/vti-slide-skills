@@ -1,0 +1,42 @@
+<!--
+  who-we-serve — lifted PPTX (pie chart + 4 photo medallions + Domain circle
+  preserved 100%) + editable caption + stats + 9 pie-legend items + chrome.
+  Legend column and stats banner are whitewashed because PPTX text overlapped
+  / clipped beyond fix at source.
+-->
+<div class="slide page-wws" data-show-chrome="{{SHOW_CHROME}}">
+  <div class="lift-bg" style="{{BG_STYLE}}"></div>
+
+  <ul class="wws-legend">
+    <li><span class="wws-sw" style="background:#0844A4"></span><span>{{LEGEND_RETAIL}}</span></li>
+    <li><span class="wws-sw" style="background:#0D58C9"></span><span>{{LEGEND_MFG}}</span></li>
+    <li><span class="wws-sw" style="background:#1E8DF2"></span><span>{{LEGEND_PUBLIC}}</span></li>
+    <li><span class="wws-sw" style="background:#0782FF"></span><span>{{LEGEND_BANKING}}</span></li>
+    <li><span class="wws-sw" style="background:#051934"></span><span>{{LEGEND_INTERNET}}</span></li>
+    <li><span class="wws-sw" style="background:#6B7280"></span><span>{{LEGEND_OTHERS}}</span></li>
+    <li><span class="wws-sw" style="background:#9CA3AF"></span><span>{{LEGEND_UTILITIES}}</span></li>
+    <li><span class="wws-sw" style="background:#43C9B7"></span><span>{{LEGEND_CONSTRUCTION}}</span></li>
+    <li><span class="wws-sw" style="background:#7DC1FE"></span><span>{{LEGEND_HEALTHCARE}}</span></li>
+  </ul>
+
+  <p class="wws-caption">{{CAPTION}}</p>
+
+  <div class="wws-stats">
+    <div class="wws-stat">
+      <div class="wws-stat-value">{{STAT_CUSTOMERS_VALUE}}</div>
+      <div class="wws-stat-label">{{STAT_CUSTOMERS_LABEL}}</div>
+    </div>
+    <div class="wws-stat">
+      <div class="wws-stat-value">{{STAT_PROJECTS_VALUE}}</div>
+      <div class="wws-stat-label">{{STAT_PROJECTS_LABEL}}</div>
+    </div>
+  </div>
+
+  <div class="bc"><span class="bc-bar"></span><span class="bc-text">{{BREADCRUMB}}</span></div>
+  <!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->
+  <div class="fbar">
+    <div class="fbar-chev"><span class="fbar-num">{{PAGE_NUM}}</span></div>
+    <span class="fbar-sep"></span><span class="fbar-doc">{{DOC_TITLE}}</span>
+  </div>
+  <div class="fbar-copy">© {{COPYRIGHT_YEAR}} VTI APAC. All rights reserved.</div>
+</div>

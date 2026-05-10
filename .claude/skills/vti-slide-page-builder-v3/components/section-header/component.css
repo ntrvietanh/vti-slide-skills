@@ -1,0 +1,32 @@
+/* =========================================================================
+   section-header — small bold heading for grouping content within a column.
+   Sits ABOVE another component (bullet-list-checked, narrative-paragraph,
+   kpi-row, etc.) to label the group — e.g. "Customer Problems" above a
+   bullet list, "Key metrics" above a kpi-row.
+
+   Three sizes:
+     • small   — 12.5 px, very tight (sub-section labels)
+     • default — 14 px, standard (column subheads)         ← default
+     • large   — 16 px, near slide-subhead (for emphasis)
+
+   Optional `rule: true` adds a thin hairline divider below the title for
+   stronger separation when the column has many sections.
+   ========================================================================= */
+
+.vti-section-header {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--vti-ink);
+  line-height: 1.3;
+}
+
+.vti-section-header--small  { font-size: 12px; }
+.vti-section-header--large  { font-size: 15px; }
+
+.vti-section-header--ruled {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--vti-divider);
+}

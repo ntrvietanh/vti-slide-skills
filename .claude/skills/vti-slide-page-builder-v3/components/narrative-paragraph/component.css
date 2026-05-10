@@ -1,0 +1,25 @@
+.vti-narrative {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+.vti-narrative[data-align="center"] {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+.vti-narrative__p {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--vti-ink, #2C2C2A);
+  margin: 0 0 12px 0;
+}
+.vti-narrative__p:last-child { margin-bottom: 0; }
+.vti-narrative__p strong {
+  font-weight: 600;
+  color: var(--vti-blue-deep, #0844A4);
+}

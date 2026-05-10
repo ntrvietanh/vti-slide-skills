@@ -1,0 +1,7 @@
+.vti-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(var(--kpi-cols, 3), 1fr);
+  gap: 14px;
+  width: 100%;
+  align-items: stretch;
+}

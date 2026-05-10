@@ -1,0 +1,20 @@
+.page-acert {
+  width: 1280px; height: 720px; position: relative;
+  background: #fff; font-family: var(--font-b); overflow: hidden;
+}
+.page-acert .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-acert[data-show-chrome="false"] .bc,
+.page-acert[data-show-chrome="false"] .logo-tr,
+.page-acert[data-show-chrome="false"] .fbar,
+.page-acert[data-show-chrome="false"] .fbar-copy { display: none; }
+
+.page-acert .acert-footnote {
+  position: absolute;
+  left: 640px; top: 575px; width: 560px; margin: 0;
+  font-size: 12px; line-height: 1.5;
+  color: var(--gray-deep);
+}

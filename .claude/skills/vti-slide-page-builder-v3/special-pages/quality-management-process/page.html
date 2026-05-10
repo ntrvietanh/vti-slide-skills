@@ -1,0 +1,50 @@
+<!--
+  quality-management-process — lifted from GDC PPTX p.24 (Quality Management
+  Process / CI/CD toolchain).
+
+  Background = pre-cleaned slide visual:
+    • Cycle diagram with red arrows
+    • Source-control row at top: GitHub / GitLab / Bitbucket / Azure DevOps
+    • Jenkins icon group + "Checkout / Build / Run tests / Scan" labels
+    • SonarLint logo (left) + SonarQube logo (bottom)
+    • Inline labels: "Commit / Merge", "Notifications"
+    • Horizontal divider line between intro and cycle
+
+  Editable overlays:
+    • Intro paragraph (top)
+    • 4 right-side numbered sections — title + body. Body is RAW HTML
+      so callers can pass <ul><li>…</li></ul> for the multi-bullet
+      sections (Cross review, Checklist of tests).
+-->
+<div class="slide page-qmp" data-show-chrome="{{SHOW_CHROME}}">
+  <div class="lift-bg" style="{{BG_STYLE}}"></div>
+
+  <p class="qmp-intro">{{INTRO_TEXT}}</p>
+
+  <div class="qmp-panel">
+    <div class="qmp-sec">
+      <h4 class="qmp-title">{{SECTION_1_TITLE}}</h4>
+      <div class="qmp-body">{{SECTION_1_BODY}}</div>
+    </div>
+    <div class="qmp-sec">
+      <h4 class="qmp-title">{{SECTION_2_TITLE}}</h4>
+      <div class="qmp-body">{{SECTION_2_BODY}}</div>
+    </div>
+    <div class="qmp-sec">
+      <h4 class="qmp-title">{{SECTION_3_TITLE}}</h4>
+      <div class="qmp-body">{{SECTION_3_BODY}}</div>
+    </div>
+    <div class="qmp-sec">
+      <h4 class="qmp-title">{{SECTION_4_TITLE}}</h4>
+      <div class="qmp-body">{{SECTION_4_BODY}}</div>
+    </div>
+  </div>
+
+  <div class="bc"><span class="bc-bar"></span><span class="bc-text">{{BREADCRUMB}}</span></div>
+  <!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->
+  <div class="fbar">
+    <div class="fbar-chev"><span class="fbar-num">{{PAGE_NUM}}</span></div>
+    <span class="fbar-sep"></span><span class="fbar-doc">{{DOC_TITLE}}</span>
+  </div>
+  <div class="fbar-copy">© {{COPYRIGHT_YEAR}} VTI APAC. All rights reserved.</div>
+</div>

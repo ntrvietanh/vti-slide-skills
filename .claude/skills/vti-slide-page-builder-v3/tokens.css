@@ -1,0 +1,283 @@
+/* ============================================================
+   vti-slide-page-builder-v2 / tokens.css
+   Single source of truth for ALL design tokens used by:
+     - blocks/<name>/*.css      (consume --vti-* names)
+     - layouts/<name>/*.css     (consume chrome + canvas names)
+     - chrome/{header,footer}.css
+     - special-pages/<name>/*.css
+   Merged from the previously-separate component & layout skills.
+   ============================================================ */
+
+/* Brand typography. Sampled from the reference VTI PPTX decks (Cloud /
+   GDC / Software): Plus Jakarta Sans is the dominant family (~85% of
+   typography runs), Arial is the legacy fallback. We import all needed
+   weights from Google Fonts so the rendered output matches the source
+   decks even on systems without the family pre-installed. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ---- tokens originally from vti-slide-component-v1 ---- */
+/* =========================================================================
+   VTI Slide Component Library — Design Tokens
+   -------------------------------------------------------------------------
+   Single source of truth for colors, typography, spacing, radii, shadows.
+   Every block MUST consume tokens from here via var(--token-name).
+   Tokens are derived from the three VTI corporate decks (Cloud / GDC /
+   Software) and the existing vti-brief-doc skill.
+   ========================================================================= */
+
+:root {
+  /* ---- Brand — Blues ------------------------------------------------- */
+  --vti-navy:          #051934;  /* primary dark — covers, dark headers */
+  --vti-blue-deep:     #0844A4;  /* deepest brand blue — dominant circles, depths */
+  --vti-blue:          #004AAD;  /* core brand blue — section titles, KPIs */
+  --vti-blue-medium:   #1B5DE6;  /* mid-tone — secondary circles, hover */
+  --vti-bright:        #0468E6;  /* active / interactive — links, accents */
+  --vti-sky:           #0782FF;  /* gradient end, lighter blue */
+  --vti-light:         #DAE9F6;  /* ice blue — subtle fills, table stripes */
+  --vti-paleblue:      #EAF2FB;  /* very pale page-tint background */
+
+  /* ---- Brand — Accents (Migration palette + supporting) -------------- */
+  --vti-amber:         #F8C379;  /* warning / highlight */
+  --vti-amber-strong:  #F4B73A;  /* Migration: REHOSTING band */
+  --vti-orange:        #ED8B2C;  /* Migration: REPLATFORM band */
+  --vti-teal:          #43C9B7;  /* Migration: REFACTORING band */
+  --vti-green:         #1A7A4A;  /* positive / confirmation */
+  --vti-red:           #B02020;  /* negative / overrun */
+  --vti-magenta:       #D33A77;  /* radial accent (Why Us card 1) */
+  --vti-purple:        #7E5CD9;  /* radial accent (Why Us card 2) */
+
+  /* ---- Neutrals ------------------------------------------------------ */
+  --vti-white:         #FFFFFF;
+  --vti-ink:           #1F2A3A;  /* primary body text */
+  --vti-ink-soft:      #4B5A6E;  /* secondary body text */
+  --vti-muted:         #6B7A8D;  /* captions, footers */
+  --vti-border:        #C8DCF0;  /* card / table borders */
+  --vti-divider:       #E4ECF5;  /* hairline dividers */
+  --vti-bg:            #F0F5FB;  /* slide background tint */
+
+  /* ---- Type --------------------------------------------------------- */
+  /* Plus Jakarta Sans is the canonical VTI deck family (sampled from the
+     GDC/Cloud/Software reference decks). Imported via Google Fonts at the
+     top of this file. Arial is the legacy fallback used when offline.    */
+  --vti-font-body:     'Plus Jakarta Sans', 'Arial', system-ui, sans-serif;
+  --vti-font-display:  'Plus Jakarta Sans', 'Arial', system-ui, sans-serif;
+
+  /* === CANONICAL 5-LEVEL TYPE SCALE (RULE T1, v3.2) =================
+     Every component MUST use ONE of these 5 levels for any text it
+     emits. New components are forbidden from inventing new sizes.
+     Per-slide budget: at most 3 of these 5 levels per slide.
+     Rationale: pre-v3.2 the library shipped 28 distinct font sizes
+     across components; combining 5 components on one slide produced
+     9-13 distinct text treatments → no clear hierarchy. Locking to 5
+     fixed levels caps cross-component combinations.
+     ================================================================ */
+  --vti-fs-hero:       64px;   /* T1 hero    · 1 per slide max — big stat, cover */
+  --vti-fs-display:    32px;   /* T1 display · 1-2 per slide   — section/divider */
+  --vti-fs-title:      24px;   /* T1 title   · card titles, in-slide H2 */
+  --vti-fs-body:       15px;   /* T1 body    · paragraphs, list items, card body */
+  --vti-fs-caption:    12px;   /* T1 caption · eyebrows, KPI sublabels, footers */
+
+  /* Legacy size tokens kept for back-compat with existing components.
+     New components MUST consume the 5-level scale above, not these.
+     v3.6 — values aliased to canonical T1 px values so audit_typography
+     count collapses; the legacy NAMES still work, only px values
+     unified. */
+  --vti-fs-section:    32px;   /* legacy → display (was 40px) */
+  --vti-fs-page-title: 32px;   /* legacy → display (was 28px) */
+  --vti-fs-h2:         24px;   /* legacy → title   (was 20px) */
+  --vti-fs-h3:         15px;   /* legacy → body    (was 16px) */
+  --vti-fs-stat:       64px;   /* legacy → hero    (already same) */
+  --vti-fs-small:      12px;   /* legacy → caption (already same) */
+  --vti-fs-tiny:       12px;   /* legacy → caption (was 11px) */
+
+  /* === CANONICAL 2-WEIGHT DISCIPLINE (RULE T2, v3.2) ================
+     Use only these two weights in component CSS.
+     400 = regular reading; 500 = labels & titles. 600 ALLOWED only on
+     hero-level text (display/hero scale). 700/800 are BANNED — they
+     read too heavy against the host UI and create false hierarchy.
+     ================================================================ */
+  --vti-fw-regular:    400;
+  --vti-fw-medium:     500;
+  --vti-fw-semibold:   600;   /* hero/display only — never on body */
+
+  /* DEPRECATED weights — kept only so legacy CSS continues to compile.
+     Do NOT introduce these in new component CSS. */
+  --vti-fw-light:      400;   /* DEPRECATED v3.6 → aliased to regular */
+  --vti-fw-bold:       600;   /* DEPRECATED v3.6 → aliased to semibold */
+
+  --vti-tracking-title:   0.02em;
+  --vti-leading-body:     1.55;
+  --vti-leading-tight:    1.2;
+
+  /* ---- Spacing scale (8px base) ------------------------------------- */
+  --vti-space-xxs: 4px;
+  --vti-space-xs:  8px;
+  --vti-space-sm:  12px;
+  --vti-space-md:  16px;
+  --vti-space-lg:  24px;
+  --vti-space-xl:  32px;
+  --vti-space-2xl: 48px;
+  --vti-space-3xl: 64px;
+
+  /* ---- Radii -------------------------------------------------------- */
+  --vti-radius-xs: 4px;
+  --vti-radius-sm: 8px;
+  --vti-radius-md: 12px;
+  --vti-radius-lg: 16px;
+  --vti-radius-pill: 999px;
+
+  /* ---- Shadows ------------------------------------------------------
+     Tuned to be SUBTLE — VTI brand visual identity favours soft, elevated
+     surfaces over heavy drop shadows. Each tier is ~1.5x the previous in
+     blur radius and 1.5x in opacity. */
+  --vti-shadow-sm: 0 1px 3px  rgba(5, 25, 52, 0.05);
+  --vti-shadow-md: 0 3px 10px rgba(5, 25, 52, 0.07);
+  --vti-shadow-lg: 0 8px 24px rgba(5, 25, 52, 0.10);
+
+  /* ---- Surface tints ------------------------------------------------
+     Layered surface colors that step up subtly from white. Used for
+     lane / row backgrounds, card containers, and grouped sections to
+     visually separate content blocks without resorting to borders.    */
+  --vti-surface-50:  #FFFFFF;          /* base slide bg */
+  --vti-surface-100: #F5F8FB;          /* lane / row bg — barely lifted from white */
+  --vti-surface-200: #EAF1F8;          /* card group / matrix cell bg */
+  --vti-surface-300: #DBE6F2;          /* heavy emphasis surface */
+
+  /* ---- Brand shade palette ------------------------------------------
+     Two distinct shades of brand blue used to ALTERNATE per card in
+     rows of branded blocks (banners, headers, badges). Sampled from VTI
+     precedent decks (GDC s09 / Cloud s12) where rows of service cards
+     use this exact palette pair to create visible rhythm — Card 1 deep,
+     Card 2 sky, Card 3 deep, Card 4 sky, etc.
+
+     The deep+sky pair maintains brand identity (both within the blue
+     hue family) while being instantly distinguishable. Recipes that
+     alternate cards by tint use this pair as the default rhythm.
+
+     A third "brand-navy" shade is included for use cases where THREE
+     alternating shades are needed (e.g. 6-card rows). */
+  --vti-shade-deep: #1546CF;           /* sampled from GDC s09 row1 card1 banner */
+  --vti-shade-sky:  #28B0EC;           /* sampled from GDC s09 row1 card2 banner */
+  --vti-shade-navy: #0A2A78;           /* darker variant for emphasis / hero cards */
+
+  /* ---- Borders ------------------------------------------------------ */
+  --vti-border-thin:   1px solid var(--vti-border);
+  --vti-border-strong: 2px solid var(--vti-blue);
+
+  /* ---- Block contract ------------------------------------------------
+     All blocks consume these defaults. Layout skill (parent) may locally
+     override them on a wrapper to theme groups of blocks. Blocks must
+     never set styles outside their own scope.
+  --------------------------------------------------------------------- */
+  --vti-block-bg:        var(--vti-white);
+  --vti-block-text:      var(--vti-ink);
+  --vti-block-radius:    var(--vti-radius-md);
+  --vti-block-padding:   var(--vti-space-lg);
+  --vti-block-shadow:    var(--vti-shadow-md);
+}
+
+/* Optional dark-mode override — for use on dark slide canvases.
+   A parent can wrap content with class="vti-on-dark" to flip
+   block defaults. Individual blocks read these without re-implementing. */
+.vti-on-dark {
+  --vti-block-bg:    rgba(255, 255, 255, 0.08);
+  --vti-block-text:  var(--vti-white);
+  --vti-ink:         var(--vti-white);
+  --vti-ink-soft:    rgba(255, 255, 255, 0.78);
+  --vti-muted:       rgba(255, 255, 255, 0.62);
+  --vti-border:      rgba(255, 255, 255, 0.18);
+  --vti-divider:     rgba(255, 255, 255, 0.12);
+}
+
+/* ---- tokens originally from vti-slide-layout-v1 ---- */
+/* ============================================================================
+   slide-layouts · tokens.css
+   ----------------------------------------------------------------------------
+   Design tokens for the VTI APAC slide layout system. All values were derived
+   by sampling pixels from the three reference decks (Software.pptx, GDC.pptx,
+   Cloud.pptx) — not from any other Claude skill.
+
+   Colors and dimensions are the result of inspecting the rendered slides,
+   averaging a few-pixel patch of each region, and reconciling small per-deck
+   variations to a single canonical brand value.
+   ============================================================================ */
+
+:root {
+  /* --- Canvas (16:9 standard) --------------------------------------------- */
+  --sw: 1280px;     /* slide width  */
+  --sh: 720px;      /* slide height */
+
+  /* --- Safe zones for the standard "chrome" — derived from inspecting where
+         body content begins/ends on Software.pptx slides 5–28. */
+  --safe-top:    56px;
+  --safe-bottom: 56px;
+  --safe-left:   60px;
+  --safe-right:  60px;
+
+  /* --- Brand blues (sampled from PPTX renders) --------------------------- */
+  /* Footer chevron / deep accents (sw #0844A4, gdc #0A40BC, cloud #0945A5)  */
+  --blue-deep:    #0844A4;
+  /* Royal blue body (TOC big box, primary brand fill)                       */
+  --blue-royal:   #0D58C9;
+  /* Medium blue (pill icon circle, secondary accent)                        */
+  --blue-medium:  #1E8DF2;
+  /* Light cyan (mesh top, decorative gradients)                             */
+  --blue-cyan:    #7DC1FE;
+  /* Teal-cyan used in hexagons / Kaizen tile                                */
+  --teal:         #139BCB;
+  /* Background blue tint (faint world-map watermark)                        */
+  --blue-tint:    #EBF2FB;
+
+  /* --- Neutrals ---------------------------------------------------------- */
+  --white:        #FFFFFF;
+  --gray-deep:    #1F1F1F;   /* primary text dark                            */
+  --gray-text:    #3D3D3D;   /* breadcrumb text — sampled from sw_slide_05   */
+  --gray-mid:     #555555;
+  --gray-soft:    #888888;
+  --gray-line:    #D8E4F0;   /* card borders / dividers                      */
+  --gray-bg:      #F5F8FB;   /* very light bg                                */
+
+  /* --- Single accent magenta (used sparingly in hub-diagram pink cards) --- */
+  --magenta:      #C2185B;
+
+  /* --- Fonts -------------------------------------------------------------- */
+  /* Legacy aliases kept for backward compat — both --font-h/--font-b and
+     --vti-font-display/--vti-font-body resolve to the same family. New
+     code should use the --vti-* names per TYPOGRAPHY.md.                    */
+  --font-h: var(--vti-font-display);
+  --font-b: var(--vti-font-body);
+
+  /* --- Other --------------------------------------------------------------- */
+  --rad-sm: 6px;
+  --rad-md: 12px;
+  --rad-lg: 18px;
+  --shadow-card: 0 8px 24px rgba(8, 68, 164, 0.10);
+}
+
+/* Legacy color aliases — point at canonical --vti-* tokens so any
+   component still using `var(--blue-deep)`, `var(--gray-deep)`, etc.
+   resolves to the brand-correct value. New code must use --vti-* names
+   per TYPOGRAPHY.md. */
+:root {
+  --blue-deep:   var(--vti-blue-deep);
+  --blue-royal:  var(--vti-blue);
+  --blue-medium: var(--vti-blue-medium);
+  --blue-cyan:   #7DC1FE;       /* not in --vti-*, kept as-is */
+  --blue-tint:   var(--vti-paleblue);
+  --gray-deep:   var(--vti-ink);
+  --gray-text:   var(--vti-ink-soft);
+  --gray-mid:    var(--vti-muted);
+  --gray-soft:   #888888;       /* no exact --vti-* match */
+  --gray-line:   var(--vti-border);
+  --gray-bg:     var(--vti-bg);
+  --white:       var(--vti-white);
+}
+
+/* Reset inside a slide */
+.slide, .slide *, .slide *::before, .slide *::after {
+  box-sizing: border-box;
+}
+.slide {
+  font-family: var(--font-b);
+  color: var(--gray-deep);
+}

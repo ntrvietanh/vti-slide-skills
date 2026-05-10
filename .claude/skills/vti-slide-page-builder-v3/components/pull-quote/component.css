@@ -1,0 +1,68 @@
+/* =============================================================================
+   pull-quote — large editorial pull-out quote.
+   Different from quote-block (which is for full testimonials with
+   structured attribution: name + role + company). pull-quote is for a
+   memorable phrase pulled from prose, with big quote marks, optional
+   simple attribution.
+   ============================================================================= */
+.vti-pull-quote {
+  margin: 0;
+  padding: 12px 0 12px 36px;
+  position: relative;
+  font-family: var(--font-h);
+  min-width: 0;
+}
+
+/* Big opening quote mark */
+.vti-pull-quote::before {
+  content: "\201C";  /* left double quotation mark */
+  position: absolute;
+  top: -8px;
+  left: 0;
+  font-family: 'Plus Jakarta Sans', Georgia, serif;
+  font-size: 64px;
+  line-height: 1;
+  color: var(--vti-blue-deep);
+  font-weight: 600;
+}
+
+.vti-pull-quote--center {
+  padding-left: 0;
+  padding-top: 56px;
+  text-align: center;
+}
+.vti-pull-quote--center::before {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.vti-pull-quote__text {
+  margin: 0;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--vti-ink);
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+
+.vti-pull-quote--default .vti-pull-quote__text { font-size: 24px; }
+.vti-pull-quote--large   .vti-pull-quote__text { font-size: 32px; }
+
+.vti-pull-quote__attribution {
+  display: block;
+  margin-top: 12px;
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+  font-style: normal;
+  letter-spacing: 0.04em;
+}
+
+/* Inline emphasis */
+.vti-pull-quote strong {
+  color: var(--vti-blue-deep);
+  font-weight: 600;
+}

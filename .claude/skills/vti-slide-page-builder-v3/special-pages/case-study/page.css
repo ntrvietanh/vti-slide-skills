@@ -1,0 +1,200 @@
+/* =============================================================================
+   case-study layout — sidebar OVERLAY on standard slide canvas.
+
+   Architecture:
+     • The standard 1280×720 slide chrome (header breadcrumb + footer page
+       badge + copyright) renders FULL-WIDTH and is consistent with every
+       other slide type in the deck.
+     • A dark sidebar (~320 px) overlays the right edge for case-study
+       INTRO slides. The sidebar holds customer metadata (logo, name,
+       region/industry/duration, copyright duplicate).
+     • Continuation slides (e.g. an architecture diagram page within the
+       same case) pass `no_sidebar: True` — the sidebar is omitted, the
+       chrome stays consistent, and the breadcrumb continues to identify
+       the case ("CASE 01 | CS01 · …").
+
+   Why this is better than the previous custom-footer approach:
+     • Footer position + copyright behavior stays identical to the rest
+       of the deck (no two-style mix).
+     • Multi-slide cases automatically remain visually linked through
+       chrome — no special continuation framing needed.
+   ============================================================================= */
+
+.slide.layout-case-study-split,
+.slide.layout-case-study-visual-split,
+.slide.layout-case-study-arch-deep {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  background: var(--vti-white);
+  overflow: hidden;
+  font-family: var(--font-b);
+  color: var(--vti-ink);
+}
+
+/* When a sidebar is present the chrome's top-right logo sits ON the
+   sidebar — we render it in WHITE variant via _render_chrome's
+   logo_variant parameter, NOT by hiding it. So no display:none here.
+   z-index ordering: chrome's .logo-tr is z:10 (chrome/header.css line 81)
+   and the sidebar below is z:5 — so the logo stays visible on top. */
+
+/* Optional 3-tone breadcrumb for case-study slides: keep "CASE NN" in
+   medium weight (default) and tint the title portion (CS01 · Title)
+   deep blue rather than the default dark gray. Strengthens visual
+   anchor at top-left of the slide. */
+.layout-case-study-split   .bc-text .bc-title,
+.layout-case-study-visual-split .bc-text .bc-title,
+.layout-case-study-arch-deep .bc-text .bc-title {
+  color: var(--vti-blue-deep);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   MAIN PANEL — sits BELOW the chrome breadcrumb and ABOVE the chrome
+   footer, with right padding reserved for the sidebar overlay.
+   ───────────────────────────────────────────────────────────────────── */
+.cs-main {
+  position: absolute;
+  top: 70px;            /* clears chrome breadcrumb (top:22 + height ≈22 + gap) */
+  bottom: 70px;         /* clears chrome footer (bottom:24 + height 28 + gap) */
+  left: 50px;
+  right: 360px;         /* leaves 320 px sidebar + 40 px breathing room */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.layout-case-study-split.no-sidebar .cs-main,
+.layout-case-study-visual-split.no-sidebar .cs-main,
+.layout-case-study-arch-deep.no-sidebar .cs-main {
+  right: 50px;          /* full-width when no sidebar */
+}
+
+/* Subhead — bold heading + thin underline, sits above the body grid. */
+.cs-subhead {
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--vti-divider);
+}
+.cs-subhead__text {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--vti-ink);
+}
+
+/* Body grid — fills the remaining vertical space. The inner .vti-grid
+   is constructed by _compose_grid_body and uses the standard 12-col
+   grid system shared with compose_slide_grid. */
+.cs-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.cs-body .vti-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px 22px;
+}
+
+.cs-body .vti-grid-cell {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   SIDEBAR — absolute overlay on the right edge.
+   Bg image is the existing case-study-sidebar-bg.jpg (architect drawing)
+   tinted with a light blue overlay so the texture stays visible.
+   ───────────────────────────────────────────────────────────────────── */
+.cs-sidebar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  /* Lighter tint than before so the underlying drawing reads through.
+     `multiply` blend gives the deepest color where the image is dark
+     and lets the lighter regions (whites of the sketch paper) show
+     through, mimicking the reference deck's depth. */
+  background-color: var(--vti-blue-deep);
+  background-image: url('../../assets/illustrations/case-study-sidebar-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;
+  color: var(--vti-white);
+  /* Top padding leaves clearance for the chrome top-right logo
+     (positioned absolutely at top:24, height ~38 → reserve ~78 px). */
+  padding: 78px 28px 32px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+}
+
+.cs-sidebar__customer {
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vti-white);
+  margin-bottom: 26px;
+  letter-spacing: 0.01em;
+}
+
+.cs-sidebar__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  flex: 1 1 auto;
+}
+
+.cs-meta-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  align-items: start;
+  gap: 12px;
+}
+
+.cs-meta-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--vti-white);
+  opacity: 0.95;
+}
+.cs-meta-row__icon svg { width: 30px; height: 30px; }
+
+.cs-meta-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-b);
+  line-height: 1.4;
+}
+
+.cs-meta-row__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-white);
+}
+
+.cs-meta-row__value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7DC1FE;
+  letter-spacing: 0.01em;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Variant tweaks (small CSS-only nudges; no structural changes).
+   ───────────────────────────────────────────────────────────────────── */
+.layout-case-study-arch-deep .cs-main { gap: 8px; }
+.layout-case-study-arch-deep .cs-subhead { padding-bottom: 6px; }
+
+.layout-case-study-visual-split .cs-body .vti-image-tile {
+  box-shadow: 0 4px 16px rgba(8, 68, 164, 0.10);
+}

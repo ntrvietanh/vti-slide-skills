@@ -1,0 +1,70 @@
+/* quality-management-process · page.css
+   ---------------------------------------------------------------------
+   All typography & color values consume canonical --vti-* tokens per
+   TYPOGRAPHY.md.
+*/
+.page-qmp {
+  width: var(--sw); height: var(--sh); position: relative;
+  background: var(--vti-white);
+  font-family: var(--vti-font-body);
+  overflow: hidden;
+}
+.page-qmp .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-qmp[data-show-chrome="false"] .bc,
+.page-qmp[data-show-chrome="false"] .logo-tr,
+.page-qmp[data-show-chrome="false"] .fbar,
+.page-qmp[data-show-chrome="false"] .fbar-copy { display: none; }
+
+/* Intro paragraph */
+.page-qmp .qmp-intro {
+  position: absolute;
+  top: 138px; left: 60px; width: 615px;
+  margin: 0; padding: 4px 6px;
+  font-size: var(--vti-fs-body);
+  font-weight: var(--vti-fw-regular);
+  line-height: var(--vti-leading-body);
+  color: var(--vti-ink);
+  background: var(--vti-white);
+}
+
+/* Right-side panel — 4 numbered sections */
+.page-qmp .qmp-panel {
+  position: absolute;
+  top: 140px; left: 750px; width: 470px;
+  display: flex; flex-direction: column;
+  gap: var(--vti-space-md);     /* 16px */
+}
+.page-qmp .qmp-title {
+  margin: 0 0 var(--vti-space-xs) 0;
+  font-size: var(--vti-fs-h3);
+  font-weight: var(--vti-fw-bold);
+  line-height: var(--vti-leading-tight);
+  color: var(--vti-blue);
+}
+.page-qmp .qmp-body {
+  margin: 0;
+  font-size: var(--vti-fs-body);
+  font-weight: var(--vti-fw-regular);
+  line-height: 1.5;
+  color: var(--vti-ink);
+}
+.page-qmp .qmp-body :is(ul, ol) {
+  margin: 0; padding: 0; list-style: none;
+}
+.page-qmp .qmp-body li {
+  position: relative;
+  margin: 0 0 var(--vti-space-xxs) 0;
+  padding: 0 0 0 18px;
+}
+.page-qmp .qmp-body li::before {
+  content: ""; position: absolute;
+  left: 0; top: 7px;
+  width: 7px; height: 7px;
+  background: var(--vti-ink);
+  border-radius: 50%;
+}
+.page-qmp .qmp-body p { margin: 0 0 var(--vti-space-xxs) 0; }

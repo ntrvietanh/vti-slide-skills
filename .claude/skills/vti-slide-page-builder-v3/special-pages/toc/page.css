@@ -1,0 +1,181 @@
+/* SPECIAL PAGE · toc.css
+   Polygonal mesh top + royal-blue body box + floating white pill badge.    */
+
+.page-toc {
+  width: var(--sw);
+  height: var(--sh);
+  position: relative;
+  overflow: hidden;
+  background: var(--white);
+}
+
+/* Top mesh photo band */
+.page-toc .toc-mesh {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 200px;
+  background-image: url('../../assets/toc-mesh.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.page-toc .toc-mesh-logo {
+  position: absolute;
+  top: 18px;
+  left: 36px;
+  z-index: 5;
+}
+
+/* Royal-blue body box (sampled #0D58C9) */
+.page-toc .toc-box {
+  position: absolute;
+  top: 175px;
+  left: 70px;
+  right: 70px;
+  bottom: 80px;
+  background: var(--blue-royal);
+  border-radius: 14px;
+  padding: 56px 80px 36px;        /* top padding shrunk from 80 → 56 to give more room for items below the floating pill */
+  z-index: 2;
+  box-shadow: 0 12px 32px rgba(13, 88, 201, 0.35);
+  overflow: hidden;
+}
+
+/* TOC items grid. Default = single column (flex). data-cols="2" switches
+   to a CSS multi-column flow so each .toc-group (top-level + its subs)
+   stays together via `break-inside: avoid`. CSS Grid with flat siblings
+   would split sub-items away from their parents — multi-column doesn't.   */
+.page-toc .toc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.page-toc .toc-grid[data-cols="2"] {
+  display: block;
+  column-count: 2;
+  column-gap: 60px;
+  column-fill: balance;
+}
+
+.page-toc .toc-group {
+  /* Keep a top-level item + its sub-items together when columns split. */
+  break-inside: avoid;
+  page-break-inside: avoid;
+  padding-bottom: 6px;
+}
+.page-toc .toc-grid[data-cols="2"] .toc-group {
+  padding-bottom: 10px;
+}
+
+.page-toc .toc-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: var(--white);
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.30);
+  padding: 6px 0 10px;
+}
+
+/* In 2-col mode the rows are tighter: smaller font + reduced padding. */
+.page-toc .toc-grid[data-cols="2"] .toc-row {
+  font-size: 15px;
+  padding: 4px 0 8px;
+  gap: 14px;
+}
+
+/* Level-2 (sub-item) treatment: indented, lighter, smaller, hollow ring,
+   dashed underline. Use when an item declares `items: [...]` as sub-entries. */
+.page-toc .toc-row--lvl2 {
+  font-size: 15px;
+  font-weight: 500;
+  padding: 4px 0 6px;
+  margin-left: 36px;
+  color: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.22);
+}
+.page-toc .toc-grid[data-cols="2"] .toc-row--lvl2 {
+  font-size: 12px;
+  margin-left: 26px;
+}
+
+/* Bullet markers. Solid white dot for top-level, hollow ring for sub. */
+.page-toc .toc-row::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--white);
+  flex-shrink: 0;
+}
+.page-toc .toc-grid[data-cols="2"] .toc-row::before {
+  width: 6px;
+  height: 6px;
+}
+.page-toc .toc-row--lvl2::before {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+}
+
+.page-toc .toc-tt {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-toc .toc-pg {
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--white);
+  letter-spacing: 0;
+}
+
+.page-toc .toc-grid[data-cols="2"] .toc-pg {
+  font-size: 15px;
+}
+
+/* Floating white pill straddling header/box boundary */
+.page-toc .toc-pill {
+  position: absolute;
+  top: 145px;
+  left: 105px;
+  height: 64px;
+  background: var(--white);
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 28px 0 8px;
+  z-index: 6;
+  box-shadow: 0 6px 20px rgba(13, 88, 201, 0.25);
+}
+
+.page-toc .toc-pill-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--blue-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.page-toc .toc-pill-txt {
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-deep);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}

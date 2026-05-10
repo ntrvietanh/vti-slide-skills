@@ -1,0 +1,43 @@
+/* progress-bar — single or multiple horizontal % bars with labels. */
+.vti-progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-b);
+  width: 100%;
+  min-width: 0;
+}
+.vti-progress-bar { display: flex; flex-direction: column; gap: 6px; }
+.vti-progress-bar__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+}
+.vti-progress-bar__label {
+  font-weight: 600;
+  color: var(--vti-ink);
+}
+.vti-progress-bar__value {
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--vti-blue-deep);
+}
+.vti-progress-bar__track {
+  height: 10px;
+  background: rgba(8, 68, 164, 0.08);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.vti-progress-bar__fill {
+  height: 100%;
+  background: var(--vti-blue-deep);
+  border-radius: 5px;
+  transition: width 0.3s;
+}
+.vti-progress-bar--medium .vti-progress-bar__fill { background: var(--vti-blue-medium); }
+.vti-progress-bar--sky    .vti-progress-bar__fill { background: var(--vti-blue-sky); }
+.vti-progress-bar--navy   .vti-progress-bar__fill { background: var(--vti-navy); }
+.vti-progress-bar--success .vti-progress-bar__fill { background: #16A34A; }
+.vti-progress-bar--warning .vti-progress-bar__fill { background: #DC2626; }

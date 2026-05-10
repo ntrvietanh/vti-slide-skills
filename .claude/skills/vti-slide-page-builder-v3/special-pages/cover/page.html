@@ -1,0 +1,51 @@
+<!--
+  ============================================================================
+  SPECIAL PAGE · cover (variant-aware)
+  ----------------------------------------------------------------------------
+  Title page. Two variants share the same template:
+
+   • standard   — VTI APAC logo only (default). Logo size bumped to 160 px
+                  for visual parity with the closing page.
+
+   • co-brand   — VTI APAC logo × Customer logo, side-by-side with a
+                  large "×" separator. Use this for client-specific
+                  partnership decks. Set `variant: "co-brand"` and
+                  `customer_logo: "<path|URL|data:URL>"` on the cover
+                  page data; creator.py resolves the file to a data URL
+                  before injecting it into `{{CUSTOMER_LOGO_STYLE}}`.
+
+  The variant is selected via the `data-variant` attribute on the slide
+  root. CSS owns the show/hide logic so the same HTML serves both modes
+  without conditional templating.
+
+  Background: single composite JPG (cover-bg-tokyo.jpg) carrying the
+  Tokyo skyline + Mt. Fuji + royal-blue tint + two translucent chevron
+  shapes baked in.
+
+  Both text fields are placeholders so each deck can push its own copy
+  without modifying this template.
+  ============================================================================
+-->
+<div class="slide page-cover" data-variant="{{COVER_VARIANT}}">
+  <!-- Single-image background: Tokyo composite (chevrons baked in) -->
+  <div class="cv-photo"></div>
+
+  <!-- Centered content stack -->
+  <div class="cv-body">
+    <div class="cv-logo-row">
+      <div class="cv-logo cv-logo--vti">
+        <!-- VTI_LOGO_INJECT position="cover-top" variant="full-white" size="160px" -->
+      </div>
+
+      <!-- Co-brand only: separator + customer logo (CSS hides for standard) -->
+      <div class="cv-logo-x" aria-hidden="true">×</div>
+      <div class="cv-logo cv-logo--customer" style="{{CUSTOMER_LOGO_STYLE}}"></div>
+    </div>
+
+    <h1 class="cv-title">{{DECK_TITLE}}</h1>
+
+    <div class="cv-sub-pill">
+      <span class="cv-sub-text">{{DECK_TAGLINE}}</span>
+    </div>
+  </div>
+</div>

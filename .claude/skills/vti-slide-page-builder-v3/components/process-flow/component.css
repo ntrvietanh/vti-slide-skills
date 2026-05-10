@@ -1,0 +1,137 @@
+/* =========================================================================
+   process-flow — sequence of N steps, each with a circular numbered
+   badge + title + body. Connector chevrons drawn as ::after pseudo on
+   each step except the last.
+     • horizontal — 3-7 peer steps across the slide
+     • vertical   — same pattern stacked, useful for narrow columns
+   Three accent tones (deep / navy / sky) tint the badge and connector.
+   ========================================================================= */
+
+.vti-process-flow {
+  display: grid;
+  width: 100%;
+  align-items: stretch;
+}
+
+.vti-process-flow--horizontal {
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0;
+}
+
+.vti-process-flow--vertical {
+  grid-auto-flow: row;
+  gap: 18px 0;
+  max-width: 320px;
+}
+
+/* ---- Step ---- */
+.vti-process-flow__step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 12px 18px 6px;
+}
+
+.vti-process-flow--vertical .vti-process-flow__step {
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0 0 0 0;
+  gap: 16px;
+}
+
+/* Numbered (or icon) badge */
+.vti-process-flow__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  color: var(--vti-white);
+  font-family: var(--font-h);
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.vti-process-flow--vertical .vti-process-flow__badge {
+  width: 44px;
+  height: 44px;
+  font-size: 15px;
+  margin-bottom: 0;
+}
+
+.vti-process-flow--deep .vti-process-flow__badge { background: var(--vti-blue-deep); }
+.vti-process-flow--navy .vti-process-flow__badge { background: var(--vti-navy); }
+.vti-process-flow--sky  .vti-process-flow__badge { background: var(--vti-bright); }
+
+/* Icon glyph inside badge — slightly smaller than text, white stroke. */
+.vti-process-flow__badge svg {
+  width: 26px;
+  height: 26px;
+  color: var(--vti-white);
+}
+
+/* Step text */
+.vti-process-flow__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vti-process-flow__title {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  line-height: 1.3;
+}
+
+.vti-process-flow__body {
+  margin: 0;
+  font-family: var(--font-b);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--vti-ink-soft);
+  max-width: 200px;
+}
+
+.vti-process-flow--vertical .vti-process-flow__body {
+  max-width: 100%;
+}
+
+/* ---- Connector chevrons ---- */
+/* Horizontal: small right-pointing chevron between steps, vertically
+   centered on the badge row.  Vertical: down-pointing chevron between
+   steps, horizontally centered under the badge column. */
+.vti-process-flow--horizontal .vti-process-flow__step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: -7px;
+  top: 22px;
+  width: 14px;
+  height: 14px;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+.vti-process-flow--horizontal.vti-process-flow--deep { color: var(--vti-blue-deep); }
+.vti-process-flow--horizontal.vti-process-flow--navy { color: var(--vti-navy); }
+.vti-process-flow--horizontal.vti-process-flow--sky  { color: var(--vti-bright); }
+
+.vti-process-flow--vertical .vti-process-flow__step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 22px;
+  bottom: -16px;
+  width: 0;
+  height: 12px;
+  border-left: 2px dashed var(--vti-divider);
+}

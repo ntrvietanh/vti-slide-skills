@@ -1,0 +1,56 @@
+.vti-value-medallion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  padding: 6px 4px;
+  box-sizing: border-box;
+}
+.vti-value-medallion__disc {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.vti-value-medallion__disc svg {
+  width: 42px;
+  height: 42px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vti-value-medallion__num {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  color: var(--vti-muted, #5F5E5A);
+  margin-bottom: 7px;
+}
+.vti-value-medallion__title {
+  font-family: var(--vti-font-display, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vti-blue-deep, #0844A4);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.vti-value-medallion__tagline {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  color: var(--vti-muted, #5F5E5A);
+  font-style: italic;
+  margin-top: 8px;
+  line-height: 1.4;
+  max-width: 140px;
+}

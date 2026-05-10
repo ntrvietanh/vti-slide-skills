@@ -1,0 +1,48 @@
+.page-vmv {
+  width: 1280px; height: 720px; position: relative;
+  background: #fff; font-family: var(--font-b); overflow: hidden;
+}
+.page-vmv .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-vmv[data-show-chrome="false"] .bc,
+.page-vmv[data-show-chrome="false"] .logo-tr,
+.page-vmv[data-show-chrome="false"] .fbar,
+.page-vmv[data-show-chrome="false"] .fbar-copy { display: none; }
+
+.page-vmv .vmv-card {
+  position: absolute; left: 80px;
+  width: 540px;
+  padding: 26px 28px 22px 28px;
+  border: 1.5px solid #BDD3EE;
+  border-radius: 8px;
+  /* Semi-transparent so the world-map dot watermark shows through */
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(2px);
+}
+.page-vmv .vmv-card--vision  { top: 213px; }
+.page-vmv .vmv-card--mission { top: 393px; }
+.page-vmv .vmv-card-head {
+  display: flex; align-items: center; gap: 10px;
+  position: absolute; top: -16px; left: 18px;
+  background: #fff; padding: 0 10px; height: 28px;
+}
+.page-vmv .vmv-card-icon { color: var(--blue-deep); }
+.page-vmv .vmv-card-title {
+  font-family: var(--font-h);
+  font-size: 15px; font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--blue-deep);
+}
+.page-vmv .vmv-card-rule {
+  flex: 0 0 24px; height: 1px;
+  background: var(--blue-deep);
+  align-self: center; margin-left: 4px;
+}
+.page-vmv .vmv-card-body {
+  margin: 0;
+  font-size: 15px; line-height: 1.55;
+  color: var(--gray-deep);
+}

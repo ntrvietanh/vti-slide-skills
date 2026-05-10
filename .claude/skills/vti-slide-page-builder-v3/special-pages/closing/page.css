@@ -1,0 +1,73 @@
+/* SPECIAL PAGE · closing.css
+   Same Tokyo composite as cover (intentional visual bookend) + centered
+   stack: large VTI logo / THANK YOU display caps / optional message line.
+   Visual reference: _EN__Profile_Automotive_Software_Development.pptx slide 2. */
+
+.page-closing {
+  width: var(--sw);
+  height: var(--sh);
+  position: relative;
+  overflow: hidden;
+  background: #0d3a8a;
+}
+
+/* Identical background to the cover so the deck visually wraps with a
+   consistent open/close framing. If a deck wants a distinct closing
+   background, override this rule per-deck in the override CSS hook. */
+.page-closing .cl-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('../../assets/cover-bg-tokyo.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Centered overlay block. Slightly more vertical breathing room than
+   the cover (no subtitle pill below the headline). */
+.page-closing .cl-body {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 70px 100px;
+  gap: 28px;
+}
+
+.page-closing .cl-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+/* Headline — sampled at ~96 px display caps in the reference. Heavy
+   weight + small letter-spacing keeps it punchy at any width. */
+.page-closing .cl-title {
+  font-family: var(--font-h);
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--white);
+  margin: 0;
+  letter-spacing: 1px;
+  line-height: 1.05;
+  text-transform: uppercase;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Optional closing message — a single short line below "THANK YOU".
+   When the placeholder is empty the rule below collapses the slot so
+   no stray gap appears in the layout. */
+.page-closing .cl-msg {
+  font-family: var(--font-b);
+  font-size: 15px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 720px;
+  line-height: 1.55;
+  letter-spacing: 0.2px;
+}
+.page-closing .cl-msg:empty { display: none; }

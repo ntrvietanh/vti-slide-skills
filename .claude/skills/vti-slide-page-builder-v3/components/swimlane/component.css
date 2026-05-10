@@ -1,0 +1,117 @@
+/* =============================================================================
+   swimlane — multi-actor process flow.
+   Two density modes:
+     • compact (default) — title + small icon, ~56px lane height
+     • rich              — title + icon + body paragraph, ~110px+ lane height
+   ============================================================================= */
+
+.vti-swimlane {
+  width: 100%;
+  font-family: var(--font-b);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vti-swimlane__lane {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: stretch;
+  background: rgba(8, 68, 164, 0.04);
+  border-radius: 6px;
+  overflow: hidden;
+  min-height: 56px;
+}
+
+.vti-swimlane--rich .vti-swimlane__lane { min-height: 110px; }
+
+.vti-swimlane__lane-name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vti-white);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.vti-swimlane__lane--deep   .vti-swimlane__lane-name { background: var(--vti-blue-deep); }
+.vti-swimlane__lane--medium .vti-swimlane__lane-name { background: var(--vti-blue-medium); }
+.vti-swimlane__lane--sky    .vti-swimlane__lane-name { background: var(--vti-blue-sky); }
+.vti-swimlane__lane--navy   .vti-swimlane__lane-name { background: var(--vti-navy); }
+
+.vti-swimlane__steps {
+  display: grid;
+  grid-template-columns: repeat(var(--steps), minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0;
+  position: relative;
+}
+
+.vti-swimlane__step {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1px dashed rgba(8, 68, 164, 0.18);
+  min-width: 0;
+  position: relative;
+}
+
+/* Compact mode: center vertically, more padding-economical */
+.vti-swimlane--compact .vti-swimlane__step {
+  justify-content: center;
+  padding: 8px 10px;
+}
+
+/* Rich mode: top-aligned so body text flows naturally below title */
+.vti-swimlane--rich .vti-swimlane__step {
+  justify-content: flex-start;
+}
+
+.vti-swimlane__step:last-child { border-right: none; }
+
+.vti-swimlane__step--empty {
+  background: repeating-linear-gradient(
+    -45deg, transparent 0 6px, rgba(8, 68, 164, 0.03) 6px 12px);
+}
+
+/* Highlight the key step in a flow */
+.vti-swimlane__step--accent {
+  background: rgba(8, 68, 164, 0.08);
+}
+.vti-swimlane__step--accent .vti-swimlane__step-title {
+  color: var(--vti-blue-deep);
+}
+
+.vti-swimlane__step-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vti-blue-deep);
+}
+.vti-swimlane__step-icon svg { width: 18px; height: 18px; }
+
+.vti-swimlane__step-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  line-height: 1.25;
+}
+
+/* Body text — only visible in rich mode (controlled by renderer omitting
+   the markup in compact mode, but this rule pins typography). */
+.vti-swimlane__step-body {
+  font-size: 12px;
+  color: #4B5563;
+  line-height: 1.4;
+  margin-top: 2px;
+}

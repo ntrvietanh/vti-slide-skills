@@ -1,0 +1,66 @@
+/* =========================================================================
+   image-tile — full-bleed image inside a sized frame, with optional
+   caption (overlay over a gradient or below the image).
+   ========================================================================= */
+
+.vti-image-tile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--vti-light);
+  display: block;
+}
+
+.vti-image-tile--rounded { border-radius: 16px; }
+.vti-image-tile--soft    { border-radius:  8px; }
+.vti-image-tile--square  { border-radius:  0; }
+
+.vti-image-tile__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Overlay caption — fades from transparent at top to deep navy at bottom
+   so white text reads cleanly over any image. */
+.vti-image-tile__caption--overlay {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 18px 22px 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 25, 52, 0)   0%,
+    rgba(5, 25, 52, 0.6) 55%,
+    rgba(5, 25, 52, 0.9) 100%
+  );
+  color: var(--vti-white);
+  font-family: var(--font-b);
+  font-size: 15px;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+/* Below-caption variant: figcaption flows after the image, no abs.
+   Aspect ratio applies to the frame WITHOUT the caption block.       */
+.vti-image-tile--has-below-caption {
+  height: auto;
+  background: transparent;
+  border-radius: 0;
+}
+.vti-image-tile--has-below-caption .vti-image-tile__img {
+  height: auto;
+  aspect-ratio: inherit;
+  border-radius: inherit;
+}
+.vti-image-tile__caption--below {
+  margin-top: 12px;
+  font-family: var(--font-b);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--vti-ink-soft);
+  font-style: italic;
+}

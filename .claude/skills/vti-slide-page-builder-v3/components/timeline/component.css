@@ -1,0 +1,273 @@
+/* =============================================================================
+   timeline — events on time axis, card-based for richer content per event.
+
+   Each event = a card with title + optional body + deliverables list +
+   optional metric badge. Cards sit ABOVE the track in horizontal mode,
+   to the RIGHT of the track in vertical mode.
+
+   Milestones: navy-accented card + larger navy dot (deeper than regular events).
+   ============================================================================= */
+
+.vti-timeline {
+  width: 100%;
+  font-family: var(--font-b);
+  position: relative;
+  min-width: 0;
+}
+
+/* ── Horizontal track + events distribution ───────────────────────────── */
+.vti-timeline--horizontal {
+  padding: 0 8px 32px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vti-timeline--horizontal .vti-timeline__events {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 12px;
+  position: relative;
+}
+
+.vti-timeline--horizontal .vti-timeline__event {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  position: relative;
+}
+
+/* Card grows; dot+date pinned at the bottom (stretching margin pushes them down) */
+.vti-timeline--horizontal .vti-timeline__card {
+  margin-bottom: 30px;
+}
+
+/* Track sits at the bottom of the events strip, behind the dots */
+.vti-timeline--horizontal .vti-timeline__track {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 24px;
+  height: 2px;
+  background: var(--vti-blue-medium);
+  z-index: 0;
+}
+
+.vti-timeline--horizontal .vti-timeline__dot {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.vti-timeline--horizontal .vti-timeline__date {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* In horizontal orientation, cards are narrow (col 12 / 5-7 events ≈
+   165-230px each). Stack the metric BELOW the title instead of next to
+   it — avoids overlap when title is short and metric label is long. */
+.vti-timeline--horizontal .vti-timeline__card-head {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.vti-timeline--horizontal .vti-timeline__metric {
+  flex-direction: row;
+  align-self: flex-start;
+  align-items: baseline;
+  padding: 3px 8px;
+  gap: 4px;
+}
+.vti-timeline--horizontal .vti-timeline__metric-value {
+  font-size: 12px;
+}
+.vti-timeline--horizontal .vti-timeline__metric-label {
+  margin-top: 0;
+  font-size: 12px;
+}
+
+/* ── Vertical track + events stack ────────────────────────────────────── */
+.vti-timeline--vertical {
+  padding: 8px 0 8px 36px;
+}
+
+.vti-timeline--vertical .vti-timeline__events {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+
+.vti-timeline--vertical .vti-timeline__event {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.vti-timeline--vertical .vti-timeline__track {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: -18px;
+  width: 2px;
+  background: var(--vti-blue-medium);
+}
+
+.vti-timeline--vertical .vti-timeline__dot {
+  position: absolute;
+  left: -27px;
+  top: 6px;
+  z-index: 2;
+}
+
+.vti-timeline--vertical .vti-timeline__date {
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+/* ── Track dot ───────────────────────────────────────────────────────── */
+.vti-timeline__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--vti-white);
+  border: 3px solid var(--vti-blue-deep);
+  box-sizing: border-box;
+}
+.vti-timeline__event--milestone .vti-timeline__dot {
+  width: 18px;
+  height: 18px;
+  background: var(--vti-navy);
+  border-color: var(--vti-white);
+}
+
+/* ── Date label (shared) ─────────────────────────────────────────────── */
+.vti-timeline__date {
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Card — the rich content surface ──────────────────────────────────── */
+.vti-timeline__card {
+  background: rgba(8, 68, 164, 0.04);
+  border-left: 3px solid var(--vti-blue-deep);
+  border-radius: 4px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.vti-timeline__event--milestone .vti-timeline__card {
+  background: rgba(5, 25, 52, 0.06);
+  border-left-color: var(--vti-navy);
+}
+
+.vti-timeline__card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.vti-timeline__card-title {
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  line-height: 1.3;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Optional metric badge — top-right of card */
+.vti-timeline__metric {
+  background: var(--vti-blue-deep);
+  color: var(--vti-white);
+  padding: 4px 8px;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: var(--font-h);
+  flex: 0 0 auto;
+  line-height: 1;
+}
+.vti-timeline__event--milestone .vti-timeline__metric {
+  background: var(--vti-navy);
+  color: var(--vti-white);
+}
+.vti-timeline__metric-value {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.05;
+}
+.vti-timeline__metric-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+  opacity: 0.95;
+}
+
+/* Optional body paragraph */
+.vti-timeline__card-body {
+  font-size: 12px;
+  color: #4B5563;
+  line-height: 1.45;
+}
+
+/* Deliverables list — checkmark bullets */
+.vti-timeline__deliverables {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--vti-ink);
+  line-height: 1.4;
+}
+.vti-timeline__deliverable {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+.vti-timeline__deliverable::before {
+  content: "✓";
+  color: var(--vti-blue-deep);
+  font-weight: 600;
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.vti-timeline__event--milestone .vti-timeline__deliverable::before {
+  color: var(--vti-navy);
+}

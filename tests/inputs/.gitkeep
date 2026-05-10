@@ -1,0 +1,2 @@
+# Drop test input files here (docx, pdf, md sources)
+# These ARE committed to git so test cases reproduce across machines.

@@ -1,0 +1,111 @@
+/* =============================================================================
+   pie-chart — circular share-of-whole chart with optional donut center.
+   Optional legend on the right (default) or below (for narrow cells).
+
+   SVG viewBox 200×200 fixed; legend uses HTML for proper text layout.
+   ============================================================================= */
+
+.vti-pie-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  font-family: var(--font-b);
+  min-height: 180px;
+  min-width: 0;
+  align-items: center;
+  gap: 20px;
+}
+
+.vti-pie-chart--legend-right  { flex-direction: row; }
+.vti-pie-chart--legend-below  { flex-direction: column; align-items: stretch; gap: 12px; }
+
+.vti-pie-chart__chart {
+  flex: 0 0 auto;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 200px;
+  min-width: 0;
+}
+.vti-pie-chart--legend-right .vti-pie-chart__chart {
+  flex: 0 0 auto;
+  width: 50%;
+  max-width: 200px;
+}
+
+.vti-pie-chart__svg { width: 100%; height: 100%; display: block; }
+
+/* Segment styling (set per-segment via fill attribute) */
+.vti-pie-chart__segment {
+  stroke: var(--vti-white);
+  stroke-width: 1;
+  transition: opacity 0.15s;
+}
+
+/* Donut center hole */
+.vti-pie-chart__hole { fill: var(--vti-white); }
+
+/* Center label inside donut hole */
+.vti-pie-chart__center-value {
+  font-family: var(--font-h);
+  font-size: 24px;
+  font-weight: 600;
+  fill: var(--vti-blue-deep);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.vti-pie-chart__center-label {
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--vti-ink);
+  text-anchor: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  dominant-baseline: central;
+}
+
+/* Legend */
+.vti-pie-chart__legend {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.vti-pie-chart--legend-below .vti-pie-chart__legend {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.vti-pie-chart__legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--vti-ink);
+  min-width: 0;
+}
+
+.vti-pie-chart__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+}
+
+.vti-pie-chart__legend-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vti-pie-chart__legend-pct {
+  font-family: var(--font-h);
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}

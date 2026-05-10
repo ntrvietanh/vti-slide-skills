@@ -1,0 +1,46 @@
+/* =============================================================================
+   headline — single big inline statement for content slides.
+   Different from chrome breadcrumb (the slide title): headline is body-area
+   content, used as a hero statement INSIDE a slide.
+   3 colors: deep (default brand), navy (darker), ink (neutral dark gray).
+   Optional leading vertical bar accent (`show_bar: True`).
+   ============================================================================= */
+.vti-headline {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-family: var(--font-h);
+  letter-spacing: -0.005em;
+  min-width: 0;
+}
+.vti-headline--center { justify-content: center; text-align: center; }
+
+.vti-headline__bar {
+  width: 5px;
+  background: var(--vti-blue-deep);
+  border-radius: 2px;
+  flex: 0 0 auto;
+  align-self: stretch;
+}
+
+.vti-headline__text {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.15;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.vti-headline--medium .vti-headline__text { font-size: 24px; }
+.vti-headline--large  .vti-headline__text { font-size: 32px; line-height: 1.1; }
+
+.vti-headline--deep  .vti-headline__text { color: var(--vti-blue-deep); }
+.vti-headline--navy  .vti-headline__text { color: var(--vti-navy); }
+.vti-headline--ink   .vti-headline__text { color: var(--vti-ink); }
+
+/* Inline strong gets brand emphasis */
+.vti-headline strong {
+  color: var(--vti-blue-deep);
+  font-weight: 600;
+}
+.vti-headline--deep strong { color: var(--vti-navy); }   /* deeper for layered emphasis */

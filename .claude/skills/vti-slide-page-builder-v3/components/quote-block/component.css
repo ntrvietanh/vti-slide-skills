@@ -1,0 +1,99 @@
+/* =========================================================================
+   quote-block — pull quote / testimonial. Two visual styles:
+     • hero  — full-bleed centered, big italic body, no background
+     • card  — pale-blue rounded card with quote mark in corner
+   Optional attribution row with rule above and {name, role, company}.
+   ========================================================================= */
+
+.vti-quote-block {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 32px 36px 28px;
+}
+
+.vti-quote-block--card {
+  background: var(--vti-paleblue);
+  border-radius: 16px;
+}
+
+.vti-quote-block--hero {
+  text-align: center;
+  padding: 28px 48px;
+}
+
+/* Decorative opening quote mark. Sits behind the text in a desaturated
+   accent so it reads as a watermark, not a glyph the eye lands on. */
+.vti-quote-block__mark {
+  position: absolute;
+  top: -6px;
+  left: 18px;
+  font-family: 'Plus Jakarta Sans', Georgia, serif;
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+}
+
+.vti-quote-block--deep .vti-quote-block__mark { color: var(--vti-blue-deep); opacity: 0.16; }
+.vti-quote-block--navy .vti-quote-block__mark { color: var(--vti-navy);      opacity: 0.18; }
+.vti-quote-block--sky  .vti-quote-block__mark { color: var(--vti-bright);    opacity: 0.20; }
+
+.vti-quote-block--hero .vti-quote-block__mark {
+  position: static;
+  display: block;
+  margin: 0 auto 4px;
+  font-size: 64px;
+}
+
+.vti-quote-block__body {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 24px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--vti-ink);
+  font-style: italic;
+}
+
+.vti-quote-block--hero .vti-quote-block__body {
+  font-size: 24px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Attribution: thin top rule + 3 fields stacked tight. */
+.vti-quote-block__attribution {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px solid var(--vti-divider);
+  font-family: var(--font-b);
+  font-size: 15px;
+  color: var(--vti-ink-soft);
+}
+
+.vti-quote-block--hero .vti-quote-block__attribution {
+  align-items: center;
+  border-top: none;
+  border-bottom: none;
+  margin-top: 18px;
+  padding-top: 0;
+}
+
+.vti-quote-block__attribution-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.vti-quote-block--deep .vti-quote-block__attribution-name { color: var(--vti-blue-deep); }
+.vti-quote-block--navy .vti-quote-block__attribution-name { color: var(--vti-navy); }
+.vti-quote-block--sky  .vti-quote-block__attribution-name { color: var(--vti-bright); }
+
+.vti-quote-block__attribution-role {
+  font-size: 12px;
+  color: var(--vti-muted);
+}

@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Claude Code runtime
+.claude/cache/
+.claude/sessions/
+.claude/state/
+
+# Working files (intermediate outputs, test artifacts)
+work/
+!work/.gitkeep
+
+# Test outputs (keep inputs + expected)
+tests/outputs/
+
+# IDE
+.vscode/
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.local
+*.key

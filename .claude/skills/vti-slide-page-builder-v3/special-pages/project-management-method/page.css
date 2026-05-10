@@ -1,0 +1,60 @@
+/* project-management-method · page.css
+   ---------------------------------------------------------------------
+   All typography & color values consume canonical --vti-* tokens per
+   TYPOGRAPHY.md. No literal font-size or hex-color values.
+*/
+.page-pmm {
+  width: var(--sw); height: var(--sh); position: relative;
+  background: var(--vti-white);
+  font-family: var(--vti-font-body);
+  overflow: hidden;
+}
+.page-pmm .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-pmm[data-show-chrome="false"] .bc,
+.page-pmm[data-show-chrome="false"] .logo-tr,
+.page-pmm[data-show-chrome="false"] .fbar,
+.page-pmm[data-show-chrome="false"] .fbar-copy { display: none; }
+
+/* Intro paragraph — body-size prose with white BG to mask any leftover
+   text overflow from the lifted JPEG. */
+.page-pmm .pmm-intro {
+  position: absolute;
+  top: 82px; left: 60px; width: 750px;
+  margin: 0; padding: 4px 8px 6px 0;
+  font-size: var(--vti-fs-body);
+  font-weight: var(--vti-fw-regular);
+  line-height: var(--vti-leading-body);
+  color: var(--vti-ink);
+  background: var(--vti-white);
+}
+
+/* Side panel — bounded by the panel BG in the lifted JPEG (y=203→601).
+   flex + gap gives predictable section spacing regardless of body length. */
+.page-pmm .pmm-panel {
+  position: absolute;
+  top: 250px; left: 870px; right: 30px; height: 335px;
+  padding: 0 22px 0 18px;
+  display: flex; flex-direction: column;
+  gap: var(--vti-space-xl);     /* 32px */
+}
+.page-pmm .pmm-sec { padding: 0; }
+
+/* Sub-section title — pattern from TYPOGRAPHY.md §8 */
+.page-pmm .pmm-title {
+  margin: 0 0 var(--vti-space-xxs) 0;
+  font-size: var(--vti-fs-h3);
+  font-weight: var(--vti-fw-bold);
+  line-height: var(--vti-leading-tight);
+  color: var(--vti-blue-medium);
+}
+.page-pmm .pmm-body {
+  margin: 0;
+  font-size: var(--vti-fs-body);
+  font-weight: var(--vti-fw-regular);
+  line-height: 1.4;
+  color: var(--vti-ink);
+}

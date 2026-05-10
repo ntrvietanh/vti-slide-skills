@@ -1,0 +1,23 @@
+<!--
+  ============================================================================
+  CHROME · header
+  ----------------------------------------------------------------------------
+  Top region of every content slide.
+
+  Derivation (from sw_slide_05.png and consistent across GDC/Cloud):
+   - Top-left:  a single breadcrumb line "ABOUT VTI GROUP" preceded by a
+                short vertical bar accent (no two-part section|title pattern).
+                Color: #3D3D3D, all caps, font-weight 700, ~13.5 px.
+   - Top-right: full VTI logo PNG (mark + "Innovation Technology Value"
+                tagline). ~110 px wide. Resolved at render time by the
+                vti-logo skill via the marker below.
+  ----------------------------------------------------------------------------
+  Inserted at the TOP of every content layout (not used by special pages,
+  which have their own headers / no chrome).
+  ============================================================================
+-->
+<div class="bc">
+  <span class="bc-bar"></span>
+  <span class="bc-text">{{BREADCRUMB}}</span>
+</div>
+<!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->

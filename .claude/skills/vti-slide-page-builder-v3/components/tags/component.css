@@ -1,0 +1,42 @@
+/* =============================================================================
+   tags — inline pill-shaped chips for categorization / capability badges.
+   4 tones: deep / medium / sky (solid colored bg + white text)
+            soft (pale blue bg + deep blue text — most subtle, for many tags)
+   ============================================================================= */
+.vti-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--font-b);
+  min-width: 0;
+}
+
+.vti-tag {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Sizes */
+.vti-tags--default .vti-tag {
+  font-size: 12px;
+  padding: 4px 11px;
+}
+.vti-tags--small   .vti-tag {
+  font-size: 12px;
+  padding: 3px 9px;
+}
+
+/* Tones — solid */
+.vti-tags--deep   .vti-tag { background: var(--vti-blue-deep);   color: var(--vti-white); }
+.vti-tags--medium .vti-tag { background: var(--vti-blue-medium); color: var(--vti-white); }
+.vti-tags--sky    .vti-tag { background: var(--vti-sky);         color: var(--vti-white); }
+
+/* soft — pale blue bg, deep blue text. Most subtle, best for many tags. */
+.vti-tags--soft .vti-tag {
+  background: rgba(8, 68, 164, 0.10);
+  color: var(--vti-blue-deep);
+}

@@ -1,0 +1,74 @@
+/* =============================================================================
+   trend-stat — single KPI value + delta arrow + period.
+   Like stat-mini but with directional movement (▲ ▼ —).
+   ============================================================================= */
+
+.vti-trend-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-b);
+  min-width: 0;
+  padding: 12px 4px;
+}
+
+.vti-trend-stat__value {
+  font-family: var(--font-h);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--vti-blue-deep);
+  letter-spacing: -0.01em;
+}
+
+.vti-trend-stat__delta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.vti-trend-stat__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.vti-trend-stat__arrow svg { width: 14px; height: 14px; display: block; }
+
+.vti-trend-stat__delta {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.vti-trend-stat__period {
+  font-weight: 400;
+  color: #6B7280;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* Trend variants — color the arrow + delta number */
+.vti-trend-stat--up   .vti-trend-stat__arrow { color: #16A34A; }
+.vti-trend-stat--up   .vti-trend-stat__delta { color: #16A34A; }
+.vti-trend-stat--down .vti-trend-stat__arrow { color: #DC2626; }
+.vti-trend-stat--down .vti-trend-stat__delta { color: #DC2626; }
+.vti-trend-stat--flat .vti-trend-stat__arrow { color: #6B7280; }
+.vti-trend-stat--flat .vti-trend-stat__delta { color: #6B7280; }
+
+.vti-trend-stat__label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vti-ink);
+  margin-top: 8px;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
+
+/* Compact variant for narrow cells (col_span ≤ 4) */
+.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__value { font-size: 24px; }
+.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__label { font-size: 12px; }

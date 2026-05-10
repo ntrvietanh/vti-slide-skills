@@ -1,0 +1,65 @@
+{
+  "_doc": "Canonical VTI APAC defaults for special pages. Single source of truth. Edit this file to change brand defaults — never hardcode in Python.",
+  "_source": "Real VTI contact data, extracted from the official Contact reference deck (image uploaded 2026-05-08).",
+
+  "contact": {
+    "contact_headline": "CONTACT US",
+    "channels": [
+      {"type": "facebook", "text": "facebook.com/VTI.JSC"},
+      {"type": "email",    "text": "info@vti.com.vn"},
+      {"type": "linkedin", "text": "linkedin.com/company/vtijsc/"},
+      {"type": "website",  "text": "https://vti.com.vn/"}
+    ],
+    "offices": [
+      {
+        "flag":   "assets/flag-vn.png",
+        "region": "VIETNAM HEADQUARTER",
+        "branches": [
+          {"label": "Hanoi head office:",
+           "text":  "VTI Building, Me Tri Ha Urban Area, Tu Liem Ward, Hanoi · Tel: (+84) 24-7303-9996"},
+          {"label": "Ho Chi Minh office:",
+           "text":  "4th Floor, Dakao Center Building, 35 Mac Dinh Chi Street, Tan Dinh Ward, HCMC · (+84) 24-7306-8883"}
+        ]
+      },
+      {
+        "flag":   "assets/flag-jp.png",
+        "region": "JAPAN",
+        "branches": [
+          {"label": "Tokyo head office:",
+           "text":  "5F, Akebonobashi SHK Building, 4-3 Katamachi, Shinjuku-ku, Tokyo 160-0001 · Tel: (+81) 3-6261-5698"},
+          {"label": "Osaka office:",
+           "text":  "608, Sanko Building Semba, 1-3-9 Minamihonmachi, Chuo-ku, Osaka-shi, Osaka 541-0054 · Tel: (+81) 6-4708-4942"},
+          {"label": "Nagoya office:",
+           "text":  "7F West Side, Nagoya SI Building, 1-7-32 Nishiki, Naka-ku, Nagoya, Aichi 460-0003"},
+          {"label": "Fukuoka office:",
+           "text":  "601, Hakata Kowa Building, 3-23-12 Hakata Ekimae, Hakata-ku, Fukuoka 812-0011"}
+        ]
+      },
+      {
+        "flag":   "assets/flag-kr.png",
+        "region": "KOREA",
+        "branches": [
+          {"label": "",
+           "text":  "13 Floor, Goryeo Daeyeongak Tower, 97 Toegye-ro, Jung-gu, Seoul 04535 · Tel: (+82) 2 2039 1159"}
+        ]
+      },
+      {
+        "flag":   "assets/flag-sg.png",
+        "region": "SINGAPORE",
+        "branches": [
+          {"label": "",
+           "text":  "20A Tanjong Pagar Road"}
+        ]
+      }
+    ]
+  },
+
+  "cover": {
+    "deck_title":   "VTI APAC",
+    "deck_tagline": "Corporate profile · 2026"
+  },
+
+  "closing": {
+    "closing_message": "Thank you. Let's build."
+  }
+}

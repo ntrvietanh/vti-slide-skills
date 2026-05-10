@@ -1,0 +1,82 @@
+/* =============================================================================
+   table — generic data table.
+
+   Layout: CSS Grid per row (NOT a <table>) so columns can be flexible
+   `minmax(0, 1fr)` — they shrink properly in narrow cells.
+
+   Flexibility: tested at col_span 4 / 6 / 8 / 12. Cell text wraps;
+   long values truncate via word-break. Density variants tighten padding
+   for narrow cells.
+   ============================================================================= */
+
+.vti-table {
+  width: 100%;
+  font-family: var(--font-b);
+  font-size: 12px;
+  color: var(--vti-ink);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vti-table__row {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: stretch;
+  border-bottom: 1px solid var(--vti-divider);
+  min-width: 0;
+}
+
+.vti-table__cell {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.vti-table--compact .vti-table__cell { padding: 6px 10px; font-size: 12px; }
+.vti-table--loose   .vti-table__cell { padding: 12px 14px; font-size: 12px; }
+
+/* Alignment per column */
+.vti-table__cell--align-right  { justify-content: flex-end; text-align: right; }
+.vti-table__cell--align-center { justify-content: center; text-align: center; }
+
+/* Header row — uppercase, deep blue, accent bottom border */
+.vti-table__row--header {
+  border-bottom: 1.5px solid var(--vti-blue-deep);
+}
+.vti-table__row--header .vti-table__cell {
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vti-blue-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+/* Highlighted rows — subtle blue tint */
+.vti-table__row--highlight {
+  background: rgba(8, 68, 164, 0.05);
+}
+
+/* First-column emphasis (semibold) — common pattern for label/value tables */
+.vti-table--first-col-emphasis .vti-table__row:not(.vti-table__row--header)
+  .vti-table__cell:first-child {
+  font-weight: 600;
+  color: var(--vti-ink);
+}
+
+/* Last row — drop the bottom border for cleaner look */
+.vti-table__row:last-child {
+  border-bottom: none;
+}
+
+/* Numeric cells — tabular-nums for column alignment */
+.vti-table__cell--numeric {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}

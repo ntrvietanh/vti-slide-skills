@@ -1,0 +1,76 @@
+/* =============================================================================
+   numbered-list — items with prominent numbered anchors.
+   Use when sequence/ordering is meaningful (vs bullet-list-checked which
+   is for set-of-things without order).
+   number_style: 'circle' (default) — round circle bg with number inside
+                 'block'  — square solid block
+   ============================================================================= */
+.vti-numbered-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-b);
+  min-width: 0;
+}
+.vti-numbered-list--compact { gap: 10px; }
+.vti-numbered-list--default { gap: 14px; }
+.vti-numbered-list--loose   { gap: 20px; }
+
+.vti-numbered-list__item {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.vti-numbered-list__num {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vti-white);
+  background: var(--vti-blue-deep);
+  flex: 0 0 auto;
+  letter-spacing: 0.02em;
+}
+
+.vti-numbered-list--circle .vti-numbered-list__num { border-radius: 50%; }
+.vti-numbered-list--block  .vti-numbered-list__num { border-radius: 4px; }
+
+.vti-numbered-list__content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 5px;
+  min-width: 0;
+}
+
+.vti-numbered-list__title {
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  line-height: 1.35;
+}
+
+.vti-numbered-list__body {
+  font-size: 12px;
+  color: #4B5563;
+  line-height: 1.45;
+}
+
+/* Plain string items render with title weight only (no body) */
+.vti-numbered-list__item--plain .vti-numbered-list__title {
+  font-family: var(--font-b);
+  font-weight: 500;
+  font-size: 12px;
+  padding-top: 6px;
+  color: var(--vti-ink);
+}

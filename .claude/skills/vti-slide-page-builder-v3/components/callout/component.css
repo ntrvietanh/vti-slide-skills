@@ -1,0 +1,89 @@
+/* =============================================================================
+   callout — emphasized text block with colored left border + icon.
+
+   4 tones, ALL on-brand (VTI blue family) with one semantic exception:
+     • info — VTI blue medium border + pale blue background (default)
+     • tip  — green border + pale green bg (semantic positive)
+     • warn — red border + pale red bg (semantic negative; NOT yellow)
+     • deep — solid VTI deep blue background + white text (hero takeaway)
+
+   The deep tone is the most emphasized variant — solid VTI brand blue with
+   white text. Use for THE key takeaway of a slide.
+   ============================================================================= */
+
+.vti-callout {
+  display: flex;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  border-left: 4px solid;
+  font-family: var(--font-b);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* info — pale blue bg, brand-medium border */
+.vti-callout--info {
+  background: rgba(8, 68, 164, 0.06);
+  border-color: var(--vti-blue-medium);
+}
+.vti-callout--info .vti-callout__icon { color: var(--vti-blue-medium); }
+
+/* warn — semantic negative, RED (not yellow per design rule) */
+.vti-callout--warn {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: #DC2626;
+}
+.vti-callout--warn .vti-callout__icon { color: #DC2626; }
+.vti-callout--warn .vti-callout__title { color: #DC2626; }
+
+/* tip — STRONG ON-BRAND emphasis (was green; v3.2: vti-blue-deep per T4)
+   Rationale: original tip variant used green (#059669), which violated
+   the T4 rule "semantic colors locked for state-only". Decorative use
+   of green created off-brand monocolor breaks. Now uses vti-blue-deep,
+   stronger than info (vti-blue-medium) but on-brand. */
+.vti-callout--tip {
+  background: rgba(8, 68, 164, 0.10);
+  border-color: var(--vti-blue-deep);
+}
+.vti-callout--tip .vti-callout__icon  { color: var(--vti-blue-deep); }
+.vti-callout--tip .vti-callout__title { color: var(--vti-blue-deep); }
+
+/* deep — hero callout, solid VTI blue + white text */
+.vti-callout--deep {
+  background: var(--vti-blue-deep);
+  border-color: var(--vti-sky);
+  color: var(--vti-white);
+}
+.vti-callout--deep .vti-callout__icon  { color: var(--vti-white); }
+.vti-callout--deep .vti-callout__title { color: var(--vti-white); }
+
+.vti-callout__icon {
+  flex: 0 0 auto;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.vti-callout__icon svg { width: 22px; height: 22px; }
+
+.vti-callout__body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.vti-callout__title {
+  font-family: var(--font-h);
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vti-blue-deep);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.vti-callout__text {
+  font-size: 12px;
+  color: inherit;
+  line-height: 1.5;
+}

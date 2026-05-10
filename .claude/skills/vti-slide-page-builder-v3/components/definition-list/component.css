@@ -1,0 +1,82 @@
+/* =============================================================================
+   definition-list — term/value pairs.
+   horizontal: term on left (uppercase blue), value on right (ink) — for
+               spec sheets and capability summaries
+   stacked:    term above (small uppercase), value below (larger normal) —
+               for headline-style data
+   ============================================================================= */
+.vti-definition-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-b);
+  min-width: 0;
+}
+.vti-definition-list--compact { gap: 8px; }
+.vti-definition-list--default { gap: 12px; }
+.vti-definition-list--loose   { gap: 18px; }
+
+.vti-definition-list__item {
+  min-width: 0;
+}
+
+/* ── horizontal layout ───────────────────────────────────────────────── */
+.vti-definition-list--horizontal .vti-definition-list__item {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
+  gap: 16px;
+  align-items: baseline;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--vti-divider);
+}
+.vti-definition-list--horizontal .vti-definition-list__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.vti-definition-list--horizontal .vti-definition-list__term {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--vti-blue-deep);
+  word-break: break-word;
+}
+
+.vti-definition-list--horizontal .vti-definition-list__value {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vti-ink);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ── stacked layout ──────────────────────────────────────────────────── */
+.vti-definition-list--stacked .vti-definition-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vti-definition-list--stacked .vti-definition-list__term {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--vti-blue-deep);
+}
+
+.vti-definition-list--stacked .vti-definition-list__value {
+  margin: 0;
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  line-height: 1.25;
+}

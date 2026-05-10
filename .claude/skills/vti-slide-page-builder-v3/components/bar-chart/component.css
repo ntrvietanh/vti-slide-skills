@@ -1,0 +1,80 @@
+/* =============================================================================
+   bar-chart — vertical (column) or horizontal bar chart.
+
+   Pure SVG with viewBox + preserveAspectRatio="xMidYMid meet" → scales to any
+   container. Bars, axes, and labels are all SVG so they scale together.
+
+   Flexibility: works at col_span 3 (cramped), col_span 6 (typical),
+   col_span 12 (wide). The viewBox aspect is chosen per orientation.
+   ============================================================================= */
+
+.vti-bar-chart {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-b);
+  min-height: 180px;       /* baseline for auto-height rows */
+  min-width: 0;
+}
+
+.vti-bar-chart__title {
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vti-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--vti-divider);
+}
+
+.vti-bar-chart__svg {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  display: block;
+  min-height: 0;
+}
+
+/* Bar fills */
+.vti-bar-chart__bar              { transition: opacity 0.15s; }
+.vti-bar-chart__bar--deep        { fill: var(--vti-blue-deep); }
+.vti-bar-chart__bar--medium      { fill: var(--vti-blue-medium); }
+.vti-bar-chart__bar--sky         { fill: var(--vti-blue-sky); }
+.vti-bar-chart__bar--navy        { fill: var(--vti-navy); }
+.vti-bar-chart__bar--gray        { fill: #6B7280; }
+
+/* Axis lines */
+.vti-bar-chart__axis-line { stroke: var(--vti-divider); stroke-width: 1; }
+.vti-bar-chart__grid-line { stroke: var(--vti-divider); stroke-width: 0.5; stroke-dasharray: 2 3; }
+
+/* SVG text labels — scale with viewBox so size depends on container */
+.vti-bar-chart__cat-label {
+  font-family: var(--font-b);
+  font-size: 15px;
+  fill: var(--vti-ink);
+  text-anchor: middle;
+}
+.vti-bar-chart--horizontal .vti-bar-chart__cat-label {
+  text-anchor: end;
+}
+
+.vti-bar-chart__value-label {
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--vti-blue-deep);
+  text-anchor: middle;
+}
+.vti-bar-chart--horizontal .vti-bar-chart__value-label {
+  text-anchor: start;
+}
+
+.vti-bar-chart__y-tick {
+  font-family: var(--font-b);
+  font-size: 12px;
+  fill: #6B7280;
+  text-anchor: end;
+}

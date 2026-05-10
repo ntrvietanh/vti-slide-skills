@@ -1,0 +1,35 @@
+<!--
+  quality-assurance — lifted from GDC PPTX p.23 (Quality Assurance).
+  Background = pre-cleaned slide visual (blue callout BG, 6-segment radial
+  pie with "Process / Delivery / Cost / Productivity / Efficiency / Quality"
+  + center hub, Tools row with CMMI + ISTQB badges, "QUANTITATIVE
+  MANAGEMENT SYSTEM" subtitle).
+
+  Editable overlays:
+    • Blue callout text (sits inside the rounded blue rectangle)
+    • Quality Management Activities — header + 5 bullet lines
+-->
+<div class="slide page-qa" data-show-chrome="{{SHOW_CHROME}}">
+  <div class="lift-bg" style="{{BG_STYLE}}"></div>
+
+  <p class="qa-callout">{{CALLOUT_TEXT}}</p>
+
+  <div class="qa-acts">
+    <h3 class="qa-acts-title">{{ACTIVITIES_TITLE}}</h3>
+    <ul class="qa-acts-list">
+      <li>{{ACTIVITY_1}}</li>
+      <li>{{ACTIVITY_2}}</li>
+      <li>{{ACTIVITY_3}}</li>
+      <li>{{ACTIVITY_4}}</li>
+      <li>{{ACTIVITY_5}}</li>
+    </ul>
+  </div>
+
+  <div class="bc"><span class="bc-bar"></span><span class="bc-text">{{BREADCRUMB}}</span></div>
+  <!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->
+  <div class="fbar">
+    <div class="fbar-chev"><span class="fbar-num">{{PAGE_NUM}}</span></div>
+    <span class="fbar-sep"></span><span class="fbar-doc">{{DOC_TITLE}}</span>
+  </div>
+  <div class="fbar-copy">© {{COPYRIGHT_YEAR}} VTI APAC. All rights reserved.</div>
+</div>

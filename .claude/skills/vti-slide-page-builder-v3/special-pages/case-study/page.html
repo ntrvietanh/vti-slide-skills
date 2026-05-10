@@ -1,0 +1,32 @@
+<div class="slide layout-case-study-{{VARIANT}}{{SIDEBAR_CLASS}}">
+
+  <!-- Standard chrome header (breadcrumb top-left + logo top-right).
+       The top-right chrome logo is hidden via CSS when the sidebar is
+       present (sidebar provides its own white logo). -->
+  {{HEADER_HTML}}
+
+  <!-- Main panel — subhead + flexible body grid.
+       Right padding leaves room for the sidebar overlay (when present). -->
+  <main class="cs-main">
+    <div class="cs-subhead">
+      <h2 class="cs-subhead__text">{{SUBHEAD}}</h2>
+    </div>
+    <div class="cs-body">
+      {{BODY_GRID_HTML}}
+    </div>
+  </main>
+
+  <!-- Standard chrome footer (page badge + doc title + copyright).
+       The copyright text auto-flips to white when it sits on the dark
+       sidebar — handled by the existing `.layout-case-study-* .fbar-copy`
+       rule in chrome/footer.css. -->
+  {{FOOTER_HTML}}
+
+  <!-- Right sidebar overlay — only rendered for slides that lead a case
+       study (the "intro" slide). Continuation slides pass no_sidebar: True
+       to omit the sidebar entirely while keeping the chrome breadcrumb
+       (so viewers still see "CASE 01 | CS01 · ..." on every page of the
+       same case). -->
+  {{SIDEBAR_HTML}}
+
+</div>

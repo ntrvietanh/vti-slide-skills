@@ -1,0 +1,53 @@
+.vti-stat-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 20px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.vti-stat-hero__deco {
+  position: absolute;
+  border-radius: 50%;
+  border: 0.5px dashed;
+  pointer-events: none;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.vti-stat-hero__deco--outer {
+  width: 280px;
+  height: 280px;
+  border-color: var(--vti-light, #DAE9F6);
+}
+.vti-stat-hero__deco--inner {
+  width: 200px;
+  height: 200px;
+  border-color: #B5D4F4;
+}
+.vti-stat-hero__value {
+  font-family: var(--vti-font-display, "Inter", sans-serif);
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--vti-blue-deep, #0844A4);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 2;
+}
+.vti-stat-hero__label {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--vti-blue-medium, #1B5DE6);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-top: 8px;
+  position: relative;
+  z-index: 2;
+}

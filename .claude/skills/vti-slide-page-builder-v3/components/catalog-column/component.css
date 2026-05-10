@@ -1,0 +1,99 @@
+.vti-catalog-column {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border: 0.5px solid rgba(0, 74, 173, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.vti-catalog-column__header {
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  color: #FFFFFF;
+}
+.vti-catalog-column__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vti-catalog-column__label-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vti-catalog-column__label-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+}
+.vti-catalog-column__label-text {
+  font-family: var(--vti-font-display, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vti-catalog-column__count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #FFFFFF;
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+}
+.vti-catalog-column__body {
+  padding: 8px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+}
+.vti-catalog-column__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  color: var(--vti-ink, #2C2C2A);
+  line-height: 1.4;
+}
+.vti-catalog-column__item-chev {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--vti-blue-medium, #1B5DE6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vti-catalog-column__item-chev svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+.vti-catalog-column__item-text {
+  flex: 1;
+}
+.vti-catalog-column__item-tag {
+  margin-left: auto;
+  background: var(--vti-light, #DAE9F6);
+  color: var(--vti-blue-deep, #0844A4);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 99px;
+  letter-spacing: 0.04em;
+}

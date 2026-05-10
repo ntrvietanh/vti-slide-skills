@@ -1,0 +1,69 @@
+.vti-practice-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 0.5px solid rgba(0, 74, 173, 0.12);
+}
+.vti-practice-card__top {
+  position: relative;
+  padding: 20px 20px 18px;
+  color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 144px;
+  flex-shrink: 0;
+}
+.vti-practice-card__num {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.20em;
+  color: #ffffff; opacity: 0.65;
+}
+.vti-practice-card__top-content {
+  display: flex;
+  flex-direction: column;
+}
+.vti-practice-card__icon {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 14px;
+  color: #FFFFFF;
+}
+.vti-practice-card__icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.vti-practice-card__title {
+  font-family: var(--vti-font-display, "Inter", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+.vti-practice-card__body {
+  background: #FFFFFF;
+  padding: 14px 18px 16px;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+.vti-practice-card__text {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--vti-ink, #444441);
+  margin: 0;
+}

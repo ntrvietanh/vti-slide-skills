@@ -1,0 +1,61 @@
+.page-wws {
+  width: 1280px; height: 720px; position: relative;
+  background: #fff; font-family: var(--font-b); overflow: hidden;
+}
+.page-wws .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-wws[data-show-chrome="false"] .bc,
+.page-wws[data-show-chrome="false"] .logo-tr,
+.page-wws[data-show-chrome="false"] .fbar,
+.page-wws[data-show-chrome="false"] .fbar-copy { display: none; }
+
+.page-wws .wws-legend {
+  position: absolute;
+  top: 100px; left: 680px;
+  width: 170px; margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 8px;
+  font-size: 12px; color: var(--gray-deep);
+}
+.page-wws .wws-legend li {
+  display: flex; align-items: center; gap: 8px; white-space: nowrap;
+}
+.page-wws .wws-sw {
+  width: 14px; height: 14px; flex: 0 0 14px; border-radius: 2px;
+}
+
+.page-wws .wws-caption {
+  position: absolute;
+  left: 660px; top: 460px; width: 580px; margin: 0;
+  font-size: 15px; line-height: 1.55;
+  text-align: center;
+  color: var(--gray-deep);
+}
+.page-wws .wws-stats {
+  position: absolute;
+  left: 660px; top: 565px; width: 580px;
+  display: flex; gap: 16px;
+}
+.page-wws .wws-stat {
+  flex: 1 1 0;
+  background: var(--blue-deep);
+  border-radius: 4px;
+  padding: 10px 16px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 76px;
+}
+.page-wws .wws-stat-value {
+  font-family: var(--font-h);
+  font-size: 32px; font-weight: 600;
+  line-height: 1; color: #fff;
+  letter-spacing: -0.01em;
+}
+.page-wws .wws-stat-label {
+  font-size: 12px; font-weight: 600; color: #fff;
+  margin-top: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

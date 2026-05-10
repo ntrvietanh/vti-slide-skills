@@ -1,0 +1,62 @@
+/* SPECIAL PAGE · section-divider.css
+   Background image is the literal divider visual extracted from PPTX.      */
+
+.page-section-divider {
+  width: var(--sw);
+  height: var(--sh);
+  position: relative;
+  overflow: hidden;
+  background: var(--white);
+}
+
+/* Full-bleed bg with the trapezoid bars + triangular photo composition */
+.page-section-divider .dv-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('../../assets/divider-visual.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* (Chevron pill + triangle frame are part of the bg asset, not CSS. Each
+   section can supply its own composite via data.bg_asset_url; the default
+   asset is assets/divider-visual.png — see page.html for the contract.) */
+
+/* Centered title block, left half of the slide */
+.page-section-divider .dv-content {
+  position: absolute;
+  left: 80px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 460px;
+  z-index: 5;
+}
+
+.page-section-divider .dv-title {
+  font-family: var(--font-h);
+  font-size: 64px;
+  font-weight: 600;
+  color: var(--gray-deep);
+  line-height: 1.0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.page-section-divider .dv-desc {
+  margin: 18px 0 0 0;
+  font-size: 15px;
+  color: var(--gray-mid);
+  line-height: 1.7;
+  max-width: 380px;
+}
+
+.page-section-divider .dv-desc:empty { display: none; }
+
+/* Logo bottom-left */
+.page-section-divider .dv-logo {
+  position: absolute;
+  bottom: 60px;
+  left: 80px;
+  z-index: 5;
+}

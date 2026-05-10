@@ -1,0 +1,25 @@
+/* =============================================================================
+   kicker — small uppercase eyebrow label, sits ABOVE a headline / narrative /
+   image to label the section or topic. Optional thin underline.
+   ============================================================================= */
+.vti-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-h);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--vti-blue-deep);
+  min-width: 0;
+}
+.vti-kicker--center { justify-content: center; }
+
+/* Optional small underline below the text */
+.vti-kicker--ruled .vti-kicker__text {
+  padding-bottom: 4px;
+  border-bottom: 1.5px solid var(--vti-blue-deep);
+}
+
+.vti-kicker__text { display: inline-block; }

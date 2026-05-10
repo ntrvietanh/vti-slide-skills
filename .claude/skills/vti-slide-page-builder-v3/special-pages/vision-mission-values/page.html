@@ -1,0 +1,49 @@
+<!--
+  vision-mission-values — lifted PPTX (4 triangles + dashed circle +
+  connector dots all preserved) + editable Vision/Mission cards + chrome.
+-->
+<div class="slide page-vmv" data-show-chrome="{{SHOW_CHROME}}">
+  <div class="lift-bg" style="{{BG_STYLE}}"></div>
+
+  <article class="vmv-card vmv-card--vision">
+    <header class="vmv-card-head">
+      <span class="vmv-card-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+             stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/>
+          <circle cx="12" cy="12" r="2"/>
+          <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/>
+        </svg>
+      </span>
+      <span class="vmv-card-title">{{VISION_TITLE}}</span>
+      <span class="vmv-card-rule"></span>
+    </header>
+    <p class="vmv-card-body">{{VISION_BODY}}</p>
+  </article>
+
+  <article class="vmv-card vmv-card--mission">
+    <header class="vmv-card-head">
+      <span class="vmv-card-icon">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none"
+             stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 15l-2 5 5-2"/>
+          <path d="M14.5 4.5c2.5 0 5 2.5 5 5L11 18l-3-1-1-3z"/>
+          <circle cx="14.5" cy="9.5" r="1.5"/><path d="M9 13l-3 3"/>
+        </svg>
+      </span>
+      <span class="vmv-card-title">{{MISSION_TITLE}}</span>
+      <span class="vmv-card-rule"></span>
+    </header>
+    <p class="vmv-card-body">{{MISSION_BODY}}</p>
+  </article>
+
+  <div class="bc"><span class="bc-bar"></span><span class="bc-text">{{BREADCRUMB}}</span></div>
+  <!-- VTI_LOGO_INJECT position="top-right" variant="full-color" -->
+  <div class="fbar">
+    <div class="fbar-chev"><span class="fbar-num">{{PAGE_NUM}}</span></div>
+    <span class="fbar-sep"></span><span class="fbar-doc">{{DOC_TITLE}}</span>
+  </div>
+  <div class="fbar-copy">© {{COPYRIGHT_YEAR}} VTI APAC. All rights reserved.</div>
+</div>

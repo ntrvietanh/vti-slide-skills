@@ -1,0 +1,27 @@
+/* =============================================================================
+   lead-paragraph — opening paragraph (the "lede" in journalism).
+   Larger / heavier than narrative-paragraph. Used at the start of a content
+   slide to introduce the topic.
+   ============================================================================= */
+.vti-lead-paragraph {
+  font-family: var(--font-b);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--vti-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.vti-lead-paragraph--center { text-align: center; }
+.vti-lead-paragraph--muted  { color: var(--vti-ink-soft); }
+
+.vti-lead-paragraph p { margin: 0; }
+
+/* Inline emphasis via **text** (renderer wraps in <strong>) — strong inherits
+   parent weight cascade then bumps to bold-blue. */
+.vti-lead-paragraph strong {
+  font-weight: 600;
+  color: var(--vti-blue-deep);
+}

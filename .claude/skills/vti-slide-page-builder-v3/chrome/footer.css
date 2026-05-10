@@ -1,0 +1,156 @@
+/* CHROME · footer.css
+   Bottom-left chevron + page number + doc title, with a horizontal
+   hairline whose length matches the chevron + title content width.
+   Right edge: copyright marker, vertically aligned to title baseline.
+
+   Style sourced from a reference deck (Automotive corporate profile):
+     - Chevron: deep blue, 28×28 px, "folded-corner" pentagon with the
+       NOTCH AT TOP-RIGHT (looks like a folded-down paper corner)
+     - Page number: small, white, font-display
+     - Title: Inter SemiBold, color #555E63 (dark medium gray)
+     - NO vertical separator between chevron and title
+     - Horizontal hairline RIGHT AT the chevron's bottom edge — same
+       y as `.fbar`'s bottom. Width matches the .fbar's content
+       (chevron + gap + title), achieved by letting the absolutely
+       positioned .fbar shrink-to-fit its content.
+     - Copyright: bottom-right, same font family as title (Inter),
+       NOT bold, vertically aligned to the title's baseline.
+
+   Markup contract (unchanged): all 16 layouts still emit
+   `<div class="fbar"><div class="fbar-chev">
+   <span class="fbar-num">N</span></div><span class="fbar-sep"></span>
+   <span class="fbar-doc">Title</span></div>` plus a separate
+   `.fbar-copy`. The hairline is added via the `.fbar::after`
+   pseudo-element. The `.fbar-sep` is rendered but hidden.
+*/
+
+/* `.fbar` is absolutely positioned WITHOUT a fixed width, which makes
+   it shrink-to-fit its content (chevron + gap + title). This is the
+   key trick that lets the ::after hairline auto-size to "chevron + title". */
+.fbar {
+  position: absolute;
+  bottom: 24px;            /* lower than before so chevron bottom = hairline */
+  left: 50px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
+  /* No `width:` — element shrinks to content. */
+}
+
+/* Folded-corner pentagon with NOTCH AT TOP-RIGHT.
+   Vertices (clockwise from top-left): start at TL, go right but stop
+   at 70% width, diagonal down-right to 100% width × 30% height, then
+   straight down right side, across bottom, back to TL.
+   Looks like a paper bookmark with the top-right corner folded down. */
+.fbar-chev {
+  width: 28px;
+  height: 28px;
+  background: var(--blue-deep);
+  clip-path: polygon(0 0, 70% 0, 100% 30%, 100% 100%, 0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The fold notch eats the top-right, so the digit is shifted slightly
+     down-left of the rectangle's geometric center to look optically
+     centered in the visible region. */
+  padding: 3px 4px 0 0;
+}
+
+.fbar-num {
+  font-family: var(--font-h);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  line-height: 1;
+}
+
+/* Vertical separator from the previous footer style — preserved in
+   markup for backward compat with the 16 layout HTML files, but hidden
+   in the new style. */
+.fbar-sep { display: none; }
+
+/* Doc title — Inter SemiBold, dark medium gray. */
+.fbar-doc {
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 600;
+  color: #555E63;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+
+/* Horizontal hairline at the BOTTOM EDGE of the .fbar — visually
+   coincident with the chevron's bottom edge. Width is 100% of .fbar,
+   which (because .fbar is absolutely-positioned with no width set)
+   shrinks to the content width: chevron + gap + title.
+
+   Result: the hairline auto-extends from the chevron's left edge to
+   just past the title's right edge, with no fixed width and no JS. */
+.fbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;                /* coincident with .fbar's bottom edge */
+  height: 1px;
+  width: 100%;
+  background: #D1D1D1;
+}
+
+/* Copyright line on the right edge.
+   Same font family (Inter) as title, NOT bold, vertically centered on
+   the same y as the title's baseline so the two read as part of one
+   horizontal band. */
+.fbar-copy {
+  position: absolute;
+  /* Vertical alignment math:
+       .fbar height = 28, bottom = 24 → vertical center at y = (720-24-14) = 682.
+       For a 12 px text with line-height 1.0, bottom: 32 places its
+       center at y = 720-32-6 = 682 ✓ */
+  bottom: 32px;
+  right: 50px;
+  font-family: var(--font-b);
+  font-size: 12px;
+  font-weight: 400;
+  color: #555E63;
+  letter-spacing: 0.1px;
+  z-index: 10;
+}
+
+/* ============================================================
+   DARK-BG HANDLING (preserved + extended for the hairline pseudo)
+   ============================================================ */
+
+/* Dark-banner variant: legacy attribute path. */
+.slide[data-fbar-on-dark="true"] .fbar-copy { color: rgba(255, 255, 255, 0.85); }
+.slide[data-fbar-on-dark="true"] .fbar-doc  { color: rgba(255, 255, 255, 0.85); }
+.slide[data-fbar-on-dark="true"] .fbar::after { background: rgba(255, 255, 255, 0.30); }
+
+/* Full-dark canvas mode: chevron flips white, page-number flips
+   deep-blue, all text and the hairline lighten. */
+.slide:has(.icg-canvas) .fbar-chev,
+.slide:has(.cwb-canvas) .fbar-chev { background: var(--white); }
+.slide:has(.icg-canvas) .fbar-num,
+.slide:has(.cwb-canvas) .fbar-num  { color: var(--blue-deep); }
+.slide:has(.icg-canvas) .fbar-doc,
+.slide:has(.cwb-canvas) .fbar-doc  { color: rgba(255, 255, 255, 0.85); }
+.slide:has(.icg-canvas) .fbar-copy,
+.slide:has(.cwb-canvas) .fbar-copy { color: rgba(255, 255, 255, 0.85); }
+.slide:has(.icg-canvas) .fbar::after,
+.slide:has(.cwb-canvas) .fbar::after { background: rgba(255, 255, 255, 0.30); }
+
+/* PARTIAL-DARK layouts (only one side is dark): the right-side dark
+   panel covers the COPYRIGHT location but NOT the chevron/title/
+   hairline. So only invert .fbar-copy here.
+
+   This applies to all 3 variants of the case-study family that include
+   the right dark sidebar:
+     - case-study-split          (variant A · standard)
+     - case-study-visual-split   (variant B · with-visual)
+     - case-study-arch-deep      (variant C · architecture-deep, with sidebar)
+   The `--no-sidebar` modifier on case-study-arch-deep reverts this
+   inside its own layout CSS (the rule there has higher specificity). */
+.slide.layout-case-study-split .fbar-copy,
+.slide.layout-case-study-visual-split .fbar-copy,
+.slide.layout-case-study-arch-deep .fbar-copy { color: rgba(255, 255, 255, 0.85); }

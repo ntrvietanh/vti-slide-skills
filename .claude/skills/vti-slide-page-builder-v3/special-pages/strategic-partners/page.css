@@ -1,0 +1,23 @@
+.page-partners {
+  width: 1280px; height: 720px; position: relative;
+  background: #fff; font-family: var(--font-b); overflow: hidden;
+}
+.page-partners .lift-bg {
+  position: absolute; inset: 0;
+  background-image: url('./assets/lifted.jpg');
+  background-size: cover; background-position: center;
+}
+.page-partners[data-show-chrome="false"] .bc,
+.page-partners[data-show-chrome="false"] .logo-tr,
+.page-partners[data-show-chrome="false"] .fbar,
+.page-partners[data-show-chrome="false"] .fbar-copy { display: none; }
+
+.page-partners .partners-tagline {
+  position: absolute;
+  top: 78px; left: 80px; right: 80px;
+  margin: 0;
+  font-size: 12px; font-weight: 500;
+  line-height: 1.5;
+  color: var(--gray-text);
+}
+.page-partners .partners-tagline:empty { display: none; }
