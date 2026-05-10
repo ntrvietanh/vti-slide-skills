@@ -102,6 +102,7 @@ from source_ingester import (                                    # noqa: F401
     detect_kind, ingest_source, ingest_pre_extracted, summarize_source,
     extract_pptx_images, video_keyframes_stub,                   # v3.14
     classify_image_kind,                                         # v3.18
+    ingest_video,                                                # v3.18.1
 )
 
 # --- Phase 2 + 3 (Sprint 5) -----------------------------------------------

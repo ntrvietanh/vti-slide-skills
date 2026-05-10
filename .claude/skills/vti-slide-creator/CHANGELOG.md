@@ -1,5 +1,112 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.2.0 (2026-05-10) — Strict structural mandates (framing + precraft)
+
+Two non-negotiable structural rules added to SKILL.md ("Strict rules —
+VTI deck structural mandates"). Source of the rules: user correction
+mid-session on the multi-vertical retail+healthcare deck.
+
+**Rule A — Mandatory framing slides (Cover · TOC · Contact · Closing).**
+Every deck MUST include all four, sourced from precrafted special-page
+templates. Positions fixed: cover #1, toc #2, contact #(N-1),
+closing #N. The retail+healthcare deck shipped with cover/toc/closing
+but no contact slide — flagged as a structural failure.
+
+**Rule B — VTI company-info topics route to precraft.** When a slide
+is about VTI itself (company intro, awards, strategic partners,
+PM methodology, QA, vision/mission, customer base, who-we-serve), the
+slide MUST use one of the 8 precrafted special-page templates. Do not
+hand-roll content slides for these topics. Customization scope is
+prop-only — pass `intro_text`, customer counts, taglines, footnote, etc.,
+but the layout and design system stay intact.
+
+The retail+healthcare deck rebuilt About VTI, Awards, Partners, Domain
+Mix, and Engagement Model as hand-rolled content slides — visually
+adequate but drifting from the canonical VTI presentation. The user's
+correction was unambiguous: "khi nói về VTI các thông tin cơ bản liên
+quan đến cty / award / process tôi muốn bạn luôn luôn dùng các special
+page precraft rồi và nếu cần thi thay đổi số hoặc nội dung từ slide
+special page đó thôi (k tự tạo 1 slide mới hoàn toàn cho những thứ này)."
+
+**Topic → special-page mapping:**
+
+| Topic | Special page |
+|---|---|
+| About VTI | `about-vti` |
+| Vision/Mission/Values | `vision-mission-values` |
+| Customer base / domain mix | `who-we-serve` |
+| Awards | `awards-certifications` |
+| Partners | `strategic-partners` |
+| PM methodology | `project-management-method` |
+| QA activities | `quality-assurance` |
+| Quality management process | `quality-management-process` |
+
+**Rule C — Non-VTI-corporate topics still hand-roll.** Case studies,
+technical capabilities (AI stack), specific project content, and
+similar non-corporate-info slides continue to use `compose_slide_grid`
+as before. The precraft mandate (Rule B) is scoped to the 8 corporate
+topics only.
+
+**Cross-skill contract:** none changed. The 8 special-page templates
+already exist in `vti-slide-page-builder/special-pages/` and are
+already exposed via `compose_special_page(name, props)`. v4.2.0 is a
+discipline change in the creator, not a renderer change.
+
+## v4.1.0 (2026-05-10) — Real video ingest (frames + whisper transcript)
+
+Closes the v3.14 stub gap for video sources. Phase 1 can now ingest
+`.mp4 / .mov / .webm / .m4v` directly — no more "video sampled 0
+keyframes" outputs that forced the planner to drop the source.
+
+**New helper — `ingest_video(video_path, frames_dir, ...)`** in
+`source_ingester.py`:
+
+- Resolves `ffmpeg` from system PATH first, then falls back to the
+  `imageio-ffmpeg` bundled binary (so the skill works on machines
+  without a system ffmpeg installed).
+- Probes duration via `ffmpeg -i` stderr (no separate ffprobe needed).
+- Samples keyframes at a configurable interval (`sample_seconds=20`,
+  capped at `max_frames=12`), starting at 5 % of duration to skip the
+  cold open. Each frame is auto-classified via `classify_image_kind`
+  so the lift filter (Principle 9) runs on video frames the same way
+  it runs on PPTX/PDF images.
+- Extracts the audio track to a 16 kHz mono WAV temp file and
+  transcribes via `faster-whisper` (CPU + int8 — works on Apple
+  Silicon without CUDA). Default model is `small` (multilingual,
+  ~466 MB); callers can pass `whisper_model='tiny'|'base'|'medium'`.
+  Language is auto-detected unless a forcing ISO-639-1 code is passed.
+- Returns the standard ingester dict shape with the transcript as
+  `text`, frames as `assets[]`, and a `structure.transcript_segments`
+  list (start/end/text) for downstream slot-by-slot citation.
+
+`ingest_source(path)` now calls `ingest_video()` automatically when
+the kind is `video` and ffmpeg is resolvable, with a graceful fallback
+to the legacy `video_keyframes_stub()` when ffmpeg/whisper are
+unavailable.
+
+`creator` package surface adds `ingest_video` to its public re-exports.
+
+**Why this lands now (v3.18.1 → v4.1.0):** the prior v4.0 ingest run
+on the multi-vertical retail+healthcare deck dropped the SKT/Olive
+Young BI Dashboard video entirely (no ffmpeg → no frames → no
+narrative). User correction: a video that visibly contains the demo
+of a live BI dashboard is exactly the kind of evidence content the
+deck needs — the skill must be able to read it (frames + audio) the
+same way it reads PPTX, not punt with a stub.
+
+**Cross-skill contract:** none — this is a pure expansion of Phase 1
+ingest. `COORDINATED_BASELINE.md` does not need an entry; the
+ContextDoc shape is unchanged (text + assets + structure are the
+same fields, just populated for video sources).
+
+**New optional dependencies** (graceful-degradation guarded):
+- `imageio-ffmpeg` — bundled ffmpeg static binary (no system install)
+- `faster-whisper` — CTranslate2-backed whisper (smaller + faster
+  than `openai-whisper` on CPU)
+
+If neither is installed, `ingest_source()` returns the v3.14 stub
+exactly as before — backward-compatible.
+
 ## v4.0.1 (2026-05-10) — Fix: deck preview shell owns its own card layout
 
 Patch release. The Phase 6 driver (`scripts/build_phase_6.py`) was

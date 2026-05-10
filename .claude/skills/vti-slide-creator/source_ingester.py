@@ -301,15 +301,10 @@ def classify_image_kind(image_path: str | Path,
 def video_keyframes_stub(video_path: str | Path) -> dict:
     """Return a stub ingester result for a video file.
 
-    Videos are not directly readable as text. Phase 1 should:
-        1. Use ffprobe to inspect duration/resolution.
-        2. Optionally extract keyframes (e.g. 1 every 30s) via ffmpeg
-           and treat them as source images.
-        3. Optionally transcribe audio via whisper (out of skill scope).
-
-    The returned dict directs Claude to do step 1+2 manually. After
-    keyframes are extracted, build the final result via
-    ``ingest_pre_extracted(kind='video', text='', assets=[...])``.
+    Kept for backward-compat callers. Prefer ``ingest_video()`` (v3.18.1+)
+    which performs the actual frame extraction + audio transcription
+    in-process when ``imageio-ffmpeg`` and ``faster-whisper`` are
+    installed.
     """
     p = Path(video_path)
     return {
@@ -319,12 +314,291 @@ def video_keyframes_stub(video_path: str | Path) -> dict:
         "assets":    [],
         "structure": {"headings": [], "page_count": None},
         "next_action": (
-            f"Video format. Use ffprobe for metadata + ffmpeg to extract "
-            f"keyframes (e.g. ``ffmpeg -i {p.name} -vf fps=1/30 frame_%02d.jpg``), "
-            f"treat keyframes as image assets, then call ingest_pre_extracted("
-            f"kind='video', text='', assets=[{{'kind':'image','path':...}},...]). "
-            f"Optionally transcribe audio (whisper) for text content."
+            f"Video format. Use ingest_video() (v3.18.1+) for in-process "
+            f"frame extraction + whisper transcription, or use ffprobe + "
+            f"ffmpeg manually and feed results into ingest_pre_extracted()."
         ),
+    }
+
+
+# ---------------------------------------------------------------------------
+# v3.18.1 — Real video ingester (frames + transcript)
+# ---------------------------------------------------------------------------
+def _resolve_ffmpeg() -> str | None:
+    """Return path to an ffmpeg binary, or None if unavailable.
+
+    Prefers system ffmpeg (faster startup); falls back to the binary
+    bundled with ``imageio-ffmpeg`` if the package is installed.
+    """
+    import shutil
+    sys_ff = shutil.which("ffmpeg")
+    if sys_ff:
+        return sys_ff
+    try:
+        import imageio_ffmpeg  # type: ignore
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+
+
+def _video_duration(video_path: Path, ffmpeg: str) -> float:
+    """Probe video duration in seconds via ffmpeg (no ffprobe needed)."""
+    import subprocess
+    # ffmpeg writes duration to stderr in "Duration: HH:MM:SS.ms" format
+    res = subprocess.run(
+        [ffmpeg, "-i", str(video_path)],
+        capture_output=True, text=True, timeout=60,
+    )
+    err = res.stderr or ""
+    m = re.search(r"Duration:\s*(\d+):(\d+):(\d+\.\d+)", err)
+    if not m:
+        return 0.0
+    h, mn, s = m.groups()
+    return int(h) * 3600 + int(mn) * 60 + float(s)
+
+
+def _extract_keyframes(video_path: Path,
+                       out_dir: Path,
+                       ffmpeg: str,
+                       sample_seconds: float = 20.0,
+                       max_frames: int = 12,
+                       width: int = 1280) -> list[dict]:
+    """Sample keyframes from a video at ``sample_seconds`` interval.
+
+    Returns a list of asset dicts (path + timestamp_s + size_bytes +
+    classify_image_kind output).
+    """
+    import subprocess
+    out_dir.mkdir(parents=True, exist_ok=True)
+    duration = _video_duration(video_path, ffmpeg)
+    if duration <= 0:
+        return []
+
+    # Pick timestamps: every sample_seconds, starting at 5% in (skip cold-open),
+    # capped at max_frames. For short videos still sample at least 4 frames.
+    n = max(4, int(duration // sample_seconds))
+    n = min(n, max_frames)
+    start = duration * 0.05
+    step = max(1.0, (duration - 2 * start) / max(1, n - 1)) if n > 1 else duration / 2
+    timestamps = [round(start + i * step, 2) for i in range(n)]
+
+    assets: list[dict] = []
+    for idx, ts in enumerate(timestamps, start=1):
+        outp = out_dir / f"frame-{idx:02d}.jpg"
+        cmd = [
+            ffmpeg, "-y", "-loglevel", "error",
+            "-ss", f"{ts:.2f}", "-i", str(video_path),
+            "-frames:v", "1",
+            "-vf", f"scale={width}:-1",
+            "-q:v", "3",
+            str(outp),
+        ]
+        try:
+            subprocess.run(cmd, timeout=120, check=True,
+                           capture_output=True, text=True)
+        except Exception as exc:
+            print(f"  ! frame extract @{ts}s failed: {exc}")
+            continue
+        if not outp.exists() or outp.stat().st_size < 5_000:
+            if outp.exists():
+                outp.unlink()
+            continue
+        size = outp.stat().st_size
+        cls = classify_image_kind(outp, size_bytes=size)
+        assets.append({
+            "kind": "image",
+            "path": str(outp),
+            "timestamp_s": ts,
+            "size_bytes": size,
+            "kind_guess": cls.get("kind", "unknown"),
+            "confidence": cls.get("confidence"),
+            "signals": cls.get("signals", []),
+        })
+    return assets
+
+
+def _transcribe_audio(video_path: Path,
+                      ffmpeg: str,
+                      model_size: str = "small",
+                      language: str | None = None) -> dict:
+    """Extract audio from video and transcribe via faster-whisper.
+
+    Returns ``{'text': str, 'segments': [...], 'language': str}``.
+    On any failure (missing whisper, no audio track, etc.) returns
+    ``{'text': '', 'segments': [], 'language': None, 'error': '...'}``.
+
+    ``model_size`` defaults to ``small`` (~466MB, multilingual). Use
+    ``base`` (~150MB) for faster ingest at lower accuracy, or ``medium``
+    (~1.5GB) for higher accuracy.
+    """
+    import subprocess
+    import tempfile
+    try:
+        from faster_whisper import WhisperModel  # type: ignore
+    except ImportError:
+        return {"text": "", "segments": [], "language": None,
+                "error": "faster-whisper not installed (pip install faster-whisper)"}
+
+    # Extract audio to a temp WAV (16kHz mono — whisper's native rate)
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tf:
+        wav_path = Path(tf.name)
+    try:
+        cmd = [
+            ffmpeg, "-y", "-loglevel", "error",
+            "-i", str(video_path),
+            "-vn", "-acodec", "pcm_s16le",
+            "-ar", "16000", "-ac", "1",
+            str(wav_path),
+        ]
+        try:
+            subprocess.run(cmd, timeout=600, check=True,
+                           capture_output=True, text=True)
+        except subprocess.CalledProcessError as exc:
+            return {"text": "", "segments": [], "language": None,
+                    "error": f"ffmpeg audio extract failed: {exc.stderr[:200]}"}
+        if not wav_path.exists() or wav_path.stat().st_size < 1_000:
+            return {"text": "", "segments": [], "language": None,
+                    "error": "no audio track or audio extract empty"}
+
+        # Run whisper (CPU int8 for portability; works on Apple Silicon)
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        segments_iter, info = model.transcribe(
+            str(wav_path),
+            language=language,
+            vad_filter=True,
+            beam_size=1,
+        )
+        # Whisper-on-silence hallucinations: when the audio track has
+        # no speech (screen recording, music-only, etc.), whisper tends
+        # to emit short repeats like "You", "Thank you", "음" at the
+        # gap-stride. Filter those before returning so callers don't
+        # think the transcript landed when it didn't.
+        HALLUCINATIONS = {
+            "you", "thank you", "thanks", ".", "...",
+            "음", "어", "ご視聴ありがとうございました",
+        }
+        segs: list[dict] = []
+        text_parts: list[str] = []
+        all_collected: list[str] = []
+        for seg in segments_iter:
+            t = seg.text.strip()
+            if not t:
+                continue
+            all_collected.append(t)
+            if t.lower().rstrip(" .!?") in HALLUCINATIONS:
+                continue
+            segs.append({
+                "start": round(seg.start, 2),
+                "end":   round(seg.end, 2),
+                "text":  t,
+            })
+            text_parts.append(t)
+        full_text = " ".join(text_parts)
+        # If everything we collected was hallucination-ish AND the
+        # surviving transcript is <60 chars, treat as no-speech.
+        no_speech = (
+            len(all_collected) > 0
+            and len(full_text) < 60
+            and len(set(s.lower() for s in all_collected)) <= 2
+        )
+        return {
+            "text":          "" if no_speech else full_text,
+            "segments":      [] if no_speech else segs,
+            "language":      info.language,
+            "language_prob": round(float(info.language_probability), 3),
+            "no_speech":     no_speech,
+            "raw_segment_count": len(all_collected),
+        }
+    finally:
+        try:
+            wav_path.unlink()
+        except Exception:
+            pass
+
+
+def ingest_video(video_path: str | Path,
+                 frames_dir: str | Path,
+                 sample_seconds: float = 20.0,
+                 max_frames: int = 12,
+                 transcribe: bool = True,
+                 whisper_model: str = "small",
+                 language: str | None = None) -> dict:
+    """Ingest a video file in-process: extract keyframes + transcribe audio.
+
+    v3.18.1 (closes the original v3.14 stub gap). Phase 1 build scripts
+    can call this directly instead of shelling out to ffmpeg manually.
+
+    Args:
+        video_path: source video (.mp4/.mov/.webm/.m4v)
+        frames_dir: directory to write extracted frame JPEGs
+        sample_seconds: interval between sampled frames
+        max_frames: cap on number of frames extracted
+        transcribe: whether to run whisper transcription
+        whisper_model: faster-whisper model size
+            ('tiny' | 'base' | 'small' | 'medium' | 'large-v3')
+        language: ISO-639-1 code to force, or None for auto-detect
+
+    Returns the standard ingester dict shape::
+
+        {'kind': 'video', 'path': ..., 'text': transcript_or_summary,
+         'assets': [{'kind': 'image', 'path': ..., 'timestamp_s': ...,
+                     'kind_guess': 'content'|'chrome'|'stock', ...}, ...],
+         'structure': {'duration_s': float, 'language': str|None,
+                       'transcript_segments': [...], 'page_count': None,
+                       'headings': []},
+         'meta': {'frame_sample_seconds': ..., 'whisper_model': ...,
+                  'transcript_chars': int, 'frame_count': int}}
+    """
+    p = Path(video_path)
+    if not p.exists():
+        raise FileNotFoundError(f"video not found: {video_path}")
+    out_dir = Path(frames_dir)
+
+    ffmpeg = _resolve_ffmpeg()
+    if ffmpeg is None:
+        return {
+            "kind": "video", "path": str(p), "text": "",
+            "assets": [], "structure": {"headings": [], "page_count": None,
+                                         "duration_s": 0.0,
+                                         "transcript_segments": [],
+                                         "language": None},
+            "next_action": "ffmpeg not available — install ffmpeg or `pip install imageio-ffmpeg`.",
+        }
+
+    # 1. Frame extraction
+    frames = _extract_keyframes(p, out_dir, ffmpeg,
+                                sample_seconds=sample_seconds,
+                                max_frames=max_frames)
+
+    # 2. Audio transcription
+    transcript: dict = {"text": "", "segments": [], "language": None}
+    if transcribe:
+        transcript = _transcribe_audio(p, ffmpeg,
+                                       model_size=whisper_model,
+                                       language=language)
+
+    duration = _video_duration(p, ffmpeg)
+    text_body = transcript.get("text") or f"[Video file {p.name} — no transcript available]"
+
+    return {
+        "kind":      "video",
+        "path":      str(p),
+        "text":      text_body,
+        "assets":    frames,
+        "structure": {
+            "headings":            [],
+            "page_count":          None,
+            "duration_s":          round(duration, 2),
+            "language":            transcript.get("language"),
+            "transcript_segments": transcript.get("segments", []),
+        },
+        "meta": {
+            "frame_sample_seconds": sample_seconds,
+            "whisper_model":        whisper_model if transcribe else None,
+            "transcript_chars":     len(transcript.get("text") or ""),
+            "frame_count":          len(frames),
+            "transcribe_error":     transcript.get("error"),
+        },
     }
 
 
@@ -422,6 +696,19 @@ def ingest_source(path: str | Path) -> dict:
     if kind == "pptx":
         return _stub_for_format(p, "pptx", "/mnt/skills/public/pptx/SKILL.md")
     if kind == "video":
+        # Try in-process ingest if ffmpeg is resolvable; otherwise fall
+        # back to the stub. ingest_video() writes frames to a sibling
+        # directory ``<basename>.frames/`` next to the source.
+        if _resolve_ffmpeg() is not None:
+            try:
+                return ingest_video(p, frames_dir=p.parent / f"{p.stem}.frames")
+            except Exception as exc:
+                stub = video_keyframes_stub(p)
+                stub["next_action"] = (
+                    f"ingest_video() raised {exc!r}; falling back to stub. "
+                    + stub["next_action"]
+                )
+                return stub
         return video_keyframes_stub(p)
     return {
         "kind": "unknown", "path": str(p), "text": "",

@@ -1,6 +1,6 @@
 # vti-slide-creator
 
-**Version: 4.0.1**
+**Version: 4.2.0**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder` (the renderer).
@@ -11,6 +11,81 @@ Multi-phase orchestrator for VTI deck building. Pairs with
 > must NOT mutate the deck HTML between compose and disk-write. Page
 > numbers are owned by the chrome footer chevron — there is no second
 > badge. (Removed in v4.0.1 after the "16 in top-left" regression.)
+
+## Strict rules — VTI deck structural mandates (v4.2.0)
+
+These are not advisory. They are non-negotiable and apply to every
+deck this skill produces.
+
+### Rule A — Mandatory framing slides
+
+**Every deck MUST include all four of:** `cover`, `toc`, `contact`,
+`closing`. They are sourced from the page-builder's precrafted
+special-page templates (`{"special": <name>, "props": {...}}`) — never
+hand-rolled. Positions are fixed:
+
+| # | Slide | Source |
+|---|---|---|
+| 1 | Cover    | `{"special": "cover",   "props": {...}}` |
+| 2 | TOC      | `{"special": "toc",     "props": {...}}` |
+| N-1 | Contact | `{"special": "contact", "props": {...}}` |
+| N | Closing  | `{"special": "closing", "props": {...}}` |
+
+A deck without any one of these four is **incomplete** — the Phase 6
+compose step should fail-fast or warn loudly.
+
+### Rule B — VTI company-info topics → precrafted special pages
+
+When a slide is about VTI as a company (its profile, awards, partner
+network, customer-base distribution, vision/mission, methodology, or
+quality system), it MUST use one of the precrafted special-page
+templates. Do NOT hand-roll a content slide via `compose_slide_grid`
+for these topics.
+
+| Topic | Special page name |
+|---|---|
+| Company intro / overview / "About VTI" | `about-vti` |
+| Vision · Mission · Values | `vision-mission-values` |
+| Customer base · domain mix · who we serve | `who-we-serve` |
+| Awards & certifications | `awards-certifications` |
+| Strategic partners (AWS, Microsoft, IBM, Adobe, …) | `strategic-partners` |
+| Project-management methodology | `project-management-method` |
+| Quality assurance activities | `quality-assurance` |
+| Quality management process | `quality-management-process` |
+
+Customization is **prop-only**: pass props (e.g. `intro_text`, customer
+counts, footnotes, taglines) to update copy or numbers, but the layout
+and design system stay intact.
+
+**Anti-patterns** (never do these):
+- Building "VTI Group at a Glance" as `hero_stat + narrative + supporting_stats`
+  → use `about-vti`
+- Building "Awards & Partners" as two `logo_grid` rows → split into
+  `awards-certifications` AND `strategic-partners` (two slides)
+- Building "Engagement Model" as `process_flow + narrative` → use
+  `project-management-method` and/or `quality-management-process`
+- Building domain-mix pie as a custom `pie_chart` content slide → use
+  `who-we-serve`
+
+### Rule C — Topics NOT covered by precraft are hand-rolled
+
+Case studies, technical capabilities (AI stack, specific solutions),
+project deliverables, and other non-VTI-company-info topics ARE built
+as content slides via `compose_slide_grid`. The precraft mandate (Rule
+B) applies ONLY to the 8 VTI-corporate topics listed above.
+
+### Phase 2 outline impact
+
+When drafting the outline, classify each slide topic:
+- VTI corporate info → mark `kind` as the matching narrator special
+  page name (`about-vti`, `awards-certifications`, etc.)
+- Case studies / capabilities / project content → `content`
+- Cover / TOC / divider / contact / closing → corresponding framing
+  kind
+
+The Phase 2 outline table now also enforces the four-framing-slide
+mandate: validate that the outline includes one of each
+{`cover`, `toc`, `contact`, `closing`}.
 
 ## Output scope — HTML ONLY
 
