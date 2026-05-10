@@ -1,5 +1,16 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.6.1 (2026-05-10) — Square slide corners in deck shell
+
+Removed `border-radius: 10px` from the `.slide` rule in the Phase-6
+deck shell template (`creator.py` line ~466). Slides now render as
+square-cornered rectangles on the pale-blue page background. Box-shadow
+is preserved — the rounded card look is gone, the elevation cue stays.
+
+User feedback: rounded corners on every slide read as presentation-app
+chrome rather than a finished deck. Square corners match the printed /
+exported look reviewers expect.
+
 ## v4.6.0 (2026-05-10) — Principle 10: Voice & tone (mandatory voice handshake at Phase 2)
 
 Adds **Principle 10 — Voice & tone** to the design principles, plus a new

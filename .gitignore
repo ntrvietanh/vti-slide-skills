@@ -23,6 +23,9 @@ env/
 work/
 !work/.gitkeep
 
+# Session snapshots (saved work/ states for switching between projects)
+sessions/
+
 # Test outputs (keep inputs + expected)
 tests/outputs/
 

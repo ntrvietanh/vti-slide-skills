@@ -463,7 +463,6 @@ body {{
   margin: 0;
   position: relative;
   background: #fff;
-  border-radius: 10px;
   box-shadow: 0 12px 30px rgba(5, 25, 52, 0.18);
   overflow: hidden;
 }}

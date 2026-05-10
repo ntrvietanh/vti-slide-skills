@@ -1,6 +1,6 @@
 # vti-slide-creator
 
-**Version: 4.6.0**
+**Version: 4.6.1**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder` (the renderer).
