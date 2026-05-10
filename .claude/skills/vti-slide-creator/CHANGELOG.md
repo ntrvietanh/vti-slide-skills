@@ -1,5 +1,84 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.4.0 (2026-05-10) — Semantic image picker (Phase 3 protocol)
+
+**Replaces**: the v4.0 `resolve_lift_image()` heuristic, which scored
+candidates by classifier confidence + filename token match. Both
+signals are structural — the picker selected the same
+"highest-confidence content image per source" for every slide of a
+multi-slide case study (Olive Young 1/3, 2/3, 3/3 all received
+`frame-01.jpg`), and let semantically-irrelevant photos through
+whenever their aspect ratio happened to look like content (VTI logo,
+ISO/BCP cert badge, exec portraits leaked into SKT / Omron lift
+candidates).
+
+**New module**: `image_picker.py` — 4-step orchestrator-in-the-loop
+protocol surfaced through six APIs:
+
+- `enumerate_candidates(slide_plan, asset_index, source_tags=…,
+  claimed_paths=…, top_k=15)` — top-K filename-scored candidates,
+  excluding paths already claimed by other slides (best-fit
+  enforcement).
+- `get_caption()` / `set_caption(asset_index_path, image_path, caption)`
+  — caption persistence so later slides reuse vision-model captions
+  without re-inspecting.
+- `record_image_decision(plan_path, slide_id, ImageDecision(...))` —
+  atomic write of strategy + rationale + payload (resolved_image OR
+  diagram_spec) into phase_3.json. Idempotent; clears stale
+  payloads when the strategy changes.
+- `ImageDecision` dataclass: `strategy` ∈ `{lift, synthesize,
+  text-only}`, `rationale`, `resolved_image | diagram_spec`,
+  `candidates_seen`.
+- `allocate_case_study_images(slides_in_cs, ranked_per_slide)` —
+  greedy 1-to-1 best-fit allocation across multi-slide case studies;
+  escalates surplus slides to `None` (caller chooses synth or text).
+- `build_worklist(plan_path, asset_index_path)` — batch enumerate
+  candidates for every `strategy=lift` slide so the orchestrator can
+  iterate.
+
+**SKILL.md update**: new "Phase 3 image-decision protocol (v4.4 —
+semantic, not heuristic)" section under Phase 3 documents the 4-step
+loop (necessity check → enumerate → caption → decide+escalate) and the
+multi-slide best-fit rule. Auto-escalation between `lift` /
+`synthesize` / `text-only` happens without re-asking the user;
+`rationale` is the audit trail.
+
+`creator.py` re-exports the six image_picker APIs and bumps
+`__version__` from `4.0.1` to `4.4.0`. `resolve_lift_image()` stays in
+the public surface (back-compat, but content-blind — flagged in the
+docstring as legacy).
+
+## v4.3.0 (2026-05-10) — Layout-designer image-aside-stack pattern
+
+**Bug fixed**: when a content slide had an image with aspect < 2.0
+(`image-tall-side` or `image-side-by-side`), the layout-designer placed
+only the first narrative beside the image and dropped every other
+secondary block (kpi-row, list, features, etc.) into a full-width row
+*below* the image. Result: empty space on the right of the image AND a
+wasted strip below — visible in the StarHub deck the user composed
+mid-session ("KPI row bị rơi xuống dưới trong khi phần bên phải còn
+trống nhiều").
+
+**Fix**: `_design_image_tall_side` and `_design_image_side_by_side` now
+delegate to a new shared `_design_image_aside_stack` builder that emits
+N rows with the image cell `row_span=N` so it stretches across all
+right-column rows. Right-column blocks stack vertically beside the
+image; nothing falls below it. Multi-cell block kinds
+(`features_3` / `values` / `catalog`) split the right-column width
+evenly via `_expand_block_for_right_column`.
+
+`make_layout_cell` now accepts an optional `row_span` kwarg
+(default 1; max 8 — page-builder validator).
+
+Fill metric was also updated: `_estimate_fill_pct` short-circuits when
+row 0 contains an image-tile cell with `row_span > 1` and uses the
+image's natural rendered height instead of summing the
+right-column-row estimates (which would undercount because the image
+is what dominates the visual height).
+
+Coordinates with page-builder v3.13.3 (which fixes a separate asset
+path resolution bug surfaced by the same StarHub deck).
+
 ## v4.2.0 (2026-05-10) — Strict structural mandates (framing + precraft)
 
 Two non-negotiable structural rules added to SKILL.md ("Strict rules —

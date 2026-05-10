@@ -1,6 +1,6 @@
 # vti-slide-creator
 
-**Version: 4.2.0**
+**Version: 4.4.0**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder` (the renderer).
@@ -216,7 +216,14 @@ from creator import (
     validate_block, validate_plan,
     suggest_strategy,         # image strategy heuristic
     plan_to_slide_input,      # legacy Phase 4 → 5 bridge (kept for back-compat)
-    resolve_lift_image,       # v4.0 — content-aware lift filter (uses classify_image_kind)
+    resolve_lift_image,       # v4.0 legacy — content-blind, kept for back-compat
+    # ── v4.4 — semantic image picker (replaces resolve_lift_image) ──
+    enumerate_candidates,     # top-K candidates per slide (filename-hint scored)
+    get_caption, set_caption, # caption persistence (orchestrator writes back)
+    record_image_decision,    # write decision + rationale to phase_3.json
+    ImageDecision,            # dataclass for the decision payload
+    allocate_case_study_images,  # best-fit allocation across multi-slide CS
+    build_worklist,           # batch enumerate-candidates for all lift slides
 
     # ====== Phase 4 — LAYOUT-DESIGN (NEW in v4.0) ======
     design_slide_layout,      # ContentPlan → LayoutPlan with no-crop + fill assertions
@@ -910,6 +917,78 @@ edits it. Never collapse them together.
 Each turn in Phase 3 must be labeled "Phase 3 — PLAN-REVIEW" in the
 output so the user knows where we are in the pipeline. Do not skip this
 labeling — it's how the user tracks the brainstorm checkpoint.
+
+### Phase 3 image-decision protocol (v4.4 — semantic, not heuristic)
+
+Picking an image for a content slide is a **4-step AI-reasoning loop**,
+not a one-shot heuristic. The pre-v4.4 path
+(`resolve_lift_image()` in `content_drafter.py`) scored candidates by
+classifier confidence + filename token match — both purely structural.
+That selected the same "highest-scored content image" for every slide
+sourced from one pptx, and let semantically-irrelevant photos
+(portraits, decorative graphics) through whenever their aspect ratio
+or filename happened to look like content. v4.4 replaces it with the
+explicit per-slide protocol below.
+
+For each content slide whose author proposed `strategy="lift"`:
+
+1. **Necessity check.** Read the slide's topic + summary + drafted
+   blocks. Ask out loud: *Does this slide's message actually benefit
+   from a screenshot, or is the message already complete in text?* If
+   no benefit → skip steps 2-3, jump straight to step 4 (escalate to
+   `text-only`).
+
+2. **Candidate enumeration.** Call
+   `enumerate_candidates(slide_plan, asset_index, source_tags=[…],
+   claimed_paths=already_used)` to get top-K filename-scored
+   candidates from the relevant source(s). The `claimed_paths` set
+   enforces the best-fit rule: an image used by another slide is
+   excluded so each slide gets a distinct image.
+
+3. **Visual inspection.** For each candidate, the orchestrator (Claude
+   / a human reviewer) opens the image with a vision-capable tool
+   (`Read` for paths in this skill, or a vision API for raw bytes) and
+   writes a 1-line caption describing what's actually in the picture
+   (dashboard? architecture diagram? portrait? logo? UI mock?). Persist
+   the caption with `set_caption(asset_index_path, image_path, …)` so
+   later slides reuse it without re-inspecting.
+
+4. **Decision + auto-escalation.** Pick one of three strategies and
+   record it via `record_image_decision(plan_path, slide_id,
+   ImageDecision(...))`:
+
+   - **`lift`** — A candidate's caption semantically matches the slide
+     message. Record `resolved_image` with `path` + `natural_w/h` +
+     the matching candidate's caption.
+   - **`synthesize`** — No candidate fits, but the slide's content is
+     architectural / process-shaped (a workflow, a layered system, a
+     before/after, a data pipeline). Switch to a diagram via
+     `vti-slide-diagram-builder` and record `diagram_spec`.
+   - **`text-only`** — No candidate fits AND the message isn't
+     diagram-shaped. Drop the image; the layout-designer will
+     vertical-stack the existing blocks. If post-drop fill < 70%, add
+     a supporting block (kpi-row, hero stat, narrative paragraph).
+
+   The orchestrator auto-escalates without re-asking the user. The
+   `rationale` field on the `ImageDecision` records WHY the strategy
+   changed — surfaced in the phase_3 summary so the user can audit
+   overrides without re-running the picker.
+
+**Multi-slide case studies** (e.g. `s13-oliveyoung-case`,
+`s14-oliveyoung-platform`, `s15-oliveyoung-ml`) MUST be allocated
+together via `allocate_case_study_images(slides_in_cs, ranked_per_slide)`.
+Best-fit rule: when N candidates ≥ M slides, do a 1-to-1 assignment by
+caption-vs-topic score; when N < M, give the available image(s) to the
+slide(s) where it adds the most value (typically the case-study
+overview), and escalate the rest to `synthesize` or `text-only`.
+
+**Why orchestrator-in-the-loop and not pure-Python.** Filename and
+aspect-ratio heuristics filter chrome out of the candidate set
+(`classify_image_kind` does this). Picking a content image whose
+*content* matches a slide's message requires visual understanding —
+what's drawn, what labels exist, what business context. That's a
+vision-model job. The skill provides the data plumbing
+(enumerate / cache / record) and the orchestrator is the model.
 
 ### Phase 4 output format — REQUIRED structure
 

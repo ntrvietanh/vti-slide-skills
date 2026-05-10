@@ -85,14 +85,21 @@ def make_layout_row(height: str, cells: list[dict],
 
 def make_layout_cell(col_start: int, col_span: int,
                      component: str, props: dict,
-                     *, source_block_kind: str = "") -> dict:
-    """Build one cell entry of a row."""
+                     *, source_block_kind: str = "",
+                     row_span: int = 1) -> dict:
+    """Build one cell entry of a row.
+
+    ``row_span`` (default 1) lets a cell span multiple grid rows — used by
+    the image-side patterns to anchor the image cell while the right column
+    stacks N secondary blocks beside it. The page-builder honors values 1-8.
+    """
     return {
         "col_start":          col_start,
         "col_span":           col_span,
         "component":          component,
         "props":              props,
         "source_block_kind":  source_block_kind,
+        "row_span":           row_span,
     }
 
 
@@ -336,36 +343,87 @@ def _design_image_side_by_side(
     nat_w: int, nat_h: int,
     warnings: list[str],
 ) -> dict:
-    """Image aspect 1.4-2.0 — side-by-side with first narrative.
-
-    Image col_span=8 (≈ 853 px), narrative col_span=4 (≈ 426 px).
-    Remaining blocks stack as full-width rows below.
-    Image cell aspect-ratio matches natural so no crop.
+    """Image aspect 1.4-2.0 — image left (col 1-8), content stack right
+    (col 9-12). Image cell row-spans every right-column row so secondary
+    blocks (kpi, list, etc.) sit BESIDE the image, not below it.
     """
-    img_w_px = int(CONTENT_AREA_W_PX * 8 / 12)
-    img_h_px = int(img_w_px / aspect)
-    narrative_blocks = [b for b in blocks if b["kind"] == "narrative"]
-    side_narrative = narrative_blocks[0] if narrative_blocks else None
+    return _design_image_aside_stack(
+        slide_id, topic, section_name, blocks,
+        aspect, img_path, nat_w, nat_h, warnings,
+        pattern="image-side-by-side",
+        img_col_span=8,
+    )
+
+
+def _design_image_aside_stack(
+    slide_id: str, topic: str, section_name: str,
+    blocks: list[dict], aspect: float, img_path: str,
+    nat_w: int, nat_h: int,
+    warnings: list[str],
+    *,
+    pattern: str,
+    img_col_span: int,
+) -> dict:
+    """Shared builder for image-aside-content-stack patterns.
+
+    Layout:
+        Row 1: [image col 1..img_col_span row_span=N, block_1 col rest]
+        Row 2: [block_2 col rest]
+        …
+        Row N: [block_N col rest]
+
+    where N = number of right-column blocks.
+
+    The image cell uses ``row_span=N`` so CSS grid stretches it across
+    every right-column row. Each right-column row auto-sizes to its
+    block's natural height; the image's effective height = sum of those.
+    image-tile honors the row_span via its CSS aspect-ratio + object-fit
+    (cover/contain) — soft-framed lift screenshots letterbox cleanly.
+
+    Replaces the v4.0 design where only the first narrative sat beside
+    the image and remaining blocks dropped to full-width rows below,
+    leaving the right column empty above and a wasted strip below.
+    """
+    content_col_start = img_col_span + 1
+    content_col_span  = COL_COUNT - img_col_span
+
+    if not blocks:
+        # Image-only — full-row, image natural height in px.
+        img_w_px = int(CONTENT_AREA_W_PX * img_col_span / COL_COUNT)
+        img_h_px = int(img_w_px / aspect)
+        img_props = _image_cell_props(img_path, nat_w, nat_h)
+        only_row = make_layout_row(
+            f"{img_h_px}px",
+            [make_layout_cell(1, COL_COUNT, "image-tile", img_props,
+                                source_block_kind="image_tile")],
+            kind_hint="image-row-full",
+        )
+        return make_layout_plan(
+            slide_id, topic, section_name, [only_row],
+            pattern=pattern, fill_pct=_estimate_fill_pct([only_row]),
+            image_natural_aspect=aspect, image_cell_aspect=aspect,
+            warnings=warnings,
+        )
 
     img_props = _image_cell_props(img_path, nat_w, nat_h)
-    cells = [
-        make_layout_cell(1, 8, "image-tile", img_props,
-                          source_block_kind="image_tile"),
-    ]
-    if side_narrative:
-        cells.append(
-            make_layout_cell(9, 4, "narrative-paragraph",
-                              side_narrative["content"],
-                              source_block_kind="narrative")
+    n_rows = len(blocks)
+    image_cell = make_layout_cell(
+        1, img_col_span, "image-tile", img_props,
+        source_block_kind="image_tile",
+        row_span=n_rows,
+    )
+
+    rows: list[dict] = []
+    for i, block in enumerate(blocks):
+        right_cells = _expand_block_for_right_column(
+            block, col_start=content_col_start, col_span=content_col_span,
         )
-    image_row = make_layout_row(f"{img_h_px}px", cells,
-                                  kind_hint="image-side-by-side")
+        cells = [image_cell] + right_cells if i == 0 else right_cells
+        rows.append(make_layout_row(
+            "auto", cells,
+            kind_hint=f"image-aside-r{i+1}-{block['kind']}",
+        ))
 
-    # Remaining blocks
-    remaining = [b for b in blocks if b is not side_narrative]
-    body_rows = [_block_to_full_row(b) for b in remaining]
-
-    rows = [image_row] + body_rows
     fill_pct = _estimate_fill_pct(rows)
     if fill_pct < 0.7:
         warnings.append(
@@ -374,12 +432,49 @@ def _design_image_side_by_side(
 
     return make_layout_plan(
         slide_id, topic, section_name, rows,
-        pattern="image-side-by-side",
+        pattern=pattern,
         fill_pct=fill_pct,
         image_natural_aspect=aspect,
         image_cell_aspect=aspect,
         warnings=warnings,
     )
+
+
+def _expand_block_for_right_column(block: dict, *,
+                                    col_start: int, col_span: int) -> list[dict]:
+    """Expand a content block into one or more cells confined to the
+    right column (col_start..col_start+col_span-1).
+
+    Multi-cell block kinds (features_3, values, catalog) split the
+    available right-column width evenly. Single-cell kinds occupy the
+    whole right column.
+    """
+    kind = block["kind"]
+    content = block["content"]
+
+    if kind in ("features_3", "values", "catalog"):
+        if kind == "features_3":
+            items = content["cards"]
+            component = "practice-card"
+        elif kind == "values":
+            items = content["cards"]
+            component = "value-medallion"
+        else:
+            items = content["columns"]
+            component = "catalog-column"
+        n = len(items)
+        each = max(1, col_span // n)
+        cells: list[dict] = []
+        for i, item in enumerate(items):
+            cs = col_start + i * each
+            sp = each if i < n - 1 else col_start + col_span - cs
+            cells.append(make_layout_cell(cs, sp, component, item,
+                                            source_block_kind=kind))
+        return cells
+
+    component = _BLOCK_TO_COMPONENT[kind]
+    return [make_layout_cell(col_start, col_span, component, content,
+                                source_block_kind=kind)]
 
 
 def _design_image_tall_side(
@@ -388,45 +483,13 @@ def _design_image_tall_side(
     nat_w: int, nat_h: int,
     warnings: list[str],
 ) -> dict:
-    """Tall image (aspect < 1.4) — narrower image col_span=5 + content col_span=7."""
-    img_w_px = int(CONTENT_AREA_W_PX * 5 / 12)
-    img_h_px = int(img_w_px / aspect)
-    if img_h_px > CONTENT_AREA_H_PX - 100:
-        img_h_px = CONTENT_AREA_H_PX - 100
-        warnings.append(
-            f"image natural aspect {aspect:.2f} too tall — capped at {img_h_px}px"
-        )
-
-    narrative_blocks = [b for b in blocks if b["kind"] == "narrative"]
-    side_narrative = narrative_blocks[0] if narrative_blocks else None
-
-    img_props = _image_cell_props(img_path, nat_w, nat_h)
-    cells = [
-        make_layout_cell(1, 5, "image-tile", img_props,
-                          source_block_kind="image_tile"),
-    ]
-    if side_narrative:
-        cells.append(
-            make_layout_cell(6, 7, "narrative-paragraph",
-                              side_narrative["content"],
-                              source_block_kind="narrative")
-        )
-    image_row = make_layout_row(f"{img_h_px}px", cells,
-                                  kind_hint="image-tall-side")
-
-    remaining = [b for b in blocks if b is not side_narrative]
-    body_rows = [_block_to_full_row(b) for b in remaining]
-
-    rows = [image_row] + body_rows
-    fill_pct = _estimate_fill_pct(rows)
-
-    return make_layout_plan(
-        slide_id, topic, section_name, rows,
+    """Tall / square image (aspect < 1.4) — image col_span=5 left, content
+    stack col_span=7 right via row_span on the image cell."""
+    return _design_image_aside_stack(
+        slide_id, topic, section_name, blocks,
+        aspect, img_path, nat_w, nat_h, warnings,
         pattern="image-tall-side",
-        fill_pct=fill_pct,
-        image_natural_aspect=aspect,
-        image_cell_aspect=aspect,
-        warnings=warnings,
+        img_col_span=5,
     )
 
 
@@ -439,18 +502,63 @@ def _estimate_fill_pct(rows: list[dict]) -> float:
     Heights from explicit "Npx" entries are used directly; "auto" rows
     use the kind_hint to look up an estimate.
     """
-    total = 0
-    for row in rows:
-        h = row.get("height", "auto")
-        if isinstance(h, str) and h.endswith("px"):
-            try:
-                total += int(h[:-2])
-                continue
-            except ValueError:
-                pass
-        kind_hint = row.get("kind_hint", "")
-        total += BLOCK_KIND_EST_H.get(kind_hint, 100)
+    # Image-aside patterns: a single image cell row-spans every row in
+    # the plan, so the visual height of those rows is dominated by the
+    # IMAGE's natural rendered height — not the sum of the right-column
+    # block estimates. Detect and short-circuit that case.
+    image_span_h = _image_aside_span_height(rows)
+    if image_span_h is not None:
+        non_spanned = sum(
+            _row_h_estimate(r) for r in rows[image_span_h["span"]:]
+        )
+        return min(1.0, (image_span_h["height"] + non_spanned) / CONTENT_AREA_H_PX)
+
+    total = sum(_row_h_estimate(r) for r in rows)
     return min(1.0, total / CONTENT_AREA_H_PX)
+
+
+def _row_h_estimate(row: dict) -> int:
+    h = row.get("height", "auto")
+    if isinstance(h, str) and h.endswith("px"):
+        try:
+            return int(h[:-2])
+        except ValueError:
+            pass
+    kind_hint = row.get("kind_hint", "")
+    # image-aside-rN-blockkind → strip the rN- prefix to find blockkind
+    if kind_hint.startswith("image-aside-"):
+        rest = kind_hint.split("-", 3)
+        if len(rest) >= 4:
+            kind_hint = rest[3]
+    return BLOCK_KIND_EST_H.get(kind_hint, 100)
+
+
+def _image_aside_span_height(rows: list[dict]) -> dict | None:
+    """If row 0 has an image cell with row_span > 1, compute the natural
+    rendered height of that image at its cell width.
+
+    Returns ``{"height": int, "span": int}`` or ``None`` when the layout
+    is not an image-aside stack.
+    """
+    if not rows:
+        return None
+    cells = rows[0].get("cells", [])
+    image_cell = next(
+        (c for c in cells
+         if c.get("component") == "image-tile" and c.get("row_span", 1) > 1),
+        None,
+    )
+    if image_cell is None:
+        return None
+    aspect_str = image_cell.get("props", {}).get("aspect_ratio", "")
+    try:
+        w_str, h_str = aspect_str.split(":")
+        aspect = float(w_str) / float(h_str)
+    except (ValueError, ZeroDivisionError):
+        return None
+    cell_w_px = int(CONTENT_AREA_W_PX * image_cell["col_span"] / COL_COUNT)
+    cell_h_px = int(cell_w_px / aspect)
+    return {"height": cell_h_px, "span": image_cell.get("row_span", 1)}
 
 
 def layout_metrics(plan: dict) -> dict:

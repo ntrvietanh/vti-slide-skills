@@ -1,5 +1,51 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v3.13.4 (2026-05-10) — Fix: image-tile / logo-grid normalize dict-shaped image prop
+
+Patch release. `image-tile` and per-entry `logo-grid` images previously
+crashed silently when an upstream drafter handed in a dict like
+`{"path": "...", "alt": "..."}` instead of a plain string path. The
+renderer ran `_esc(image)` which did `str(dict)` and emitted
+`src="{'path': '...', 'alt': '...'}"` straight into the HTML. The
+browser couldn't load it, so 17 image-tiles in the production retail
+deck rendered as empty bordered figures with only the figcaption
+visible — which Michael flagged as "rất nhiều block trắng có 1 dòng
+text bên dưới."
+
+Fix: new `_normalize_image_src` helper at the renderer boundary
+accepts EITHER `str` (path/URL/data URI) OR `{"path": str, "alt"?: str}`
+dict, extracts the path, and propagates `alt` to the `<img alt>`
+attribute when no caption is present. Anything else (int, list, dict
+without `path`) raises a clear `ValidationError` so any future
+regression surfaces immediately at compose time instead of silently
+shipping broken HTML.
+
+Both `_r_image_tile` (line 745) and `_r_logo_grid` (line 891) go
+through the same helper. No upstream API change — drivers can keep
+emitting either shape.
+
+## v3.13.3 (2026-05-10) — Fix: project-relative asset paths now resolve
+
+Patch release. `compose_slide_grid` previously searched only
+`[SKILL_ROOT]` for `<img src="…">` and `url(…)` references, so
+project-root-relative paths produced by upstream skills (e.g. the
+creator's Phase-3 lift cache writing `work/extracted_images/foo.png`)
+silently 404'd in the rendered HTML — every lift screenshot in the
+StarHub deck rendered as bare alt-text.
+
+Fix: search list is now `[SKILL_ROOT, Path.cwd()]`. SKILL_ROOT keeps
+priority so internal asset names (`assets/x.png`) still resolve to the
+skill, but project paths now also work when drivers run from the
+project root (the standard `source scripts/setup.sh` flow).
+
+Also confirmed first production use of `row_span > 1` on cells. The
+field has been validated since v3.x but unused; the creator's
+`image-aside-stack` patterns (creator v4.3.0) now emit
+`row_span=N` on image cells. No page-builder change needed —
+existing emission of `grid-row: ri / span N` already handles it.
+
+No API change. Single touch: `compose_slide_grid` line ~3947.
+
 ## v3.13.2 (2026-05-10) — Fix: image-tile soft frame no longer crops
 
 Patch release. The v3.19 deck output had every SVG architecture

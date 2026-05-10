@@ -112,6 +112,34 @@ def _check_max_chars(value: str, limit: int, field: str) -> None:
         )
 
 
+def _normalize_image_src(value: Any, field: str) -> tuple[str, str]:
+    """Coerce an `image` prop into ``(src, alt)``.
+
+    Accepts a plain string (path / URL / data URI) OR a dict
+    ``{"path": str, "alt"?: str, ...}`` — the latter is what upstream
+    drafters sometimes emit when they carry source-asset metadata
+    forward. Anything else is a hard error so the renderer can never
+    silently `str(dict)` into the HTML `src` attribute again.
+    """
+    if isinstance(value, str):
+        return value, ""
+    if isinstance(value, dict):
+        path = value.get("path") or value.get("src") or value.get("url")
+        if not isinstance(path, str) or not path:
+            raise ValidationError(
+                "invalid_value", field,
+                "dict form must carry a non-empty 'path' (str); "
+                f"got keys {sorted(value)!r}",
+            )
+        alt = value.get("alt") or value.get("caption") or ""
+        return path, str(alt) if alt else ""
+    raise ValidationError(
+        "invalid_value", field,
+        f"expected str path or {{'path': str, 'alt'?: str}} dict, "
+        f"got {type(value).__name__}",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Icon library — small starter set, expand as needed
 # ---------------------------------------------------------------------------
@@ -742,7 +770,8 @@ _VALID_ASPECT_RE = re.compile(r"^\s*\d+\s*:\s*\d+\s*$")
     "picks_content_kinds": ["image", "photo"],
 })
 def _r_image_tile(props: dict) -> str:
-    image    = _require(props, "image", "image-tile.props")
+    image_raw = _require(props, "image", "image-tile.props")
+    image, image_alt = _normalize_image_src(image_raw, "image-tile.props.image")
     caption  = props.get("caption", "")
     aspect   = props.get("aspect_ratio", "16:9")
     frame    = props.get("frame", "rounded")
@@ -786,7 +815,7 @@ def _r_image_tile(props: dict) -> str:
         "FRAME_CLASS":      frame_class,
         "ASPECT_RATIO_CSS": aspect.replace(":", " / "),
         "IMAGE_SRC":        _esc(image),
-        "ALT_TEXT":         _esc(caption or "VTI image"),
+        "ALT_TEXT":         _esc(caption or image_alt or "VTI image"),
         "CAPTION_HTML":     caption_html,
     })
 
@@ -857,11 +886,14 @@ def _r_logo_grid(props: dict) -> str:
                 "invalid_value", f"logo-grid.props.logos[{i}]",
                 "each logo entry must be a dict {image?, name?}",
             )
-        image = logo.get("image", "")
+        image_raw = logo.get("image", "")
         name  = logo.get("name", "")
-        if image:
+        if image_raw:
+            image, image_alt = _normalize_image_src(
+                image_raw, f"logo-grid.props.logos[{i}].image",
+            )
             inner = (f'<img class="vti-logo-grid__img" src="{_esc(image)}" '
-                     f'alt="{_esc(name)}">')
+                     f'alt="{_esc(name or image_alt)}">')
         elif name:
             inner = f'<span class="vti-logo-grid__name">{_esc(name)}</span>'
         else:
@@ -3942,10 +3974,13 @@ def compose_slide_grid(slide_input: dict) -> dict:
     ]))
 
     # Inline any local asset references that components emit (image-tile,
-    # logo-grid, etc. all reference images by path). Same search dirs as
-    # special pages so paths like 'assets/x.png' resolve from skill root.
-    slide_html = _inline_assets_in_html(slide_html, [SKILL_ROOT])
-    slide_css  = _inline_assets_in_css(slide_css,  [SKILL_ROOT])
+    # logo-grid, etc. all reference images by path). Search SKILL_ROOT
+    # first so internal asset names ('assets/x.png') keep priority, then
+    # the caller's cwd so project-relative paths (e.g. 'work/extracted_images/…'
+    # produced by the creator's Phase-3 lift cache) also resolve.
+    search_dirs = [SKILL_ROOT, Path.cwd()]
+    slide_html = _inline_assets_in_html(slide_html, search_dirs)
+    slide_css  = _inline_assets_in_css(slide_css,  search_dirs)
 
     return {
         "slide_html": slide_html,
@@ -3983,7 +4018,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.13.2",
+        "version":    "3.13.3",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }

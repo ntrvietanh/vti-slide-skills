@@ -6,8 +6,8 @@ This bundle pins four skills at versions that work together as a coordinated set
 
 | Skill | Version | Bumped from |
 |---|---|---|
-| `vti-slide-creator` | **4.0.0** | 3.19.0 (5-phase → 6-phase, breaking) |
-| `vti-slide-page-builder` | **3.13.2** | 3.13.1 (image-tile soft-frame no-crop fix) |
+| `vti-slide-creator` | **4.4.0** | 4.3.0 (`image_picker.py` — semantic Phase-3 image-decision protocol replacing `resolve_lift_image()`) |
+| `vti-slide-page-builder` | **3.13.4** | 3.13.3 (image-tile / logo-grid accept dict-shaped `image` prop, hard error on garbage) |
 | `vti-slide-decorator` | **0.5.2** | unchanged |
 | `vti-slide-diagram-builder` | **0.1.0** | NEW — 7 SVG primitives consuming page-builder tokens |
 
@@ -23,6 +23,10 @@ This bundle pins four skills at versions that work together as a coordinated set
 | 53 | Diagram drawing was per-deck ad-hoc Python; no VTI Standard | new sibling `vti-slide-diagram-builder` v0.1.0 (7 primitives, brand-token-driven) |
 | 54 | Outline review was a separate phase, redundant | creator 4.0 (Phase 2 merged outline + review) |
 | 55 | No batch wireframe review before final compose | creator 4.0 (Phase 6 REVIEW-AND-COMPOSE) |
+| 56 | Image-aside layouts wasted right-column space; KPI/list rows fell to a full-width strip below the image | creator 4.3.0 (`_design_image_aside_stack` uses `row_span` so the image cell stretches across N right-column rows) |
+| 57 | Project-relative image paths (e.g. lift cache `work/extracted_images/…`) silently rendered as alt-text | page-builder 3.13.3 (`compose_slide_grid` searches `[SKILL_ROOT, Path.cwd()]`) |
+| 58 | `resolve_lift_image()` heuristic (filename-token + aspect-ratio score) gave every slide of a multi-slide case study the same image and let corporate filler (logos, cert badges, exec portraits) pass as content | creator 4.4.0 (`image_picker.py` — 4-step orchestrator-in-the-loop protocol: enumerate → caption → decide → auto-escalate `lift`/`synthesize`/`text-only`; `allocate_case_study_images` enforces 1-to-1 best-fit across multi-slide CS) |
+| 59 | Drafters that handed a `{path, alt}` dict to `image-tile.props.image` (carrying source-asset metadata forward) silently produced `src="{'path': ..., 'alt': ...}"` in HTML — 17 image-tiles in the retail deck rendered as empty bordered figures with only the figcaption visible | page-builder 3.13.4 (`_normalize_image_src` at the renderer boundary in `_r_image_tile` and `_r_logo_grid` — accepts `str` or `{path, alt}`, raises `ValidationError` for any other shape so the regression cannot return) |
 
 End-to-end the four skills now support the 6-phase pipeline:
 
@@ -94,8 +98,8 @@ source scripts/setup.sh
 
 # Verify
 bash scripts/verify.sh
-# → creator:        4.0.0
-# → page-builder:   3.13.2
+# → creator:        4.4.0
+# → page-builder:   3.13.3
 # → decorator:      0.5.2
 # → diagram-builder:0.1.0  (7 primitives)
 ```

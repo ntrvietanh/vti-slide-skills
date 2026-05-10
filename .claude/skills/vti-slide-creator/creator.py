@@ -64,6 +64,11 @@ from content_drafter import (                                    # noqa: F401
 from image_decisions import (                                    # noqa: F401
     STRATEGY_GUIDE, describe_strategies, suggest_strategy,
 )
+from image_picker import (                                       # noqa: F401
+    enumerate_candidates, get_caption, set_caption,
+    record_image_decision, ImageDecision,
+    allocate_case_study_images, build_worklist,
+)
 
 # --- Phase 4 (NEW in v4.0 — layout design with no-crop + fill metric) -----
 from layout_designer import (                                    # noqa: F401
@@ -116,7 +121,7 @@ from deck_planner import (                                       # noqa: F401
     renumber_slide_ids,                                          # v3.14
 )
 
-__version__ = "4.0.1"
+__version__ = "4.4.0"
 
 
 def info() -> dict:
