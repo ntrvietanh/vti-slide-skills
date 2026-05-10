@@ -1,8 +1,8 @@
 # vti-slide-diagram-builder
 
 VTI-Standard SVG diagram primitives for slide decks. Pairs with
-`vti-slide-creator-v3` (orchestrator) and consumes brand tokens from
-`vti-slide-page-builder-v3/tokens.css`.
+`vti-slide-creator` (orchestrator) and consumes brand tokens from
+`vti-slide-page-builder/tokens.css`.
 
 ## Why this skill exists
 
@@ -17,7 +17,7 @@ creator's Phase 4 layout-design step can choose cell aspect ratio that
 
 ## When to use
 
-Invoke this skill **at Phase 3 (CONTENT-PLAN)** of `vti-slide-creator-v3`
+Invoke this skill **at Phase 3 (CONTENT-PLAN)** of `vti-slide-creator`
 ≥ 4.0 — when a slide's `image_decision.strategy` is `"synthesize"` and
 the diagram intent matches one of the 7 primitives. The creator picks
 the primitive, fills the parameters from its source-research notes, and
@@ -215,7 +215,7 @@ make_data_path(
   this is reported back so the layout-designer chooses correct cell
   aspect-ratio).
 - **Tokens**: every colour comes from `tokens_bridge.TOKENS` (parsed
-  from `vti-slide-page-builder-v3/tokens.css` at module load). No hex
+  from `vti-slide-page-builder/tokens.css` at module load). No hex
   literals in primitives.
 - **Typography**: `system-ui, -apple-system, "Segoe UI", Roboto,
   sans-serif` — matches deck chrome.

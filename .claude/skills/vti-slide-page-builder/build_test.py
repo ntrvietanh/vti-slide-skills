@@ -16,7 +16,7 @@ import sys
 import pathlib
 
 # Wire up v3
-V3_ROOT = pathlib.Path("/home/claude/skills/vti-slide-page-builder-v3")
+V3_ROOT = pathlib.Path("/home/claude/skills/vti-slide-page-builder")
 sys.path.insert(0, str(V3_ROOT))
 
 from composer_grid import compose_slide_grid, catalog  # noqa: E402

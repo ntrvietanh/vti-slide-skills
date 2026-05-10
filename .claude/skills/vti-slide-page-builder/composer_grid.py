@@ -1,5 +1,5 @@
 """
-vti-slide-page-builder-v3 — Grid + Components renderer
+vti-slide-page-builder — Grid + Components renderer
 ========================================================
 Pure compositional renderer. No intents, no recipes. Caller passes a
 slide-grid descriptor (rows × cells × component picks + props) and this
@@ -3982,7 +3982,7 @@ def catalog(*, verbose: bool = False) -> dict:
                                 picks_content_kinds list)
     """
     base = {
-        "skill":      "vti-slide-page-builder-v3",
+        "skill":      "vti-slide-page-builder",
         "version":    "3.13.2",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),

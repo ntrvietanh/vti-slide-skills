@@ -157,8 +157,8 @@ Minor release. Implements the W3.6 pipeline that was a STUB in v0.1
 end-to-end usable on a composed deck.
 
 This release lands together with:
-- vti-slide-creator-v3 v3.19.0 (gap #42 + density_mode propagation)
-- vti-slide-page-builder-v3 v3.13.0 (mode-aware fill thresholds)
+- vti-slide-creator v3.19.0 (gap #42 + density_mode propagation)
+- vti-slide-page-builder v3.13.0 (mode-aware fill thresholds)
 
 ### `decorate(deck_html_path, output_path, ...)` — fully wired
 

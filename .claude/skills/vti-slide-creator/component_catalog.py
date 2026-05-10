@@ -2,7 +2,7 @@
 Component catalog — thin proxy over page-builder's catalog API.
 
 Single source of truth: each component declares its metadata at registration
-time in ``vti-slide-page-builder-v3/composer_grid.py`` via the ``meta=`` kwarg
+time in ``vti-slide-page-builder/composer_grid.py`` via the ``meta=`` kwarg
 of ``register_component``. This module just imports + re-exposes that data
 in the shape the creator's pick step expects.
 
@@ -16,7 +16,7 @@ from pathlib import Path
 
 # Wire up the page-builder so we can call its catalog().
 _PAGE_BUILDER_ROOT = (
-    Path(__file__).resolve().parent.parent / "vti-slide-page-builder-v3"
+    Path(__file__).resolve().parent.parent / "vti-slide-page-builder"
 )
 if str(_PAGE_BUILDER_ROOT) not in sys.path:
     sys.path.insert(0, str(_PAGE_BUILDER_ROOT))

@@ -1,4 +1,4 @@
-# vti-slide-creator-v3 — CHANGELOG
+# vti-slide-creator — CHANGELOG
 
 ## v4.0.1 (2026-05-10) — Fix: deck preview shell owns its own card layout
 
@@ -127,7 +127,7 @@ coordinated 3-skill baseline. **No breaking changes** — all v3.18.x
 audit calls keep working.
 
 This release lands together with:
-- vti-slide-page-builder-v3 v3.13.0 (mode-aware fill thresholds)
+- vti-slide-page-builder v3.13.0 (mode-aware fill thresholds)
 - vti-slide-decorator v0.5.0 (W3.6 pipeline implemented)
 
 ### `audit_plan_density` — auto-expansion (gap #42)
@@ -536,7 +536,7 @@ targets and audit thresholds. The page-builder's render-time
 `BLOCK_KIND_CAPS` hard caps are NOT relaxed — those are absolute
 invariants enforced at compose. Thus `dense` mode draws to 95% of
 declared cell capacity but cannot exceed `narrative.paragraphs_each_max=400`.
-A future v3.19+ release could coordinate with vti-slide-page-builder-v3
+A future v3.19+ release could coordinate with vti-slide-page-builder
 to introduce mode-aware hard caps; this is deferred and called out in
 the docstring of `DENSITY_MODES`.
 
@@ -591,7 +591,7 @@ Zero breaking changes:
 
 | # | Gap | Reason deferred |
 |---:|---|---|
-| 32 (page-builder side) | Hard render caps still mode-agnostic | Cross-skill change — needs vti-slide-page-builder-v3 coordination |
+| 32 (page-builder side) | Hard render caps still mode-agnostic | Cross-skill change — needs vti-slide-page-builder coordination |
 | 42 | audit_plan_density 1-block=1-cell mismatch with features_3/values/catalog expansion | Surfaced by v3.18.1 rerun — see v3.18.1 entry |
 
 ---
@@ -1241,7 +1241,7 @@ that operates on rendered deck HTML via pixel-level whitespace analysis
 + SVG overlay injection (z-index lower layer, never touches content).
 The composer now produces clean content slides only.
 
-### Removed from vti-slide-page-builder-v3/composer_grid.py
+### Removed from vti-slide-page-builder/composer_grid.py
 - `auto_decorate` trigger block (sparse_by_metric, thin_rows, moderate_thin signals)
 - `_build_decoration_props()` helper
 - `_make_decoration_row()` helper
@@ -1249,7 +1249,7 @@ The composer now produces clean content slides only.
 - `decorated` parameter from `_compose_grid_body()` and `_validate_fill_honesty()`
 - Decoration overlay HTML injection in slide template
 
-### Removed from vti-slide-creator-v3/slide_edits.py
+### Removed from vti-slide-creator/slide_edits.py
 - `disable_auto_decorate()` function (no longer needed — composer ignores flag)
 
 ### Kept (still useful)

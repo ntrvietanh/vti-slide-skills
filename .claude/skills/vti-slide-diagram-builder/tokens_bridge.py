@@ -21,7 +21,7 @@ from pathlib import Path
 # Resolve the page-builder skill at import time.
 _THIS_DIR = Path(__file__).resolve().parent
 _SKILLS_DIR = _THIS_DIR.parent  # .claude/skills/
-_TOKENS_CSS = _SKILLS_DIR / "vti-slide-page-builder-v3" / "tokens.css"
+_TOKENS_CSS = _SKILLS_DIR / "vti-slide-page-builder" / "tokens.css"
 
 
 def _parse_tokens(css_path: Path) -> dict[str, str]:

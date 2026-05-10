@@ -8,7 +8,7 @@ Copy/paste vào Claude Code session sau khi đã chạy `source scripts/setup.sh
 
 ```
 Tôi có file source ở `tests/inputs/sample-source.docx`.
-Hãy chạy `vti-slide-creator-v3` skill từ Phase 1 đến hết.
+Hãy chạy `vti-slide-creator` skill từ Phase 1 đến hết.
 
 Yêu cầu:
 - Output mỗi phase ra `work/phase_N.json` (để có thể resume nếu hết context)
@@ -36,7 +36,7 @@ rồi tiếp tục từ Phase (X+1).
 
 ```
 Đọc `work/plans_v5.json` (output của Phase 4).
-Chỉ chạy `vti-slide-page-builder-v3.compose_slide_grid` với slide đầu tiên.
+Chỉ chạy `vti-slide-page-builder.compose_slide_grid` với slide đầu tiên.
 In ra HTML + báo cáo bất kỳ violation nào trong fill-honesty check.
 ```
 

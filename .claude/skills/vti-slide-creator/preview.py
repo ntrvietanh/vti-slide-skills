@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 
 _PAGE_BUILDER_ROOT = (
-    Path(__file__).resolve().parent.parent / "vti-slide-page-builder-v3"
+    Path(__file__).resolve().parent.parent / "vti-slide-page-builder"
 )
 if str(_PAGE_BUILDER_ROOT) not in sys.path:
     sys.path.insert(0, str(_PAGE_BUILDER_ROOT))

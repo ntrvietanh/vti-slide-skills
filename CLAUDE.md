@@ -21,7 +21,7 @@ source scripts/setup.sh
 Hoặc khi gọi Python trực tiếp, prefix bằng:
 
 ```bash
-PYTHONPATH=.claude/skills/vti-slide-creator-v3:.claude/skills/vti-slide-page-builder-v3:.claude/skills/vti-slide-decorator:.claude/skills/vti-slide-decorator/strategies python3 -c "..."
+PYTHONPATH=.claude/skills/vti-slide-creator:.claude/skills/vti-slide-page-builder:.claude/skills/vti-slide-decorator:.claude/skills/vti-slide-decorator/strategies python3 -c "..."
 ```
 
 ## Conventions cho session này
@@ -39,9 +39,9 @@ PYTHONPATH=.claude/skills/vti-slide-creator-v3:.claude/skills/vti-slide-page-bui
 
 5. **Final HTML deck output** đi vào `work/deck-composed.html` (sau page-builder) và `work/deck-decorated.html` (sau decorator). Đừng output vào root.
 
-## Phases recap (vti-slide-creator-v3 ≥ 4.0)
+## Phases recap (vti-slide-creator ≥ 4.0)
 
-**6 phases**, 2 mandatory checkpoints (★). Đọc `.claude/skills/vti-slide-creator-v3/SKILL.md` cho chi tiết.
+**6 phases**, 2 mandatory checkpoints (★). Đọc `.claude/skills/vti-slide-creator/SKILL.md` cho chi tiết.
 
 - Phase 1 ANALYZE — source ingestion → ContextDoc
 - Phase 2 PLAN-OUTLINE-AND-REVIEW ★ — deck arc + slide list (merged with review)

@@ -30,7 +30,7 @@ diagrams of that deck are now expressible via these 7 primitives.
 ### Standardisation
 
 - **Single source of truth for colour tokens**: `tokens_bridge.py`
-  parses `vti-slide-page-builder-v3/tokens.css` at module load. No hex
+  parses `vti-slide-page-builder/tokens.css` at module load. No hex
   literals in primitive code; running
   `grep -E '#[0-9a-fA-F]{3,6}' diagram_builder.py svg_primitives.py`
   must return zero matches.

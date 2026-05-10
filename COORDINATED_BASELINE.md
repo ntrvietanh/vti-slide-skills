@@ -6,8 +6,8 @@ This bundle pins four skills at versions that work together as a coordinated set
 
 | Skill | Version | Bumped from |
 |---|---|---|
-| `vti-slide-creator-v3` | **4.0.0** | 3.19.0 (5-phase → 6-phase, breaking) |
-| `vti-slide-page-builder-v3` | **3.13.2** | 3.13.1 (image-tile soft-frame no-crop fix) |
+| `vti-slide-creator` | **4.0.0** | 3.19.0 (5-phase → 6-phase, breaking) |
+| `vti-slide-page-builder` | **3.13.2** | 3.13.1 (image-tile soft-frame no-crop fix) |
 | `vti-slide-decorator` | **0.5.2** | unchanged |
 | `vti-slide-diagram-builder` | **0.1.0** | NEW — 7 SVG primitives consuming page-builder tokens |
 
@@ -185,7 +185,7 @@ The legacy tuple form still works, so migration is incremental.
 ```
 vti-slide-skills-2026-05-10-baseline/
 ├── COORDINATED_BASELINE.md           ← THIS FILE
-├── vti-slide-creator-v3/             ← 3.19.0
+├── vti-slide-creator/                ← 3.19.0
 │   ├── SKILL.md
 │   ├── CHANGELOG.md                  ← 3.13.1 → 3.19.0 history
 │   ├── creator.py                    ← main entry; __version__ = "3.19.0"
@@ -197,7 +197,7 @@ vti-slide-skills-2026-05-10-baseline/
 │   │                                    expand_plan_for_audit (gap #42)
 │   └── ... (component_catalog, deck_planner, grid_helpers, image_decisions,
 │           preview, slide_edits, _contracts/)
-├── vti-slide-page-builder-v3/        ← 3.13.0
+├── vti-slide-page-builder/           ← 3.13.0
 │   ├── SKILL.md
 │   ├── CHANGELOG.md                  ← NEW; 3.12.0 → 3.13.0 history
 │   ├── composer_grid.py              ← _DENSITY_MODE_THRESHOLDS, mode-aware

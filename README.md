@@ -9,8 +9,8 @@ Phase 1-5 input/source           composed deck             decorated deck
     │                                 │                          │
     ▼                                 ▼                          ▼
 ┌─────────────────────┐    ┌────────────────────┐    ┌────────────────────┐
-│ vti-slide-creator-v3│ -> │vti-slide-page-     │ -> │vti-slide-decorator │
-│ (orchestrator,      │    │ builder-v3         │    │ (whitespace        │
+│ vti-slide-creator   │ -> │vti-slide-page-     │ -> │vti-slide-decorator │
+│ (orchestrator,      │    │ builder            │    │ (whitespace        │
 │  5-phase pipeline)  │    │ (component         │    │  analyzer +        │
 │                     │    │  renderer)         │    │  SVG/CSS overlay)  │
 └─────────────────────┘    └────────────────────┘    └────────────────────┘
@@ -22,8 +22,8 @@ Phase 1-5 input/source           composed deck             decorated deck
 
 | Skill | Version |
 |---|---|
-| `vti-slide-creator-v3` | 3.19.0 |
-| `vti-slide-page-builder-v3` | 3.13.1 |
+| `vti-slide-creator` | 3.19.0 |
+| `vti-slide-page-builder` | 3.13.1 |
 | `vti-slide-decorator` | 0.5.2 |
 
 ## Repo layout
@@ -31,8 +31,8 @@ Phase 1-5 input/source           composed deck             decorated deck
 ```
 vti-slide-skills/
 ├── .claude/skills/                 ← skills (Claude Code auto-load từ đây)
-│   ├── vti-slide-creator-v3/
-│   ├── vti-slide-page-builder-v3/
+│   ├── vti-slide-creator/
+│   ├── vti-slide-page-builder/
 │   └── vti-slide-decorator/
 ├── tests/
 │   ├── inputs/                     ← file đầu vào để test (drop file vào đây)
@@ -67,8 +67,8 @@ pip install -r requirements.txt
 ```bash
 source scripts/setup.sh
 # hoặc tự export:
-# export PYTHONPATH=$(pwd)/.claude/skills/vti-slide-creator-v3:\
-# $(pwd)/.claude/skills/vti-slide-page-builder-v3:\
+# export PYTHONPATH=$(pwd)/.claude/skills/vti-slide-creator:\
+# $(pwd)/.claude/skills/vti-slide-page-builder:\
 # $(pwd)/.claude/skills/vti-slide-decorator:\
 # $(pwd)/.claude/skills/vti-slide-decorator/strategies
 ```
@@ -118,8 +118,8 @@ Khuyến nghị `.vscode/settings.json` (auto-create khi anh muốn):
 ```json
 {
   "python.analysis.extraPaths": [
-    ".claude/skills/vti-slide-creator-v3",
-    ".claude/skills/vti-slide-page-builder-v3",
+    ".claude/skills/vti-slide-creator",
+    ".claude/skills/vti-slide-page-builder",
     ".claude/skills/vti-slide-decorator",
     ".claude/skills/vti-slide-decorator/strategies"
   ]

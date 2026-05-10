@@ -1,9 +1,9 @@
-# vti-slide-creator-v3
+# vti-slide-creator
 
 **Version: 4.0.1**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
-`vti-slide-page-builder-v3` (the renderer).
+`vti-slide-page-builder` (the renderer).
 
 > **Phase 6 contract.** The final HTML deck MUST be assembled via
 > `build_deck_html(descriptors, title=…)`. Drivers must NOT hand-roll
@@ -81,7 +81,7 @@ registration time:
 Adding a new component to the page-builder makes it instantly available
 to the creator — no syncing of two hardcoded lists.
 
-See `vti-slide-page-builder-v3/COMPONENTS.md` for the full catalog with
+See `vti-slide-page-builder/COMPONENTS.md` for the full catalog with
 schema details, use cases, and best col_spans for every component.
 
 ## The 6-phase pipeline (v4.0)
@@ -1194,7 +1194,7 @@ render caps remain mode-agnostic; that's a cross-skill change).
 ## Repo layout
 
 ```
-vti-slide-creator-v3/
+vti-slide-creator/
 ├── SKILL.md                  # this file
 ├── creator.py                # main entry point + re-exports + phase placeholders
 ├── component_catalog.py      # static metadata for pick reasoning  (Sprint 2)

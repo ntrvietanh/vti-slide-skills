@@ -1,6 +1,6 @@
-# vti-slide-page-builder-v3
+# vti-slide-page-builder
 
-Renderer skill for VTI APAC slide decks. Pairs with `vti-slide-creator-v3`
+Renderer skill for VTI APAC slide decks. Pairs with `vti-slide-creator`
 (the orchestrator).
 
 ## Public protocol surface
@@ -20,7 +20,7 @@ from composer_grid import (
 Quick mode (`verbose=False`) — small response for fast checks:
 ```python
 {
-  "skill":      "vti-slide-page-builder-v3",
+  "skill":      "vti-slide-page-builder",
   "version":    "3.0.0",
   "components": ["bullet-list-checked", "catalog-column", ...],   # 9 names
   "icons":      ["brain", "building-skyscraper", ...],            # 16 names
@@ -177,7 +177,7 @@ the auto-pick for that content kind in the creator's Phase 4 → 5 bridge.
 ## Design discipline (v3.3 — 2026-05-09)
 
 These rules govern what every component is **technically allowed** to emit.
-The orchestrator (`vti-slide-creator-v3`) layers higher-level reasoning on
+The orchestrator (`vti-slide-creator`) layers higher-level reasoning on
 top, but the type/color/sizing contract lives here at the renderer.
 
 ### T1 · Canonical 5-level type scale (v3.2)
@@ -217,7 +217,7 @@ per-slide budget:
 - **Max 1** dominant color (`--vti-blue-deep`) plus neutrals
 
 Enforced by the creator's reasoning protocol (the renderer cannot detect
-cross-component combinations). See `vti-slide-creator-v3/SKILL.md
+cross-component combinations). See `vti-slide-creator/SKILL.md
 § Design principles` for the reasoning contract. Validated post-render
 by `audit_typography.py` at the baseline root.
 

@@ -8,12 +8,12 @@ content are never modified.
 
 ## When to use
 
-Invoke this skill **after** `vti-slide-creator-v3` produces a composed
+Invoke this skill **after** `vti-slide-creator` produces a composed
 deck HTML. Do NOT invoke during composition or as part of the planner —
 this is a strictly post-processing step. The order is:
 
 ```
-vti-slide-creator-v3 (Phase 1-5) → composed deck HTML
+vti-slide-creator (Phase 1-5) → composed deck HTML
   ↓
 vti-slide-decorator (this skill) → decorated deck HTML
   ↓
@@ -66,7 +66,7 @@ strategy per slide based on gap classification + slide content keywords:
 | `none` | Content fills naturally OR explicit user opt-out | No decoration injected |
 
 **VTI brand reference:** all strategies pull from the same brand palette
-established in `vti-slide-page-builder-v3`:
+established in `vti-slide-page-builder`:
 - Primary blue `#0c447c` / `#185fa5` (cover-bg-tokyo geometry)
 - Mesh patterns from `toc-mesh` special page
 - Triangle/diamond geometry from cover hero

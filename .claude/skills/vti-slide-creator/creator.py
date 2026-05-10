@@ -1,5 +1,5 @@
 """
-vti-slide-creator-v3 — main orchestrator for the 6-phase pipeline (v4.0).
+vti-slide-creator — main orchestrator for the 6-phase pipeline (v4.0).
 
 Phases:
 
@@ -121,7 +121,7 @@ __version__ = "4.0.1"
 def info() -> dict:
     """Return a snapshot of what the creator currently supports."""
     return {
-        "skill":   "vti-slide-creator-v3",
+        "skill":   "vti-slide-creator",
         "version": __version__,
         "phases_implemented": [1, 2, 3, 4, 5, 6],
         "phases_pending":     [],

@@ -1,4 +1,4 @@
-# vti-slide-page-builder-v3 · component catalog
+# vti-slide-page-builder · component catalog
 
 _v3.0.0_ — 37 atomic components across 8 categories.
 

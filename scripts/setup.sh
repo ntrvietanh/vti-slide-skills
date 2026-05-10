@@ -12,8 +12,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SKILLS_DIR="$REPO_ROOT/.claude/skills"
 
 export PYTHONPATH="\
-$SKILLS_DIR/vti-slide-creator-v3:\
-$SKILLS_DIR/vti-slide-page-builder-v3:\
+$SKILLS_DIR/vti-slide-creator:\
+$SKILLS_DIR/vti-slide-page-builder:\
 $SKILLS_DIR/vti-slide-decorator:\
 $SKILLS_DIR/vti-slide-decorator/strategies:\
 $SKILLS_DIR/vti-slide-diagram-builder${PYTHONPATH:+:$PYTHONPATH}"

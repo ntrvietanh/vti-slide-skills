@@ -1,4 +1,4 @@
-# vti-slide-page-builder-v3 — CHANGELOG
+# vti-slide-page-builder — CHANGELOG
 
 ## v3.13.2 (2026-05-10) — Fix: image-tile soft frame no longer crops
 
@@ -78,12 +78,12 @@ checks; reads `slide_meta.density_mode` from the input passed to
 `compose_slide_grid`.
 
 This release lands together with:
-- vti-slide-creator-v3 v3.19.0 (gap #42 + density_mode propagation)
+- vti-slide-creator v3.19.0 (gap #42 + density_mode propagation)
 - vti-slide-decorator v0.5.0 (W3.6 pipeline implemented)
 
 ### `_DENSITY_MODE_THRESHOLDS` table
 
-Mirrors `vti-slide-creator-v3/capacity.DENSITY_MODES`:
+Mirrors `vti-slide-creator/capacity.DENSITY_MODES`:
 
 | Mode | cell_fill_min | slide_sparse_below | slide_overcrowded_above |
 |---|---:|---:|---:|

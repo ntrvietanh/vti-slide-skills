@@ -22,7 +22,7 @@ This exercises every one of the 9 v3 components AT LEAST once.
 """
 import sys, pathlib
 
-V3_ROOT = pathlib.Path("/home/claude/skills/vti-slide-page-builder-v3")
+V3_ROOT = pathlib.Path("/home/claude/skills/vti-slide-page-builder")
 sys.path.insert(0, str(V3_ROOT))
 from composer_grid import compose_slide_grid, catalog  # noqa: E402
 
