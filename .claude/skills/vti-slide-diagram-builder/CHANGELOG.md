@@ -1,5 +1,82 @@
 # vti-slide-diagram-builder — CHANGELOG
 
+## v0.3.0 (2026-05-18) — Split-backend rendering (Mermaid + Python)
+
+Five primitives migrated from native Python SVG to **Mermaid Chart MCP**
+rendering: `flow_diagram`, `quadrant`, `layered_stack`,
+`fanout_pipeline`, `hybrid_swimlane`. Two stay native: `footprint_map`
+(no Mermaid geo-map equivalent) and `data_path` (hand-crafted
+brain-emphasis styling).
+
+### What changed
+
+- **New module `mermaid_codegen.py`** — one function per Mermaid-backed
+  primitive returning a Mermaid source string. Each codegen prepends a
+  per-diagram `%%{init: ...}%%` directive built from the VTI brand
+  token palette (see `theme_bridge.py`).
+- **New module `theme_bridge.py`** — generates `init` directives with
+  `themeVariables` derived from `vti-slide-page-builder/tokens.css`.
+  Two flavours: `init_directive()` for `flowchart` and
+  `init_directive_quadrant()` for `quadrantChart`.
+- **`diagram_builder.py` return-shape** — the 5 Mermaid-backed
+  `make_<primitive>` functions now return a **render task**:
+  ```python
+  {"primitive": ..., "backend": "mermaid",
+   "mermaid_code": ..., "hint_w": ..., "hint_h": ...}
+  ```
+  The 2 Python-backed functions return the same `svg` / `natural_w` /
+  `natural_h` shape as v0.2.x, but now with an explicit
+  `"backend": "python"` field.
+- **New public constants** — `MERMAID_BACKED`, `PYTHON_BACKED` (frozensets),
+  plus `backend_for(name)` helper.
+- **Bumped `VERSION = "0.3.0"`**.
+
+### Agent-side render workflow
+
+The skill no longer guarantees an SVG-on-disk after a single function
+call. For Mermaid-backed primitives the **agent** is responsible for:
+
+1. Calling `make_<primitive>(...)`
+2. Invoking `mcp__claude_ai_Mermaid_Chart__validate_and_render_mermaid_diagram`
+   with the returned `mermaid_code`
+3. Saving the rendered SVG to `work/diagrams/<slide_id>.svg`
+4. Reading the viewBox to recover `natural_w` / `natural_h`
+5. Constructing the final `diagram_spec` for `make_slide_content_plan`
+
+Python-backed primitives skip steps 2–4 — the dict already has the SVG
+and dimensions.
+
+### Why
+
+The v0.2.x Python primitives produce SVGs that look stiff next to
+Mermaid's optimized auto-layout (especially for variable node count).
+Mermaid Chart MCP is purpose-built for diagrams and stays in sync with
+upstream Mermaid improvements without us writing more SVG code.
+Footprint maps and the brain-emphasis data path have no clean Mermaid
+equivalent, so they stay native.
+
+### Breaking change for callers
+
+Callers that previously did:
+
+```python
+result = make_flow_diagram(...)
+Path("work/diagrams/foo.svg").write_text(result["svg"])
+spec = {..., "natural_w": result["natural_w"], "natural_h": result["natural_h"]}
+```
+
+now need the dual-branch flow described in `SKILL.md` § *Agent
+workflow*. The change is intentional — there is no MCP-callable Python
+client, so this responsibility has to live in the agent.
+
+### Open items (tune-after)
+
+- `hybrid_swimlane` Mermaid subgraph layout may look denser than the
+  v0.2.x SVG. If unacceptable on a specific deck, fall back to the
+  git-history v0.2.x implementation.
+- Theme variables for dark-text-on-light-cards contrast may need
+  per-deck adjustment.
+
 ## v0.2.0 (2026-05-10) — Tighter canvases (remove vertical whitespace)
 
 `CANVAS_H_WIDE: 460 → 280` and `CANVAS_H_TALL: 600 → 480`. The v0.1 defaults padded ~150-200px of vertical whitespace below content in every flow / quadrant / layered-stack output (boxes 130px tall centered in a 460px canvas left ~165px gap top + ~165px gap bottom). Visible in deck render as "diagrams stretched long with whitespace underneath".

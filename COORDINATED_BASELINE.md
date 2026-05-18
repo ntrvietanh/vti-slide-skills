@@ -9,7 +9,7 @@ This bundle pins four skills at versions that work together as a coordinated set
 | `vti-slide-creator` | **4.5.0** | 4.4.0 (`layout_designer` — flexible image+content split with corrected canvas constants 1168×586 / col_w=80.83 / gap=18; candidate-search over banner-top/banner-bottom/aside-{left,right}-K-of-12 instead of 3 fixed patterns; gap #60-#63) |
 | `vti-slide-page-builder` | **3.13.4** | 3.13.3 (image-tile / logo-grid accept dict-shaped `image` prop, hard error on garbage) |
 | `vti-slide-decorator` | **0.5.2** | unchanged |
-| `vti-slide-diagram-builder` | **0.2.0** | 0.1.0 (`CANVAS_H_WIDE 460→280`, `CANVAS_H_TALL 600→480` — remove ~150-200px vertical whitespace inside diagrams; aspect of `flow_diagram` now ~4.21 instead of 2.57) |
+| `vti-slide-diagram-builder` | **0.3.0** | 0.2.0 (split-backend rendering: 5 primitives — flow_diagram, quadrant, layered_stack, fanout_pipeline, hybrid_swimlane — now emit Mermaid source rendered by the agent via Mermaid Chart MCP; footprint_map + data_path stay native Python SVG; brand theming via `theme_bridge.py` from tokens.css) |
 
 ## What this baseline closes
 
