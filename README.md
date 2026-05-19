@@ -44,7 +44,7 @@ vti-slide-skills/
 │   ├── setup.sh                    ← setup PYTHONPATH + venv
 │   ├── verify.sh                   ← smoke test 3 skills load được
 │   ├── reset.sh                    ← wipe work/ + per-session driver scripts
-│   ├── session_save.sh             ← snapshot inputs+work vào sessions/<name>.zip
+│   ├── session_save.sh             ← snapshot inputs+work vào sessions/<name>.zip rồi wipe sạch
 │   └── session_restore.sh          ← bung 1 session zip về lại inputs+work
 ├── COORDINATED_BASELINE.md         ← contracts + version map
 ├── requirements.txt                ← Python deps
@@ -121,9 +121,13 @@ Khi cần switch giữa nhiều project, hoặc muốn lưu state hiện tại �
 scripts/session_save.sh <ten-session>
 ```
 
-Zip `tests/inputs/`, `work/`, và per-session driver scripts (`scripts/build_phase_*.py`, `scripts/ingest_*.py`) vào `sessions/<ten-session>.zip`.
+Hai bước trong cùng 1 lệnh:
+1. Zip `tests/inputs/`, `work/`, và per-session driver scripts (`scripts/build_phase_*.py`, `scripts/ingest_*.py`) vào `sessions/<ten-session>.zip`.
+2. **Wipe** `tests/inputs/`, `work/` (giữ `.gitkeep`), `scripts/build_phase_*.py`, `scripts/ingest_*.py` → sẵn sàng cho session mới.
 
-- Nếu file trùng tên → báo lỗi, dừng.
+Wipe chỉ chạy sau khi zip thành công (nhờ `set -euo pipefail`).
+
+- Nếu file trùng tên → báo lỗi, dừng (không zip, không wipe).
 - Ghi đè bằng `--force` / `-f`:
   ```bash
   scripts/session_save.sh elk-2026-05-19 --force
@@ -160,11 +164,11 @@ ls sessions/
 ```bash
 # Đang làm dở project A, muốn switch sang project B
 scripts/session_save.sh project-A
+# → A đã zip vào sessions/project-A.zip, working dir đã sạch
 
-# Bắt đầu project B từ trắng
-scripts/reset.sh
-# (copy input mới vào tests/inputs/, làm việc với B)
+# Copy input mới vào tests/inputs/, làm việc với B
 scripts/session_save.sh project-B
+# → B đã zip, sạch nhà
 
 # Quay lại project A
 scripts/session_restore.sh project-A -y

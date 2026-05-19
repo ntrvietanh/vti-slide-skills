@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Snapshot current session state into sessions/<name>.zip.
+# Snapshot current session state into sessions/<name>.zip, THEN wipe the
+# working state so you can start fresh.
 #
 # Includes:
 #   - tests/inputs/                 (source files)
@@ -8,6 +9,11 @@
 #   - scripts/ingest_*.py           (per-session ingest drivers, if present)
 #
 # Excludes: .DS_Store, __pycache__/, *.pyc
+#
+# After zipping (only if zip succeeds):
+#   - wipes tests/inputs/
+#   - wipes work/ (preserves work/.gitkeep)
+#   - removes scripts/build_phase_*.py and scripts/ingest_*.py
 #
 # Usage:
 #   scripts/session_save.sh <session-name> [-f|--force]
@@ -95,3 +101,15 @@ ENTRY_COUNT="$(unzip -l "$TARGET" | tail -1 | awk '{print $2}')"
 
 echo
 echo "✅ Saved $TARGET (${SIZE_HUMAN}, ${ENTRY_COUNT} entries)"
+
+echo
+echo "Cleaning working state..."
+if [ -d work ]; then
+  find work -mindepth 1 -not -path 'work/.gitkeep' -depth -exec rm -rf {} +
+fi
+if [ -d tests/inputs ]; then
+  find tests/inputs -mindepth 1 -depth -exec rm -rf {} +
+fi
+rm -f scripts/build_phase_*.py scripts/ingest_*.py 2>/dev/null || true
+
+echo "✅ Cleaned tests/inputs/ + work/ + per-session driver scripts."
