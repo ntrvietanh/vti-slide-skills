@@ -39,9 +39,13 @@ vti-slide-skills/
 │   ├── expected/                   ← reference output để so sánh
 │   └── TEST_PROMPT.md              ← prompt test chuẩn
 ├── work/                           ← runtime workspace (gitignored)
+├── sessions/                       ← snapshot zip để switch giữa các session (gitignored)
 ├── scripts/
 │   ├── setup.sh                    ← setup PYTHONPATH + venv
-│   └── verify.sh                   ← smoke test 3 skills load được
+│   ├── verify.sh                   ← smoke test 3 skills load được
+│   ├── reset.sh                    ← wipe work/ + per-session driver scripts
+│   ├── session_save.sh             ← snapshot inputs+work vào sessions/<name>.zip
+│   └── session_restore.sh          ← bung 1 session zip về lại inputs+work
 ├── COORDINATED_BASELINE.md         ← contracts + version map
 ├── requirements.txt                ← Python deps
 ├── .gitignore
@@ -106,6 +110,65 @@ Claude Code tự load 3 skills từ `.claude/skills/` — không cần cấu hì
 7. Khi xong: `git add . && git commit -m "fix: ..."` → push
 
 **Tip**: nếu pipeline hết context giữa chừng, output intermediate JSON ở `work/phase_N.json` cho mỗi phase. Phase sau đọc lại JSON, không phải re-run từ đầu.
+
+## Session management
+
+Khi cần switch giữa nhiều project, hoặc muốn lưu state hiện tại để quay lại sau.
+
+### Lưu session
+
+```bash
+scripts/session_save.sh <ten-session>
+```
+
+Zip `tests/inputs/`, `work/`, và per-session driver scripts (`scripts/build_phase_*.py`, `scripts/ingest_*.py`) vào `sessions/<ten-session>.zip`.
+
+- Nếu file trùng tên → báo lỗi, dừng.
+- Ghi đè bằng `--force` / `-f`:
+  ```bash
+  scripts/session_save.sh elk-2026-05-19 --force
+  ```
+- Tên không được chứa `/` hoặc bắt đầu bằng `.`.
+
+### Restore session
+
+```bash
+scripts/session_restore.sh <ten-session>
+```
+
+Thứ tự:
+1. Hỏi confirm `y/N` (cảnh báo wipe).
+2. Wipe `tests/inputs/`, `work/` (giữ `.gitkeep`), `scripts/build_phase_*.py`, `scripts/ingest_*.py`.
+3. Bung `sessions/<ten-session>.zip` vào lại đúng vị trí.
+
+Skip prompt bằng `-y` / `--yes`:
+
+```bash
+scripts/session_restore.sh elk-2026-05-19 -y
+```
+
+Tên có hoặc không suffix `.zip` đều được (`elk-2026-05-19` ≡ `elk-2026-05-19.zip`). Nếu session không tồn tại → script in ra danh sách session sẵn có.
+
+### List session
+
+```bash
+ls sessions/
+```
+
+### Workflow điển hình
+
+```bash
+# Đang làm dở project A, muốn switch sang project B
+scripts/session_save.sh project-A
+
+# Bắt đầu project B từ trắng
+scripts/reset.sh
+# (copy input mới vào tests/inputs/, làm việc với B)
+scripts/session_save.sh project-B
+
+# Quay lại project A
+scripts/session_restore.sh project-A -y
+```
 
 ## VS Code integration
 
