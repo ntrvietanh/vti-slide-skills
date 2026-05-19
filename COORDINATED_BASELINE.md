@@ -1,15 +1,15 @@
-# vti-slide-skills · Coordinated 4-Skill Baseline · 2026-05-10
+# vti-slide-skills · Coordinated 4-Skill Baseline · 2026-05-19
 
-This bundle pins four skills at versions that work together as a coordinated set. Use these together — they share contracts that previous-version mixes did not. **v4.0 baseline** — phase pipeline restructured 5 → 6, new `vti-slide-diagram-builder` skill added.
+This bundle pins four skills at versions that work together as a coordinated set. Use these together — they share contracts that previous-version mixes did not. **v4.0 baseline** — phase pipeline restructured 5 → 6, new `vti-slide-diagram-builder` skill added. **2026-05-19 ripple** — diagram-builder v0.4.0 brand-discipline pass adds the `captions` strip contract; layout_designer and image-tile updated to forward it. **2026-05-19 (afternoon) revert** — diagram-builder v0.5.0 restores the v0.1.0 native-SVG branch alongside the v0.3.0 Mermaid branch because Mermaid-cli outputs had unpredictable aspect ratios (1.35 → 14.17 depending on content) that broke Phase 4 cell sizing; SVG is the new default backend with Mermaid retained as an opt-in.
 
 ## Versions
 
 | Skill | Version | Bumped from |
 |---|---|---|
-| `vti-slide-creator` | **4.5.0** | 4.4.0 (`layout_designer` — flexible image+content split with corrected canvas constants 1168×586 / col_w=80.83 / gap=18; candidate-search over banner-top/banner-bottom/aside-{left,right}-K-of-12 instead of 3 fixed patterns; gap #60-#63) |
-| `vti-slide-page-builder` | **3.13.4** | 3.13.3 (image-tile / logo-grid accept dict-shaped `image` prop, hard error on garbage) |
+| `vti-slide-creator` | **4.6.2** | 4.6.1 (`layout_designer` forwards `diagram_spec.captions` through `_image_cell_props` so the page-builder can render the per-step caption strip beneath synthesized diagrams; Phase 3 (CONTENT-PLAN) guidance updated with the action-label / captions-strip authoring contract paired to diagram-builder v0.4.0) |
+| `vti-slide-page-builder` | **3.18.0** | 3.17.0 (`image-tile` accepts new `captions: list[str≤80]` prop and renders a compact flex-row strip beneath the image when present; reuses the below-caption auto-height modifier; only blue-family + neutrals stay in scope for the strip styling) |
 | `vti-slide-decorator` | **0.5.2** | unchanged |
-| `vti-slide-diagram-builder` | **0.3.0** | 0.2.0 (split-backend rendering: 5 primitives — flow_diagram, quadrant, layered_stack, fanout_pipeline, hybrid_swimlane — now emit Mermaid source rendered by the agent via Mermaid Chart MCP; footprint_map + data_path stay native Python SVG; brand theming via `theme_bridge.py` from tokens.css) |
+| `vti-slide-diagram-builder` | **0.5.0** | 0.4.0 (native-SVG branch restored alongside the v0.3.0 Mermaid branch — 5 dual-backend primitives `flow_diagram`, `quadrant`, `layered_stack`, `fanout_pipeline`, `hybrid_swimlane` now accept `backend="svg"|"mermaid"` with `svg` as default; `VTI_DIAGRAM_BACKEND` env override; SVG outputs land at predictable canvases 1180×280/320 horizontal flow, 1180×480/520 others; v0.4.0 brand discipline / `_assert_step_clean` validator / captions baked into bottom strip all preserved) |
 
 ## What this baseline closes
 
@@ -27,6 +27,8 @@ This bundle pins four skills at versions that work together as a coordinated set
 | 57 | Project-relative image paths (e.g. lift cache `work/extracted_images/…`) silently rendered as alt-text | page-builder 3.13.3 (`compose_slide_grid` searches `[SKILL_ROOT, Path.cwd()]`) |
 | 58 | `resolve_lift_image()` heuristic (filename-token + aspect-ratio score) gave every slide of a multi-slide case study the same image and let corporate filler (logos, cert badges, exec portraits) pass as content | creator 4.4.0 (`image_picker.py` — 4-step orchestrator-in-the-loop protocol: enumerate → caption → decide → auto-escalate `lift`/`synthesize`/`text-only`; `allocate_case_study_images` enforces 1-to-1 best-fit across multi-slide CS) |
 | 59 | Drafters that handed a `{path, alt}` dict to `image-tile.props.image` (carrying source-asset metadata forward) silently produced `src="{'path': ..., 'alt': ...}"` in HTML — 17 image-tiles in the retail deck rendered as empty bordered figures with only the figcaption visible | page-builder 3.13.4 (`_normalize_image_src` at the renderer boundary in `_r_image_tile` and `_r_logo_grid` — accepts `str` or `{path, alt}`, raises `ValidationError` for any other shape so the regression cannot return) |
+| 60 | Mermaid diagrams produced "rainbow swimlanes" (per-element accent params drifted to 4–6 different brand colours per slide) and nodes packed metrics next to step names (`"BATCH-STAMP / 180+ inactive · 1 Drive write"`) — readers parsed digits and missed the action narrative | diagram-builder 0.4.0 (blue-mono gradient via `gradient_classdefs(n)`; round-edge `(label)` shape; `_assert_step_clean` validator raises on metric tokens in labels; new `captions: list[str]` strip rendered by page-builder 3.13.5 beneath the SVG) |
+| 61 | Mermaid-cli output sized the SVG to its laid-out content with very loose external bounds — flow_diagram came back at aspect 14.17, layered_stack at 8.62, etc. Phase 4 sized host cells against the hint_w/hint_h constants and the resulting cells either letterboxed the diagram (≤30% fill) or cropped past lane borders | diagram-builder 0.5.0 (native-SVG branch restored from v0.1.0 as a parallel rendering backend; default flips back to `svg`; canvas sizes pinned to 1180×280/320 horizontal flow or 1180×480/520 tall; Mermaid kept as opt-in via `backend="mermaid"` or `VTI_DIAGRAM_BACKEND=mermaid`) |
 
 End-to-end the four skills now support the 6-phase pipeline:
 

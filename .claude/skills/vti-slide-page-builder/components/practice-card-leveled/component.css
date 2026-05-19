@@ -1,0 +1,92 @@
+/* practice-card-leveled — variant of practice-card whose body holds a
+ * sequence of badged "level" rows (L1 / L2 / L3 …) rather than a single
+ * paragraph. Reuses .vti-practice-card / .vti-practice-card__top /
+ * .vti-practice-card__title styles from the base component.css (loaded
+ * via the practice-card registry entry whenever this variant is used).
+ *
+ * Visual reference: work/preview-options-v2.html · Option A (May 2026).
+ */
+
+/* Tighter top for leveled variant — the body needs more vertical room
+ * for 3 stacked rows, so we shrink the header from 88px to 72px and
+ * adjust padding accordingly. */
+.vti-practice-card--leveled .vti-practice-card__top {
+  min-height: 72px;
+  padding: 14px 16px 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.vti-practice-card--leveled .vti-practice-card__top-content {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.vti-practice-card--leveled .vti-practice-card__icon {
+  width: 32px;
+  height: 32px;
+}
+
+.vti-practice-card--leveled .vti-practice-card__body {
+  padding: 10px 16px 14px;
+  flex-direction: column;
+  display: flex;
+}
+
+/* Optional italic "core principle" line at the top of the body, visually
+ * separated from the levels by a dashed divider. Mirrors the tagline
+ * the value-medallion originally carried. */
+.vti-practice-card__core {
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 11.5px;
+  font-weight: 500;
+  font-style: italic;
+  line-height: 1.4;
+  color: var(--vti-blue-deep, #0844A4);
+  margin: 0 0 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--vti-border, #C8DCF0);
+}
+
+.vti-practice-card__levels {
+  display: flex;
+  flex-direction: column;
+}
+
+.vti-practice-card__level {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  padding: 6px 0;
+  font-family: var(--vti-font-body, "Inter", sans-serif);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--vti-ink, #1F2A3A);
+}
+
+.vti-practice-card__level + .vti-practice-card__level {
+  border-top: 1px solid var(--vti-divider, #E4ECF5);
+}
+
+.vti-practice-card__level-badge {
+  background: var(--vti-paleblue, #EAF2FB);
+  color: var(--vti-blue-deep, #0844A4);
+  font-weight: 500;
+  font-size: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  letter-spacing: 0;
+}
+
+.vti-practice-card__level-body strong {
+  color: var(--vti-blue-deep, #0844A4);
+  font-weight: 600;
+}

@@ -1,5 +1,45 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.6.2 (2026-05-19) — Forward diagram captions to image-tile cell
+
+`layout_designer._image_cell_props` accepts a new `captions: list[str] |
+None` kwarg and adds it to the image-tile props dict when non-empty.
+`design_slide_layout` reads `content_plan["diagram_spec"]["captions"]`
+once and threads it through `_enumerate_candidates` →
+`_candidate_banner` / `_candidate_aside` → `_build_banner_layout` /
+`_build_aside_layout`. Phase 3 (CONTENT-PLAN) guidance in SKILL.md
+updated with the action-label / captions-strip authoring contract
+paired to diagram-builder v0.4.0.
+
+### What changed
+
+- **`layout_designer.py`** — six closures + builders extended with a
+  `diagram_captions: list[str] | None = None` kwarg; default keeps
+  the prop absent for non-synthesize slides (image-tile silently
+  ignores it).
+- **`SKILL.md`** — new "Content discipline" block under the
+  `synthesize` strategy: bad / good examples, persisted
+  `diagram_spec` shape includes `captions: list[str]`.
+- **Bumped `__version__ = "4.6.2"`** in `creator.py`.
+
+### Why
+
+`vti-slide-diagram-builder` v0.4.0 added a steps-only authoring rule
+(no metrics in node labels) and a parallel `captions` array. Without
+this ripple, layout_designer never read the array and the page-builder
+never saw it — the user-facing behaviour would have been "no metrics
+appear anywhere", defeating the half of the user's request that asked
+for the data to stay on the slide, just outside the diagram.
+
+### Backwards-compat
+
+`diagram_captions` is optional everywhere. Slides without a
+`diagram_spec` (text-only, lift) skip the lookup entirely. Slides whose
+`diagram_spec` predates v0.4.0 (no `captions` key) get `captions=[]`
+and image-tile renders exactly as before.
+
+---
+
 ## v4.6.1 (2026-05-10) — Square slide corners in deck shell
 
 Removed `border-radius: 10px` from the `.slide` rule in the Phase-6

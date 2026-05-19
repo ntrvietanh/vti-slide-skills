@@ -89,3 +89,26 @@
   color: var(--vti-ink-soft);
   font-style: italic;
 }
+
+/* Captions strip — one cell per diagram step, flex-row equal-width.
+   Pairs with `captions: list[str]` on image-tile; the page-builder
+   forwards it from `diagram_spec.captions` populated by the
+   vti-slide-diagram-builder skill (v0.4.0+). The strip reuses the
+   below-caption auto-height modifier so the figure shifts from fixed
+   aspect to auto height when present. */
+.vti-image-tile__captions-strip {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  width: 100%;
+}
+.vti-image-tile__captions-strip-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  font-family: var(--font-b);
+  font-size: var(--vti-fs-caption);
+  line-height: 1.45;
+  color: var(--vti-ink-soft);
+  word-wrap: break-word;
+}

@@ -1036,6 +1036,53 @@ For each content slide whose author proposed `strategy="lift"`:
      architectural / process-shaped (a workflow, a layered system, a
      before/after, a data pipeline). Switch to a diagram via
      `vti-slide-diagram-builder` and record `diagram_spec`.
+
+     **Content discipline (paired with diagram-builder v0.4.0+).** Node
+     labels are action/state names only (`DISCOVER`, `BATCH-STAMP`,
+     `CRAWL ACTIVE`) — no metrics, no times, no cardinalities. The
+     builder enforces this with `_assert_step_clean` and will raise
+     `ValueError` on offenders. Route quantitative info to the
+     parallel `captions` array, which the page-builder renders as a
+     compact text strip beneath the SVG:
+
+     ```python
+     # BAD — diagram-builder raises ValueError
+     make_flow_diagram(steps=[
+         {"title": "BATCH-STAMP", "sub": "180+ inactive · 1 Drive write"},
+         ...
+     ])
+
+     # GOOD — labels stay clean, numbers move to captions
+     make_flow_diagram(
+         steps=[
+             {"title": "DISCOVER"},
+             {"title": "CLASSIFY"},
+             {"title": "BATCH-STAMP"},
+             {"title": "CRAWL ACTIVE"},
+         ],
+         captions=[
+             "all spaces · lastActiveTime",
+             "client-side",
+             "180+ inactive · 1 write",
+             "~20 active · paginate",
+         ],
+     )
+     ```
+
+     Include `captions` in the persisted `diagram_spec` so Phase 4
+     forwards it to the image-tile cell:
+
+     ```python
+     diagram_spec = {
+         "primitive":  "flow_diagram",
+         "args":       {...},
+         "svg_path":   "work/diagrams/<slide_id>.svg",
+         "natural_w":  <int>,
+         "natural_h":  <int>,
+         "captions":   [...],   # parallel to steps; may be []
+     }
+     ```
+
    - **`text-only`** — No candidate fits AND the message isn't
      diagram-shaped. Drop the image; the layout-designer will
      vertical-stack the existing blocks. If post-drop fill < 70%, add

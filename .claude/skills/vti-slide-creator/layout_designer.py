@@ -255,19 +255,28 @@ def _image_dims(content_plan: dict) -> tuple[float | None, str | None, str | Non
 
 def _image_cell_props(image_path: str,
                       natural_w: int, natural_h: int,
-                      *, frame: str = "soft") -> dict:
+                      *, frame: str = "soft",
+                      captions: list[str] | None = None) -> dict:
     """Build props dict for image-tile.
 
     Sets aspect_ratio to natural_w:natural_h (integer W:H) so the
     composer's regex validator accepts it AND the renderer cannot crop.
+
+    ``captions`` (v4.x, paired with diagram-builder v0.4.0+) carries
+    per-step caption strings forwarded from ``diagram_spec.captions``;
+    image-tile renders them as a small text strip beneath the image
+    when present.
     """
-    return {
+    props: dict = {
         "image":            image_path,
         "caption":          "",
         "aspect_ratio":     f"{natural_w}:{natural_h}",
         "frame":            frame,
         "caption_position": "none",
     }
+    if captions:
+        props["captions"] = list(captions)
+    return props
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +324,10 @@ def design_slide_layout(content_plan: dict) -> dict:
     section_name = content_plan.get("section_name", "")
     blocks = content_plan.get("blocks", [])
     aspect, img_path, _src, nat_w, nat_h = _image_dims(content_plan)
+    # Forward diagram-builder v0.4.0+ captions strip to the image cell.
+    # Empty / missing for non-synthesize slides — image-tile ignores
+    # the prop when absent or empty.
+    diagram_captions = (content_plan.get("diagram_spec") or {}).get("captions") or []
 
     warnings: list[str] = []
 
@@ -331,12 +344,14 @@ def design_slide_layout(content_plan: dict) -> dict:
             warnings=warnings,
         )
 
-    candidates = _enumerate_candidates(blocks, aspect, img_path, nat_w, nat_h)
+    candidates = _enumerate_candidates(blocks, aspect, img_path, nat_w, nat_h,
+                                       diagram_captions=diagram_captions)
     if not candidates:
         # Last-resort: banner top with image shrunk to fit.
         plan = _build_banner_layout(
             blocks, aspect, img_path, nat_w, nat_h,
             position="top", forced_image_h=200,
+            diagram_captions=diagram_captions,
         )
         warnings.append("no fitting candidate — forced banner-top with shrunk image")
     else:
@@ -366,6 +381,7 @@ def design_slide_layout(content_plan: dict) -> dict:
 def _enumerate_candidates(
     blocks: list[dict], aspect: float, img_path: str,
     nat_w: int, nat_h: int,
+    *, diagram_captions: list[str] | None = None,
 ) -> list[dict]:
     """Build a list of viable layout candidates with fit scores.
 
@@ -380,7 +396,8 @@ def _enumerate_candidates(
     # allowed to shrink below natural height to leave room for content.
     for position in ("top", "bottom"):
         cand = _candidate_banner(blocks, aspect, img_path, nat_w, nat_h,
-                                 position=position)
+                                 position=position,
+                                 diagram_captions=diagram_captions)
         if cand is not None:
             candidates.append(cand)
 
@@ -388,7 +405,8 @@ def _enumerate_candidates(
     for img_span in range(_MIN_IMG_COL_SPAN_ASIDE, _MAX_IMG_COL_SPAN_ASIDE + 1):
         for side in ("left", "right"):
             cand = _candidate_aside(blocks, aspect, img_path, nat_w, nat_h,
-                                    img_col_span=img_span, side=side)
+                                    img_col_span=img_span, side=side,
+                                    diagram_captions=diagram_captions)
             if cand is not None:
                 candidates.append(cand)
 
@@ -396,7 +414,8 @@ def _enumerate_candidates(
 
 
 def _candidate_banner(blocks, aspect, img_path, nat_w, nat_h,
-                      *, position: str) -> dict | None:
+                      *, position: str,
+                      diagram_captions: list[str] | None = None) -> dict | None:
     """Score a banner with content rows above/below.
 
     The banner cell is auto-sized to match the image natural width at
@@ -445,6 +464,7 @@ def _candidate_banner(blocks, aspect, img_path, nat_w, nat_h,
             blocks, aspect, img_path, nat_w, nat_h,
             position=position, forced_image_h=image_h,
             img_col_span=img_col_span,
+            diagram_captions=diagram_captions,
         )
 
     return {"score": score, "build": build,
@@ -452,7 +472,8 @@ def _candidate_banner(blocks, aspect, img_path, nat_w, nat_h,
 
 
 def _candidate_aside(blocks, aspect, img_path, nat_w, nat_h,
-                     *, img_col_span: int, side: str) -> dict | None:
+                     *, img_col_span: int, side: str,
+                     diagram_captions: list[str] | None = None) -> dict | None:
     """Score an aside split (image one side at given col_span).
 
     Image cell takes ``image_h`` of vertical space — capped at content
@@ -517,6 +538,7 @@ def _candidate_aside(blocks, aspect, img_path, nat_w, nat_h,
             img_col_span=img_col_span, side=side,
             aside_rows=aside_rows, rest_rows=rest_rows,
             image_h=image_h,
+            diagram_captions=diagram_captions,
         )
 
     return {"score": score, "build": build,
@@ -617,6 +639,7 @@ def _build_banner_layout(
     nat_w: int, nat_h: int,
     *, position: str, forced_image_h: int,
     img_col_span: int = COL_COUNT,
+    diagram_captions: list[str] | None = None,
 ) -> dict:
     """Image at top or bottom; content rows fill the other half.
 
@@ -626,7 +649,8 @@ def _build_banner_layout(
     horizontal-letterbox space when the image isn't wide enough to fill
     the full slide.
     """
-    img_props = _image_cell_props(img_path, nat_w, nat_h)
+    img_props = _image_cell_props(img_path, nat_w, nat_h,
+                                  captions=diagram_captions)
     img_col_start = (COL_COUNT - img_col_span) // 2 + 1
     image_row = make_layout_row(
         f"{forced_image_h}px",
@@ -651,9 +675,11 @@ def _build_aside_layout(
     img_col_span: int, side: str,
     aside_rows: list[dict], rest_rows: list[dict],
     image_h: int,
+    diagram_captions: list[str] | None = None,
 ) -> dict:
     """Image one side, content the other; rest_rows fall to full-width below."""
-    img_props = _image_cell_props(img_path, nat_w, nat_h)
+    img_props = _image_cell_props(img_path, nat_w, nat_h,
+                                  captions=diagram_captions)
 
     if side == "left":
         img_col_start = 1

@@ -1,35 +1,49 @@
 """Public API — 7 standardised diagram primitives for VTI slide decks.
 
-v0.3.0 split the primitives across two backends:
+v0.5.0 restores the native-SVG rendering branch alongside the v0.3.0
+Mermaid branch. Five of the seven primitives now have **two backends**:
 
-- ``backend="mermaid"`` (5 primitives): ``flow_diagram``, ``quadrant``,
-  ``layered_stack``, ``fanout_pipeline``, ``hybrid_swimlane``. These
-  return a **render task** (Mermaid source) — the caller (agent) renders
-  it via the Mermaid Chart MCP tool
+- ``backend="svg"`` (default, restored from v0.1.0):
+  ``flow_diagram``, ``quadrant``, ``layered_stack``,
+  ``fanout_pipeline``, ``hybrid_swimlane``. Renders natively to a single
+  ``<svg>`` element with predictable dimensions (canonical canvas
+  1180×280/480 plus optional caption strip). No MCP call needed.
+
+- ``backend="mermaid"`` (opt-in for the same 5 primitives): returns a
+  Mermaid render task — agent renders via
   ``mcp__claude_ai_Mermaid_Chart__validate_and_render_mermaid_diagram``,
-  saves the returned SVG to ``work/diagrams/<slide_id>.svg``, then reads
-  the viewBox to fill in ``natural_w`` / ``natural_h``.
+  saves the returned SVG, reads the actual viewBox.
 
-- ``backend="python"`` (2 primitives): ``footprint_map``, ``data_path``.
-  These render natively to SVG and return ``{svg, natural_w, natural_h}``
-  as before — no agent step required.
+The remaining two primitives (``footprint_map``, ``data_path``) are
+always Python-rendered and ignore the ``backend`` kwarg.
 
 Return shapes::
 
-    # backend == "mermaid"
+    # backend == "svg" (native Python SVG)
+    {
+        "primitive":     str,
+        "backend":       "svg",
+        "svg":           str,    # complete <svg> element
+        "natural_w":     int,
+        "natural_h":     int,
+        "captions":      list[str],
+    }
+
+    # backend == "mermaid" (render task — caller invokes MCP)
     {
         "primitive":     str,
         "backend":       "mermaid",
-        "mermaid_code":  str,    # Mermaid source incl. theme directive
-        "hint_w":        int,    # expected natural width (sanity check)
-        "hint_h":        int,    # expected natural height (sanity check)
+        "mermaid_code":  str,
+        "hint_w":        int,
+        "hint_h":        int,
+        "captions":      list[str],
     }
 
-    # backend == "python"
+    # python-only primitives (footprint_map, data_path)
     {
         "primitive":     str,
         "backend":       "python",
-        "svg":           str,    # complete <svg> element
+        "svg":           str,
         "natural_w":     int,
         "natural_h":     int,
     }
@@ -43,9 +57,12 @@ are forbidden (verify-time grep enforces it).
 """
 from __future__ import annotations
 
+import os
+import re
 from typing import Any
 
 import mermaid_codegen
+import svg_render
 from svg_primitives import (
     CANVAS_W, CANVAS_H_WIDE, CANVAS_H_TALL,
     STROKE_NORMAL,
@@ -57,13 +74,85 @@ from svg_primitives import (
 )
 from tokens_bridge import accent
 
-VERSION = "0.3.0"
+VERSION = "0.5.0"
 
-# Primitives whose rendering is delegated to Mermaid Chart MCP. Listed
-# here as a single source of truth — ``describe_primitive`` and any
-# external dispatcher (creator Phase 3) can read this to decide whether
-# to expect an immediate SVG or to invoke the MCP render step.
-MERMAID_BACKED: frozenset[str] = frozenset({
+# Default backend for the 5 dual-backend primitives. Can be overridden
+# per-call (kwarg ``backend=``) or globally via env var
+# ``VTI_DIAGRAM_BACKEND`` (values: ``"svg"`` or ``"mermaid"``).
+_DEFAULT_DUAL_BACKEND = os.environ.get("VTI_DIAGRAM_BACKEND", "svg").lower()
+if _DEFAULT_DUAL_BACKEND not in ("svg", "mermaid"):
+    _DEFAULT_DUAL_BACKEND = "svg"
+
+
+def _resolve_backend(backend: str | None) -> str:
+    """Pick a backend for the dual-backend primitives.
+
+    Precedence: explicit kwarg → env default → ``"svg"``.
+    """
+    if backend is None:
+        return _DEFAULT_DUAL_BACKEND
+    backend = backend.lower()
+    if backend not in ("svg", "mermaid"):
+        raise ValueError(
+            f"backend must be 'svg' or 'mermaid', got {backend!r}"
+        )
+    return backend
+
+
+# ---------------------------------------------------------------------------
+# Content discipline (v0.4.0)
+# ---------------------------------------------------------------------------
+# Node labels in Mermaid-backed primitives must be pure action/state
+# names. Quantitative or temporal tokens belong in the parallel
+# ``captions`` array, which the page-builder renders as a small text
+# strip below the diagram. The regex below flags the most common
+# offenders so authoring agents fail fast instead of producing the
+# noisy "step + metrics" boxes that motivated v0.4.0.
+_METRIC_PATTERN = re.compile(
+    r"""(
+        \d+\s*\+                                       # 180+ , 200+
+      | ~\s*\d+                                        # ~20  , ~15
+      | \d+\s*[:.]\s*\d+                               # 08:00, 1.5
+      | \d+\s*(?:%|x|×)                                # 5% , 2x , 3×
+      | \d+\s*(?:spaces?|threads?|hours?|hrs?|hr
+                |min|mins?|minutes?
+                |sec|secs?|seconds?|ms
+                |days?|weeks?|months?|years?
+                |GB|MB|KB|TB
+                |reqs?|calls?|writes?|reads?)
+    )""",
+    re.IGNORECASE | re.VERBOSE,
+)
+
+
+def _assert_step_clean(value: Any, *, field: str = "label") -> None:
+    """Raise if ``value`` contains a metric token.
+
+    Applied to every node-rendered string in the 5 Mermaid primitives
+    (``title``, ``sub``, ``label``, ``items[]``, ``name``, ``desc``,
+    ``input_label``, ``fusion_label``). Lists are walked recursively.
+    ``None`` and non-string scalars are skipped.
+    """
+    if value is None:
+        return
+    if isinstance(value, (list, tuple)):
+        for it in value:
+            _assert_step_clean(it, field=field)
+        return
+    s = str(value)
+    m = _METRIC_PATTERN.search(s)
+    if m:
+        raise ValueError(
+            f"diagram-builder v0.4.0: {field}={s!r} contains metric "
+            f"token {m.group(0)!r}. Node labels must be pure action/state "
+            f"names (1-3 words). Move quantitative content to the "
+            f"`captions=[...]` keyword — the page-builder renders it as "
+            f"a small strip below the diagram."
+        )
+
+# Primitives that support BOTH the native-SVG and Mermaid backends (the
+# caller picks at call time via the ``backend`` kwarg).
+DUAL_BACKEND: frozenset[str] = frozenset({
     "flow_diagram",
     "quadrant",
     "layered_stack",
@@ -71,6 +160,15 @@ MERMAID_BACKED: frozenset[str] = frozenset({
     "hybrid_swimlane",
 })
 
+# Back-compat alias — older callers used ``MERMAID_BACKED`` to mean
+# "these primitives need the MCP render step". With v0.5.0 they only
+# need MCP when ``backend="mermaid"`` is requested, but the membership
+# of the set is the same.
+MERMAID_BACKED: frozenset[str] = DUAL_BACKEND
+
+# Primitives that are always Python-rendered (no Mermaid equivalent
+# exists for these — footprint_map has no Mermaid geo-map, data_path's
+# cloud-as-brain styling isn't expressible in Mermaid cleanly).
 PYTHON_BACKED: frozenset[str] = frozenset({
     "footprint_map",
     "data_path",
@@ -102,6 +200,7 @@ def _mermaid_task(task: dict[str, Any]) -> dict[str, Any]:
         "mermaid_code":  task["mermaid_code"],
         "hint_w":        task["hint_w"],
         "hint_h":        task["hint_h"],
+        "captions":      task.get("captions") or [],
     }
 
 
@@ -112,31 +211,41 @@ def make_flow_diagram(
     steps: list[dict],
     *,
     orientation: str = "horizontal",
-    accent_alias: str = "deep",
+    accent_alias: str | None = None,
     title: str | None = None,
     subtitle: str | None = None,
+    captions: list[str] | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
     """Sequential flow of 3-7 boxes connected by arrows.
 
-    Mermaid-backed (v0.3.0). Returns a render task — caller invokes the
-    MCP tool ``validate_and_render_mermaid_diagram`` with
-    ``result["mermaid_code"]`` to obtain SVG, then reads viewBox for
-    ``natural_w`` / ``natural_h``.
+    Dual-backend (v0.5.0). ``backend="svg"`` (default) renders natively
+    via ``svg_render.flow_diagram``; ``backend="mermaid"`` returns a
+    Mermaid render task.
 
-    Args:
-        steps:        list of {"title": str, "sub"?: str, "number"?: str}
-                      (3-7 entries)
-        orientation:  'horizontal' (default) or 'vertical'
-        accent_alias: 'deep' | 'navy' | 'sky' | 'teal' (uniform colour)
-        title:        optional top-of-canvas heading
-        subtitle:     optional subheading under title
+    Content discipline (v0.4.0): ``title``/``sub`` must be action/state
+    names only — no metrics, no times, no cardinalities. Move
+    quantitative info to ``captions`` (one entry per step).
     """
+    for s in steps:
+        _assert_step_clean(s.get("title"), field="steps[].title")
+        _assert_step_clean(s.get("sub"),   field="steps[].sub")
+    if _resolve_backend(backend) == "svg":
+        return svg_render.flow_diagram(
+            steps,
+            orientation=orientation,
+            accent_alias=accent_alias,
+            title=title,
+            subtitle=subtitle,
+            captions=captions,
+        )
     return _mermaid_task(mermaid_codegen.flow_diagram(
         steps,
         orientation=orientation,
         accent_alias=accent_alias,
         title=title,
         subtitle=subtitle,
+        captions=captions,
     ))
 
 
@@ -148,24 +257,33 @@ def make_quadrant(
     *,
     title: str | None = None,
     footer: str | None = None,
+    captions: list[str] | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
-    """Exactly 4 cells in a 2x2 grid (Mermaid ``quadrantChart``).
+    """Exactly 4 cells in a 2x2 grid.
 
-    Mermaid-backed (v0.3.0). Each cell's ``items`` list packs into the
-    quadrant label via ``<br/>``. For richer per-cell layout, fall back
-    to the v0.2.x SVG primitive via git history.
+    Dual-backend (v0.5.0). ``backend="svg"`` (default) renders v0.1.0
+    style hand-laid 2×2 grid; ``backend="mermaid"`` uses Mermaid
+    ``quadrantChart``.
 
-    Args:
-        cells:  list of 4 dicts: {"title": str, "accent": str (alias),
-                                  "items": list[str], "point"?: str}
-                Cell order: TL, TR, BL, BR (Mermaid Q2, Q1, Q3, Q4).
-        title:  optional top heading
-        footer: optional caption (echoed as a ``%% footer:`` comment)
+    Content discipline (v0.4.0): cell ``title`` and ``items`` must be
+    action/state names only; metrics → ``captions``.
     """
+    for c in cells:
+        _assert_step_clean(c.get("title"), field="cells[].title")
+        _assert_step_clean(c.get("items"), field="cells[].items")
+    if _resolve_backend(backend) == "svg":
+        return svg_render.quadrant(
+            cells,
+            title=title,
+            footer=footer,
+            captions=captions,
+        )
     return _mermaid_task(mermaid_codegen.quadrant(
         cells,
         title=title,
         footer=footer,
+        captions=captions,
     ))
 
 
@@ -281,27 +399,36 @@ def make_layered_stack(
     side_annotations: list[dict] | None = None,
     kpi_band: str | None = None,
     title: str | None = None,
+    captions: list[str] | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
     """Left-to-right horizontal stack of 4-6 vertical cards.
 
-    Mermaid-backed (v0.3.0). Each layer becomes a flowchart node packed
-    with ``label`` + ``items`` via ``<br/>``. ``kpi_band`` becomes a
-    dotted-edge note attached to the last layer; ``side_annotations``
-    become muted notes hanging off the side.
+    Dual-backend (v0.5.0). ``backend="svg"`` (default) renders the v0.1.0
+    horizontal stack with one card per layer + arrows; ``backend="mermaid"``
+    emits a flowchart with each layer packed as a node.
 
-    Args:
-        layers:           list of {"label": str, "items": list[str],
-                                   "accent": str (alias),
-                                   "filled"?: bool} (4-6 entries)
-        side_annotations: optional list of {"text": str, "y": int (ignored)}
-        kpi_band:         optional KPI string
-        title:            optional heading
+    Content discipline (v0.4.0): ``label`` and ``items`` must be
+    action/state names — no metrics. Quantitative info → ``kpi_band``
+    (single short string) or ``captions`` (parallel array).
     """
+    for layer in layers:
+        _assert_step_clean(layer.get("label"), field="layers[].label")
+        _assert_step_clean(layer.get("items"), field="layers[].items")
+    if _resolve_backend(backend) == "svg":
+        return svg_render.layered_stack(
+            layers,
+            side_annotations=side_annotations,
+            kpi_band=kpi_band,
+            title=title,
+            captions=captions,
+        )
     return _mermaid_task(mermaid_codegen.layered_stack(
         layers,
         side_annotations=side_annotations,
         kpi_band=kpi_band,
         title=title,
+        captions=captions,
     ))
 
 
@@ -316,20 +443,35 @@ def make_fanout_pipeline(
     *,
     title: str | None = None,
     subtitle: str | None = None,
+    captions: list[str] | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
     """Top input → N parallel models → fusion → branched outputs.
 
-    Mermaid-backed (v0.3.0). Renders as a top-down flowchart with the
-    parallel models inside a subgraph cluster.
+    Dual-backend (v0.5.0). ``backend="svg"`` (default) renders the v0.1.0
+    hand-laid 4-tier diagram with explicit fusion bar; ``backend="mermaid"``
+    uses Mermaid flowchart with a parallel-models subgraph.
 
-    Args:
-        input_label:  text for the top input node
-        models:       list of {"name": str, "desc"?: str} (3-7 entries)
-        fusion_label: text for the fusion node
-        outputs:      list of {"label": str, "accent": str (alias)} (2-3)
-        title:        optional heading
-        subtitle:     optional subheading
+    Content discipline: all node labels must be action/state names —
+    quantitative info → ``captions``.
     """
+    _assert_step_clean(input_label,  field="input_label")
+    _assert_step_clean(fusion_label, field="fusion_label")
+    for m in models:
+        _assert_step_clean(m.get("name"), field="models[].name")
+        _assert_step_clean(m.get("desc"), field="models[].desc")
+    for o in outputs:
+        _assert_step_clean(o.get("label"), field="outputs[].label")
+    if _resolve_backend(backend) == "svg":
+        return svg_render.fanout_pipeline(
+            input_label,
+            models,
+            fusion_label,
+            outputs,
+            title=title,
+            subtitle=subtitle,
+            captions=captions,
+        )
     return _mermaid_task(mermaid_codegen.fanout_pipeline(
         input_label,
         models,
@@ -337,6 +479,7 @@ def make_fanout_pipeline(
         outputs,
         title=title,
         subtitle=subtitle,
+        captions=captions,
     ))
 
 
@@ -350,33 +493,41 @@ def make_hybrid_swimlane(
     header: str | None = None,
     footer: str | None = None,
     title: str | None = None,
+    captions: list[str] | None = None,
+    backend: str | None = None,
 ) -> dict[str, Any]:
     """Two or more horizontal lanes sharing one input column on the left.
 
-    Mermaid-backed (v0.3.0). Each tier becomes a ``subgraph`` cluster
-    containing its stages; ``fleet_box`` becomes a shared input node
-    wired to the first stage of each lane. ``filled`` stages use the
-    accent class; un-filled stages use the outline variant.
+    Dual-backend (v0.5.0). ``backend="svg"`` (default) renders the v0.1.0
+    layout with explicit fleet column + per-lane stage boxes;
+    ``backend="mermaid"`` uses one subgraph per tier (denser look).
 
-    Args:
-        tiers:     list of {"label": str, "accent": str (alias),
-                            "stages": list[{"title": str, "sub"?: str,
-                                            "filled"?: bool}]} (2-3)
-        fleet_box: optional input column {"label": str, "sub"?: str}
-        header:    optional top caption (rendered as ``%% header:`` note)
-        footer:    optional bottom caption (rendered as ``%% footer:`` note)
-        title:     optional heading
-
-    Open issue: Mermaid has no native swimlane primitive — subgraph
-    workaround may look denser than v0.2.x. Fall back to git-history
-    SVG version if visual quality is unacceptable.
+    Content discipline (v0.4.0): stage ``title``/``sub`` must be
+    action/state names.
     """
+    if fleet_box:
+        _assert_step_clean(fleet_box.get("label"), field="fleet_box.label")
+        _assert_step_clean(fleet_box.get("sub"),   field="fleet_box.sub")
+    for tier in tiers:
+        for stage in (tier.get("stages") or []):
+            _assert_step_clean(stage.get("title"), field="stages[].title")
+            _assert_step_clean(stage.get("sub"),   field="stages[].sub")
+    if _resolve_backend(backend) == "svg":
+        return svg_render.hybrid_swimlane(
+            tiers,
+            fleet_box=fleet_box,
+            header=header,
+            footer=footer,
+            title=title,
+            captions=captions,
+        )
     return _mermaid_task(mermaid_codegen.hybrid_swimlane(
         tiers,
         fleet_box=fleet_box,
         header=header,
         footer=footer,
         title=title,
+        captions=captions,
     ))
 
 
@@ -500,29 +651,35 @@ _PRIMITIVES: dict[str, Any] = {
 
 _PRIMITIVE_META: dict[str, dict] = {
     "flow_diagram": {
-        "name":         "flow_diagram",
-        "backend":      "mermaid",
-        "hint_size":    "1180x280 (horizontal) / 1180x480 (vertical)",
-        "good_for":     ["sequence/process", "ETL pipelines", "AWS reference architecture"],
-        "params":       {
-            "steps": "list[{title<=30, sub?<=60, number?}] (3-7)",
+        "name":            "flow_diagram",
+        "backend":         "dual (svg|mermaid; default svg)",
+        "hint_size":       "1180x280 (horizontal) / 1180x480 (vertical)",
+        "good_for":        ["sequence/process", "ETL pipelines", "AWS reference architecture"],
+        "content_profile": "action_label_only",
+        "params":          {
+            "steps":       "list[{title<=30, sub?<=60, number?}] (3-7); "
+                           "labels must be action/state names — no metrics",
             "orientation": "'horizontal'|'vertical'",
-            "accent_alias": "'deep'|'navy'|'sky'|'teal'",
-            "title": "optional",
-            "subtitle": "optional",
+            "title":       "optional",
+            "subtitle":    "optional",
+            "captions":    "optional list[str] rendered as a strip "
+                           "below the SVG (one per step). Put numbers here.",
         },
     },
     "quadrant": {
-        "name":         "quadrant",
-        "backend":      "mermaid",
-        "hint_size":    "1180x600",
-        "good_for":     ["four-pillar platforms", "2x2 framework grids"],
-        "params":       {
-            "cells": "list[{title, accent, items[], point?}] (exactly 4, order TL/TR/BL/BR)",
-            "title": "optional",
-            "footer": "optional caption",
-            "x_axis": "optional ('Low','High')",
-            "y_axis": "optional ('Low','High')",
+        "name":            "quadrant",
+        "backend":         "dual (svg|mermaid; default svg)",
+        "hint_size":       "1180x600",
+        "good_for":        ["four-pillar platforms", "2x2 framework grids"],
+        "content_profile": "action_label_only",
+        "params":          {
+            "cells":   "list[{title, items[], point?}] (exactly 4, "
+                       "order TL/TR/BL/BR). Pure action/state names.",
+            "title":   "optional",
+            "footer":  "optional caption",
+            "x_axis":  "optional ('Low','High')",
+            "y_axis":  "optional ('Low','High')",
+            "captions": "optional strip below the diagram",
         },
     },
     "footprint_map": {
@@ -538,42 +695,50 @@ _PRIMITIVE_META: dict[str, dict] = {
         },
     },
     "layered_stack": {
-        "name":         "layered_stack",
-        "backend":      "mermaid",
-        "hint_size":    "1180x460",
-        "good_for":     ["protocol layers", "FHIR/HealthLake stacks", "IoT gateways"],
+        "name":            "layered_stack",
+        "backend":         "dual (svg|mermaid; default svg)",
+        "hint_size":       "1180x460",
+        "good_for":        ["protocol layers", "FHIR/HealthLake stacks", "IoT gateways"],
+        "content_profile": "action_label_only",
         "params": {
-            "layers": "list[{label, items[], accent, filled?}] (4-6)",
+            "layers":           "list[{label, items[]}] (4-6); "
+                                "labels and items must be action/state names",
             "side_annotations": "optional list[{text}]",
-            "kpi_band": "optional KPI string",
-            "title": "optional",
+            "kpi_band":         "optional KPI string",
+            "title":            "optional",
+            "captions":         "optional strip below the diagram",
         },
     },
     "fanout_pipeline": {
-        "name":         "fanout_pipeline",
-        "backend":      "mermaid",
-        "hint_size":    "1180x600",
-        "good_for":     ["multi-model CV pipelines", "ensemble verification"],
+        "name":            "fanout_pipeline",
+        "backend":         "dual (svg|mermaid; default svg)",
+        "hint_size":       "1180x600",
+        "good_for":        ["multi-model CV pipelines", "ensemble verification"],
+        "content_profile": "action_label_only",
         "params": {
-            "input_label": "str",
-            "models": "list[{name, desc?}] (3-7)",
+            "input_label":  "str (action/state name)",
+            "models":       "list[{name, desc?}] (3-7); action names only",
             "fusion_label": "str",
-            "outputs": "list[{label, accent}] (2-3)",
-            "title": "optional",
-            "subtitle": "optional",
+            "outputs":      "list[{label}] (2-3); action names only",
+            "title":        "optional",
+            "subtitle":     "optional",
+            "captions":     "optional strip below the diagram",
         },
     },
     "hybrid_swimlane": {
-        "name":         "hybrid_swimlane",
-        "backend":      "mermaid",
-        "hint_size":    "1180x480",
-        "good_for":     ["security+retail dual stack", "edge+server split"],
+        "name":            "hybrid_swimlane",
+        "backend":         "dual (svg|mermaid; default svg)",
+        "hint_size":       "1180x480",
+        "good_for":        ["security+retail dual stack", "edge+server split"],
+        "content_profile": "action_label_only",
         "params": {
-            "tiers": "list[{label, accent, stages[]}] (2-3)",
+            "tiers":     "list[{label, stages[]}] (2-3); "
+                         "stages must be action/state names",
             "fleet_box": "optional input column",
-            "header": "optional top caption",
-            "footer": "optional bottom caption",
-            "title": "optional",
+            "header":    "optional top caption",
+            "footer":    "optional bottom caption",
+            "title":     "optional",
+            "captions":  "optional strip below the diagram",
         },
     },
     "data_path": {
@@ -636,15 +801,22 @@ def primitive_for_intent(intent: str) -> str | None:
     return _INTENT_TO_PRIMITIVE.get(intent)
 
 
-def backend_for(name: str) -> str:
-    """Return ``"mermaid"`` or ``"python"`` for a primitive name.
+def backend_for(name: str, *, requested: str | None = None) -> str:
+    """Return the resolved backend for a primitive name.
 
-    Lets the caller decide whether to invoke an MCP render step after
-    calling ``make_<primitive>`` (mermaid) or to consume the returned
-    SVG directly (python). Raises ``ValueError`` for unknown names.
+    - For dual-backend primitives (the 5 in ``DUAL_BACKEND``), returns
+      ``requested`` if explicitly given, else the env/default backend.
+    - For Python-only primitives (``PYTHON_BACKED``), always returns
+      ``"python"`` (the ``requested`` arg is ignored — there's no
+      Mermaid equivalent).
+
+    Lets the caller decide whether the result of ``make_<primitive>``
+    will contain a finished ``svg`` (svg/python backends) or a Mermaid
+    ``mermaid_code`` render task. Raises ``ValueError`` for unknown
+    primitive names.
     """
-    if name in MERMAID_BACKED:
-        return "mermaid"
+    if name in DUAL_BACKEND:
+        return _resolve_backend(requested)
     if name in PYTHON_BACKED:
         return "python"
     raise ValueError(
@@ -663,6 +835,7 @@ def call(name: str, **kwargs) -> dict[str, Any]:
 
 __all__ = [
     "VERSION",
+    "DUAL_BACKEND",
     "MERMAID_BACKED",
     "PYTHON_BACKED",
     "make_flow_diagram",

@@ -601,6 +601,100 @@ def _r_practice_card(props: dict) -> str:
     })
 
 
+@register_component("practice-card-leveled", meta={
+    "role": "Variant of practice-card: header (icon + title) over a body of "
+            "badged 'level' rows (L1 / L2 / L3 …) instead of a single "
+            "paragraph. Use when each principle / capability has a staged "
+            "progression worth showing inline.",
+    "kind": "card",
+    "good_for": [
+        "3-4 peer principles, each with 2-4 levels of maturity / progression",
+        "design-rationale slides where the headline IS the level upgrade",
+    ],
+    "bad_for": [
+        "single-line peer items (use value-medallion)",
+        "items without an inherent ordered progression (use practice-card)",
+    ],
+    "best_col_spans": [3, 4],
+    "natural_height": "auto",
+    "schema_brief":   "title: str≤28, icon: str, core?: str≤90, "
+                      "levels: list[{badge: str≤4, body: str≤140}] (2-4 items), "
+                      "color_tone?: 'deep'|'medium'|'sky'|'navy'|hex",
+    "font_levels_used":  ["title", "body", "caption"],
+    "font_weights_used": [400, 500],
+    "capacity_chars_per_col": 240,
+    "picks_content_kinds": ["leveled_principles"],
+})
+def _r_practice_card_leveled(props: dict) -> str:
+    title  = _esc(_require(props, "title", "practice-card-leveled.props"))
+    levels = _require(props, "levels", "practice-card-leveled.props")
+    icon   = props.get("icon", "")
+    core   = props.get("core", "")
+    color_tone = props.get("color_tone", "deep")
+
+    _check_max_chars(props["title"], 28, "practice-card-leveled.props.title")
+    if core:
+        _check_max_chars(core, 90, "practice-card-leveled.props.core")
+    if not isinstance(levels, list) or not (2 <= len(levels) <= 4):
+        raise ValidationError(
+            "invalid_count", "practice-card-leveled.props.levels",
+            f"must have 2-4 items, got {len(levels) if isinstance(levels, list) else type(levels).__name__}",
+        )
+
+    if color_tone in _PRACTICE_TONE_MAP:
+        bg_color = _PRACTICE_TONE_MAP[color_tone]
+    elif re.match(r"^#[0-9A-Fa-f]{6}$", str(color_tone)):
+        bg_color = color_tone
+    else:
+        raise ValidationError(
+            "invalid_value", "practice-card-leveled.props.color_tone",
+            f"must be one of {list(_PRACTICE_TONE_MAP.keys())} or a hex color",
+        )
+
+    icon_svg  = render_icon(icon) if icon else ""
+    icon_html = (
+        f'<span class="vti-practice-card__icon">{icon_svg}</span>'
+        if icon_svg else ""
+    )
+    has_icon_class = " vti-practice-card--has-icon" if icon_svg else ""
+    core_html = (
+        f'<p class="vti-practice-card__core">{_esc(core)}</p>'
+        if core else ""
+    )
+
+    level_rows: list[str] = []
+    for i, lvl in enumerate(levels):
+        if not isinstance(lvl, dict):
+            raise ValidationError(
+                "invalid_value", f"practice-card-leveled.props.levels[{i}]",
+                "each level must be a dict with 'badge' and 'body'",
+            )
+        badge = _require(lvl, "badge", f"practice-card-leveled.props.levels[{i}]")
+        body  = _require(lvl, "body",  f"practice-card-leveled.props.levels[{i}]")
+        _check_max_chars(badge, 4,  f"practice-card-leveled.props.levels[{i}].badge")
+        _check_max_chars(body, 140, f"practice-card-leveled.props.levels[{i}].body")
+        level_rows.append(
+            '<div class="vti-practice-card__level">'
+            f'<span class="vti-practice-card__level-badge">{_esc(badge)}</span>'
+            f'<span class="vti-practice-card__level-body">{_inline_strong(_esc(body))}</span>'
+            '</div>'
+        )
+
+    # Pull in the base practice-card CSS too — this variant reuses
+    # .vti-practice-card / .vti-practice-card__top / .vti-practice-card__title
+    # from the base component.
+    _USED_COMPONENTS_THIS_RENDER.add("practice-card")
+
+    return _fill(_component_template("practice-card-leveled"), {
+        "BG_COLOR":       bg_color,
+        "ICON_HTML":      icon_html,
+        "HAS_ICON_CLASS": has_icon_class,
+        "TITLE":          title,
+        "CORE_HTML":      core_html,
+        "LEVELS_HTML":    "\n      ".join(level_rows),
+    })
+
+
 # ---------------------------------------------------------------------------
 # Component renderers — Sprint A (6 more)
 # ---------------------------------------------------------------------------
@@ -920,7 +1014,10 @@ _VALID_ASPECT_RE = re.compile(r"^\s*\d+\s*:\s*\d+\s*$")
                     "aspect_ratio?: 'W:H' (default '16:9'), "
                     "frame?: 'rounded'|'soft'|'square', "
                     "caption_position?: 'overlay'|'below'|'none', "
-                    "bg?: 'default'|'none' (default 'default')",
+                    "bg?: 'default'|'none' (default 'default'), "
+                    "captions?: list[str≤80] — per-step strip rendered "
+                    "beneath the image (paired with diagram_spec.captions "
+                    "from vti-slide-diagram-builder v0.4.0+)",
     "font_levels_used":  ["caption"],
     "font_weights_used": [400],
     "capacity_chars_fixed":   60,
@@ -934,6 +1031,7 @@ def _r_image_tile(props: dict) -> str:
     frame    = props.get("frame", "rounded")
     cap_pos  = props.get("caption_position", "below" if caption else "none")
     bg       = props.get("bg", "default")
+    captions_strip = props.get("captions") or []
 
     if not _VALID_ASPECT_RE.match(aspect):
         raise ValidationError(
@@ -976,12 +1074,54 @@ def _r_image_tile(props: dict) -> str:
     if bg == "none":
         frame_class = f"{frame_class} vti-image-tile--no-bg"
 
+    # Captions strip (v0.4.0) — per-step text row beneath the image,
+    # one cell per diagram step. Sourced from diagram_spec.captions
+    # which the vti-slide-diagram-builder skill emits alongside the
+    # Mermaid SVG. Presence flips the figure into auto-height mode so
+    # the strip fits below without forcing the SVG into a fixed-aspect
+    # crop. ``captions`` and ``caption`` may coexist (e.g. a slide that
+    # wants both a hero caption and a per-step strip).
+    captions_strip_html = ""
+    if captions_strip:
+        if not isinstance(captions_strip, list):
+            raise ValidationError(
+                "invalid_value", "image-tile.props.captions",
+                f"must be a list[str], got {type(captions_strip).__name__}",
+            )
+        if len(captions_strip) > 7:
+            raise ValidationError(
+                "invalid_value", "image-tile.props.captions",
+                f"max 7 entries (matches diagram primitive max steps), "
+                f"got {len(captions_strip)}",
+            )
+        cells: list[str] = []
+        for i, c in enumerate(captions_strip):
+            if not isinstance(c, str):
+                raise ValidationError(
+                    "invalid_value", f"image-tile.props.captions[{i}]",
+                    f"must be a str, got {type(c).__name__}",
+                )
+            _check_max_chars(c, 80, f"image-tile.props.captions[{i}]")
+            cells.append(
+                f'<span class="vti-image-tile__captions-strip-cell">'
+                f'{_esc(c)}</span>'
+            )
+        captions_strip_html = (
+            '<div class="vti-image-tile__captions-strip">'
+            + "".join(cells)
+            + "</div>"
+        )
+        # Auto-height the figure so the strip doesn't overflow.
+        if "vti-image-tile--has-below-caption" not in frame_class:
+            frame_class = f"{frame_class} vti-image-tile--has-below-caption"
+
     return _fill(_component_template("image-tile"), {
-        "FRAME_CLASS":      frame_class,
-        "ASPECT_RATIO_CSS": aspect.replace(":", " / "),
-        "IMAGE_SRC":        _esc(image),
-        "ALT_TEXT":         _esc(caption or image_alt or "VTI image"),
-        "CAPTION_HTML":     caption_html,
+        "FRAME_CLASS":         frame_class,
+        "ASPECT_RATIO_CSS":    aspect.replace(":", " / "),
+        "IMAGE_SRC":           _esc(image),
+        "ALT_TEXT":            _esc(caption or image_alt or "VTI image"),
+        "CAPTION_HTML":        caption_html,
+        "CAPTIONS_STRIP_HTML": captions_strip_html,
     })
 
 
@@ -4305,7 +4445,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.16.0",
+        "version":    "3.18.0",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }
@@ -4367,8 +4507,9 @@ COMPONENT_CATEGORIES = {
     "definition-list":     "text-list",
     "tags":                "text-list",
     # Cards (richer single units with structure)
-    "practice-card":     "card",
-    "catalog-column":    "card",
+    "practice-card":          "card",
+    "practice-card-leveled":  "card",
+    "catalog-column":         "card",
     # Visuals (image, logos)
     "image-tile":        "visual",
     "logo-grid":         "visual",
@@ -5585,7 +5726,9 @@ BLOCK_KIND_MAP: dict[str, str] = {
     "stat_mini":       "stat-mini",
     "narrative":       "narrative-paragraph",
     "paragraph":       "narrative-paragraph",
-    "practice_card":   "practice-card",
+    "practice_card":          "practice-card",
+    "practice_card_leveled":  "practice-card-leveled",
+    "leveled_principles":     "practice-card-leveled",
     "kpi_row":         "kpi-row",
     "kpis":            "kpi-row",
     "bullets":         "bullet-list-checked",

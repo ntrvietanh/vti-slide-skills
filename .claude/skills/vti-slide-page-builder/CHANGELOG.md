@@ -1,5 +1,84 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v3.18.0 (2026-05-19) — image-tile captions strip
+
+`image-tile` accepts a new optional prop `captions: list[str≤80]` (up to
+7 entries). When present, the component renders a compact flex-row strip
+beneath the image: one equal-width cell per entry, ink-soft caption
+typography. Pairs with `vti-slide-diagram-builder` v0.4.0+, which emits
+the same array alongside the Mermaid SVG so authoring agents can keep
+node labels clean (action/state names only) while still showing the
+per-step metrics readers want.
+
+### What changed
+
+- **Schema** — `image-tile.props.captions: list[str≤80]` (optional,
+  max 7 entries). Validates type + per-entry length; raises
+  `ValidationError` on garbage.
+- **Render** — emits
+  ```html
+  <div class="vti-image-tile__captions-strip">
+    <span class="vti-image-tile__captions-strip-cell">...</span>
+    ...
+  </div>
+  ```
+  inside the figure, after the image and any `caption` text. Presence
+  also adds `vti-image-tile--has-below-caption` so the figure flips
+  to auto-height and the strip doesn't overflow.
+- **CSS** — `.vti-image-tile__captions-strip` flex-row, gap 12px,
+  margin-top 8px. Each cell uses `var(--vti-fs-caption)` size and
+  `var(--vti-ink-soft)` colour — sits inside the blue-family +
+  neutrals palette so it never competes with the diagram itself.
+- **Bumped `version: 3.18.0`** in both `info()` and `SKILL.md`.
+
+### Why
+
+The companion diagram-builder v0.4.0 strips metrics out of node labels
+into a separate `captions` array. The page-builder needed a place to
+render that array; image-tile was the natural host since synthesized
+diagrams already flow through it.
+
+### Backwards-compat
+
+`captions` is optional. Existing callers that don't supply the prop
+render exactly as before — same figure markup, same aspect-ratio
+behaviour.
+
+---
+
+## v3.17.0 (2026-05-19) — practice-card-leveled: maturity-ladder variant
+
+New component `practice-card-leveled` — a variant of `practice-card` whose
+body holds a sequence of badged "level" rows (L1 / L2 / L3 …) instead of
+a single paragraph. Use when each peer principle has a staged progression
+worth showing inline (e.g. the s05-philosophy "Four design principles"
+slide, where each principle goes Boundary → Handoff → Discipline).
+
+Schema:
+```
+{
+  "title":      str≤28,        # uppercase card title
+  "icon":       str,           # icon registry key
+  "core":       str≤90,        # optional italic tagline above the levels
+  "levels":     [              # 2-4 items, each:
+    {"badge": str≤4,           #   "L1" / "L2" / "1" / "→"
+     "body":  str≤140},        #   markdown **bold** supported
+    ...
+  ],
+  "color_tone": "deep" | "medium" | "sky" | "navy" | "#RRGGBB"
+}
+```
+
+Implementation notes:
+- The renderer pulls in base `practice-card` CSS too (shared header
+  classes), so a slide using only the leveled variant still gets the
+  card border / radius / title styles.
+- New CSS lives in `components/practice-card-leveled/component.css`
+  and *augments* the base by overriding the header padding (88px → 72px)
+  to reclaim vertical room for the levels block.
+- Registered under `BLOCK_KIND_MAP` keys `practice_card_leveled` and
+  `leveled_principles` so creator-side outline kinds map cleanly.
+
 ## v3.16.3 (2026-05-19) — fix: vs-compare middle-aligns its content stack
 
 Bug: inside a vs-compare panel, the narrative paragraph sat at the top

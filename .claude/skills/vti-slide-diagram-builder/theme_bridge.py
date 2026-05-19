@@ -5,6 +5,14 @@ overrides theme variables. We emit one such directive prepended to every
 codegen output so Mermaid-rendered diagrams visually align with the deck
 chrome rendered by ``vti-slide-page-builder``.
 
+Brand discipline (v0.4.0)
+-------------------------
+**One brand, one hue.** Mermaid theme variables only reference the VTI
+blue family + neutrals. Per-node colour comes from ``classDef step{i}``
+lines emitted by ``gradient_classdefs(n)`` — a monotonic light→dark
+progression across step index (pale-blue → navy). Callers no longer
+pick a per-element accent; the gradient is index-driven.
+
 This module re-uses the already-parsed token table from
 ``tokens_bridge.TOKENS`` — both files share one source of truth.
 
@@ -15,6 +23,8 @@ Public surface
 - ``init_directive_quadrant()`` — variant tuned for ``quadrantChart``
                                    (Mermaid uses a separate set of theme
                                    variable names for that chart type)
+- ``gradient_classdefs(n)``     — emit ``classDef step0..step{n-1}`` lines
+                                   sampling the blue gradient
 - ``font_family()``             — body font stack as a single CSS value
 """
 from __future__ import annotations
@@ -32,24 +42,87 @@ def font_family() -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# Blue-mono gradient (v0.4.0)
+# ---------------------------------------------------------------------------
+# Ordered light→dark across the VTI blue family. ``gradient_classdefs(n)``
+# samples ``n`` evenly-spaced indices and emits one ``classDef stepN ...``
+# per step. Text colour flips to white once the fill is dark enough to
+# preserve contrast.
+_GRADIENT_STEPS: list[tuple[str, str]] = [
+    # (fill token alias, text token alias)
+    ("vti-paleblue",    "vti-ink"),     # 0 — lightest
+    ("vti-light",       "vti-ink"),     # 1
+    ("vti-sky",         "vti-white"),   # 2
+    ("vti-blue-medium", "vti-white"),   # 3
+    ("vti-blue",        "vti-white"),   # 4
+    ("vti-blue-deep",   "vti-white"),   # 5
+    ("vti-navy",        "vti-white"),   # 6 — darkest
+]
+
+
+def _sampled_indices(n: int) -> list[int]:
+    """Pick ``n`` indices from the gradient evenly (anchored at ends)."""
+    base = len(_GRADIENT_STEPS)
+    if n <= 1:
+        return [base - 1]
+    if n >= base:
+        return list(range(base))
+    # Linear sample inclusive of both endpoints.
+    out = [round(i * (base - 1) / (n - 1)) for i in range(n)]
+    # Deduplicate while preserving order (rounding can collide at small n).
+    seen: set[int] = set()
+    deduped: list[int] = []
+    for idx in out:
+        if idx not in seen:
+            deduped.append(idx)
+            seen.add(idx)
+    # Pad back if dedup shrank below n (only possible at very small base).
+    while len(deduped) < n:
+        deduped.append(min(base - 1, deduped[-1] + 1))
+    return deduped
+
+
+def gradient_classdefs(n: int) -> list[str]:
+    """Emit ``classDef step0..step{n-1}`` lines for an n-step blue gradient.
+
+    The classDef names ``step0``, ``step1`` ... must match the ``:::stepN``
+    suffixes that ``mermaid_codegen`` attaches to each node.
+    """
+    indices = _sampled_indices(max(1, int(n)))
+    lines: list[str] = []
+    for slot, gi in enumerate(indices):
+        fill_alias, text_alias = _GRADIENT_STEPS[gi]
+        fill = token(fill_alias)
+        text = token(text_alias)
+        # Use navy as the stroke for a unified outline.
+        stroke = token("vti-navy")
+        lines.append(
+            f"classDef step{slot} fill:{fill},stroke:{stroke},"
+            f"color:{text},stroke-width:1.5px,rx:14,ry:14;"
+        )
+    return lines
+
+
 def _flowchart_theme_variables() -> dict[str, str]:
     """Theme variables for ``flowchart`` (the kind we use most).
 
-    Picked to mirror VTI's blue-on-pale palette: deep blue primary nodes,
-    teal secondary, pale-blue subgraph fills, soft-ink connectors.
+    All references stay inside the VTI blue family + neutrals. Per-node
+    colour is overridden by ``classDef step{i}`` lines emitted alongside
+    the diagram body, so the theme variables here only matter for
+    fallbacks (edges, edge labels, subgraph titles).
     """
     return {
-        # Primary node (default first-class node)
+        # Primary fallback — only used if no classDef applies.
         "primaryColor":        token("vti-blue-deep"),
         "primaryTextColor":    token("vti-white"),
         "primaryBorderColor":  token("vti-navy"),
 
-        # Secondary — used by alternate node classes and accent edges
-        "secondaryColor":       token("vti-teal"),
-        "secondaryTextColor":   token("vti-ink"),
-        "secondaryBorderColor": token("vti-blue"),
+        # Secondary / tertiary kept in the blue family.
+        "secondaryColor":       token("vti-blue-medium"),
+        "secondaryTextColor":   token("vti-white"),
+        "secondaryBorderColor": token("vti-navy"),
 
-        # Tertiary — subgraph background / cluster fills
         "tertiaryColor":       token("vti-light"),
         "tertiaryTextColor":   token("vti-ink"),
         "tertiaryBorderColor": token("vti-border"),
@@ -77,12 +150,12 @@ def _flowchart_theme_variables() -> dict[str, str]:
 def _quadrant_theme_variables() -> dict[str, str]:
     """Theme variables specific to ``quadrantChart``.
 
-    Mermaid maps quadrants in the order Q1 (top-right), Q2 (top-left),
-    Q3 (bottom-left), Q4 (bottom-right). We tint each with a different
-    VTI accent so a brand-consistent quadrant lands with no caller config.
+    Quadrant cells use light blue tints (already inside the brand family);
+    points use deep blue. Mermaid does not expose per-cell shape config
+    so quadrant corners remain rectangular at v0.4.0 — see CHANGELOG.
     """
     return {
-        # Per-quadrant fills — tinted so points / text remain readable
+        # Per-quadrant fills — tinted so points / text remain readable.
         "quadrant1Fill":  token("vti-paleblue"),  # top-right
         "quadrant2Fill":  token("vti-light"),     # top-left
         "quadrant3Fill":  token("vti-bg"),        # bottom-left
@@ -136,5 +209,6 @@ def init_directive_quadrant() -> str:
 __all__ = [
     "init_directive",
     "init_directive_quadrant",
+    "gradient_classdefs",
     "font_family",
 ]

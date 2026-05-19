@@ -1,5 +1,183 @@
 # vti-slide-diagram-builder — CHANGELOG
 
+## v0.5.0 (2026-05-19) — Native-SVG branch restored alongside Mermaid
+
+The v0.3.0 Mermaid migration produced diagrams with wildly inconsistent
+output sizes — `flow_diagram` came back at aspect 14.17, `layered_stack`
+at 8.62, etc. — because Mermaid-cli sizes the SVG to its laid-out
+content with very loose external bounds. Phase 4's layout-designer
+sized host cells against the `hint_w/hint_h` constants (1180×280 /
+1180×480) and the resulting cells ended up either letterboxing the
+diagram or cropping it, depending on the slide. The screenshots that
+motivated this revert showed text shrunk to 60% of cell width or
+overflowing past lane borders.
+
+### What changed
+
+- **New `svg_render.py` module** restores hand-authored native-SVG
+  layouts for the 5 dual-backend primitives (`flow_diagram`, `quadrant`,
+  `layered_stack`, `fanout_pipeline`, `hybrid_swimlane`). The renders
+  are ports of the v0.1.0 implementations with one addition: a
+  `captions` strip baked into the bottom of the SVG (height
+  `CAPTION_STRIP_H = 40`) so the v0.4.0 content discipline still holds.
+- **`diagram_builder.py` dispatch.** Every `make_*` for the 5
+  dual-backend primitives now accepts a `backend` kwarg:
+  - `backend="svg"` (default): returns `{primitive, backend, svg,
+    natural_w, natural_h, captions}` — caller writes SVG to disk and
+    reads `natural_w/_h` for cell sizing. No MCP step required.
+  - `backend="mermaid"`: returns the v0.4.0 render task (`mermaid_code`
+    + `hint_w/_h`). Identical to pre-v0.5.0 behaviour.
+- **Env override.** `VTI_DIAGRAM_BACKEND={svg|mermaid}` flips the
+  default; precedence is kwarg → env → `"svg"`.
+- **`DUAL_BACKEND` frozenset** added to the module surface. The old
+  `MERMAID_BACKED` set is kept as an alias for back-compat — same
+  membership.
+- **`backend_for(name, *, requested=...)`** now resolves the backend a
+  caller will actually get, so consumers (creator's Phase 3) can
+  branch on it before deciding whether to invoke the Mermaid MCP step.
+- **Predictable canvases.** SVG outputs land at:
+  - `flow_diagram` horizontal: 1180×280 (or 320 with captions)
+  - `flow_diagram` vertical:   1180×480 (or 520 with captions)
+  - `quadrant`:                1180×480 (or 520 with captions)
+  - `layered_stack`:           1180×480 (or 520 with captions)
+  - `fanout_pipeline`:         1180×480 (or 520 with captions)
+  - `hybrid_swimlane`:         1180×480 (or 520 with captions)
+
+  Compared to the Mermaid outputs of the same primitives at v0.4.0
+  (aspect ratios 1.35 → 14.17 depending on content), the SVG renders
+  return one of two aspect ratios (≈3.7 horizontal flow or ≈2.3 tall).
+  Phase 4's layout-designer can plan cell sizes against these without
+  surprise letterboxing.
+
+### Migration
+
+- **No breaking change** for callers that don't pass `backend=` — the
+  new default is `svg`, which removes the MCP render step. Callers
+  who want Mermaid output unchanged must pass `backend="mermaid"` or
+  set `VTI_DIAGRAM_BACKEND=mermaid`.
+- The v0.4.0 `_assert_step_clean` validator still runs at every
+  `make_*` entry regardless of backend — content discipline is
+  preserved.
+- `MERMAID_BACKED` is still exported but is now equivalent to
+  `DUAL_BACKEND`; new code should prefer `DUAL_BACKEND`.
+
+### Why we kept Mermaid as an opt-in instead of removing it
+
+Mermaid output is still useful for ad-hoc previews and for primitives
+we may add in the future where hand-SVG would be too much work
+(diagrams with auto-routed edges, large state machines, etc.). Keeping
+the branch means we don't have to re-build the v0.4.0 theme bridge if
+we want to lean on Mermaid again.
+
+## v0.4.0 (2026-05-19) — Brand discipline pass
+
+Three opinionated changes locked across all 5 Mermaid primitives so
+diagrams stop drifting from VTI's visual identity. The migration of
+v0.3.0 made Mermaid the rendering backend; v0.4.0 makes the **authoring
+contract** match the brand.
+
+### What changed
+
+- **Blue-mono gradient.** Node fill is now index-driven: `step0`
+  (lightest, `--vti-paleblue`) → `step{n-1}` (darkest, `--vti-navy`).
+  No more per-element accent colours producing rainbow swimlanes. The
+  per-call `accent_alias` (on `flow_diagram`) and per-element `accent`
+  (on `layered_stack` layers, `fanout_pipeline` outputs, `quadrant`
+  cells, `hybrid_swimlane` tiers) are deprecated — still accepted but
+  logged as `DeprecationWarning` and ignored.
+  - New helper `theme_bridge.gradient_classdefs(n)` emits `classDef
+    stepN` lines sampling 7 ordered blue-family tokens
+    (`paleblue`, `light`, `sky`, `blue-medium`, `blue`, `blue-deep`,
+    `navy`) and flips text colour to `--vti-white` once the fill goes
+    dark. Stroke is always `--vti-navy` for a unified outline.
+  - `_flowchart_theme_variables()` cleaned: removed every teal / amber
+    / orange reference; theme variables now only pull from the blue
+    family + neutrals.
+- **Round-edge nodes.** Every node renders with Mermaid's `(label)`
+  round-rectangle shape (`rx/ry=14` via `classDef`). Subgraphs and
+  `quadrantChart` cells stay rectangular — Mermaid doesn't expose
+  shape config for them (deferred; no native fix available).
+- **Steps-only content.** Node labels are pure action/state names —
+  no metrics, no times, no cardinalities. A new
+  `_assert_step_clean` validator runs at every `make_*()` entry and
+  raises `ValueError` on the most common offenders (`"~20 spaces"`,
+  `"180+"`, `"08:00"`, `"5%"`, `"2x"`, `"daily"`, etc.). Authoring
+  agents fail fast instead of producing the noisy "step + metrics"
+  boxes that motivated this pass.
+- **Captions strip.** Every Mermaid `make_*()` accepts a new
+  `captions: list[str] | None` kwarg. Captions are **not** rendered
+  into the Mermaid source — they pass through in the return dict for
+  the page-builder to render as a small text strip below the SVG
+  (one cell per main node, parallel index).
+- **`describe_primitive()` content_profile field.** Each of the 5
+  Mermaid primitives reports `"content_profile": "action_label_only"`
+  so authoring agents can introspect the contract.
+
+### Return-shape addition
+
+```python
+{
+    "primitive":     "flow_diagram",
+    "backend":       "mermaid",
+    "mermaid_code":  "...",
+    "hint_w":        1180,
+    "hint_h":        280,
+    "captions":      ["...", "...", ...],   # NEW — may be []
+}
+```
+
+`captions` is always present; empty list when caller didn't supply any.
+Existing callers that don't read the field continue to work.
+
+### Why
+
+Output samples from v0.3.0 (`work/diagrams/_mermaid_src/s06–s08.mmd`)
+showed two failure modes the rendering layer can't fix:
+
+1. **Rainbow palette.** With each step letting the agent pick an
+   `accent`, decks drifted to 4–6 different brand colours per slide.
+2. **Metrics packed into labels.** Step boxes carrying `"180+ inactive
+   · 1 Drive write"`, `"~20 spaces · paginate"`, `"daily 08:00"` —
+   readers parse digits and miss the action narrative.
+
+Both stemmed from a **gap in the authoring contract**: the skill
+documented signatures but not content rules. v0.4.0 closes that gap.
+
+### Breaking change for callers
+
+Code that previously passed `accent_alias="teal"` or
+`layers[i]["accent"]="amber"` will:
+
+- Still run (no exception).
+- Log a one-time `DeprecationWarning` per call site.
+- Render with the gradient — the per-element accent is dropped.
+
+Cleanup at leisure. The deprecation cycle has no defined end date;
+the warnings stay until callers stop emitting them.
+
+### Files touched
+
+- `theme_bridge.py` — `_flowchart_theme_variables()` blue-only,
+  `gradient_classdefs(n)` helper added.
+- `mermaid_codegen.py` — all 5 codegens emit `(label)` not `[label]`,
+  use `:::stepN` class refs, accept and pass-through `captions`.
+- `diagram_builder.py` — `VERSION = "0.4.0"`, `_assert_step_clean`
+  validator, `_mermaid_task` includes `captions`, `_PRIMITIVE_META`
+  rewritten with `content_profile` field and caption-aware param docs.
+
+### Cross-skill ripple
+
+- `vti-slide-page-builder/composer_grid.py` — renders the new
+  `captions` array as a `<div class="diagram-captions">` strip beneath
+  the diagram SVG (see that skill's CHANGELOG).
+- `vti-slide-creator/SKILL.md` Phase 3 (CONTENT-PLAN) — guidance updated
+  to author `steps`/`layers`/etc. as action names and route metrics to
+  the parallel `captions` array.
+- `COORDINATED_BASELINE.md` — diagram-builder contract row reflects
+  new return shape + content rule + version map.
+
+---
+
 ## v0.3.0 (2026-05-18) — Split-backend rendering (Mermaid + Python)
 
 Five primitives migrated from native Python SVG to **Mermaid Chart MCP**
