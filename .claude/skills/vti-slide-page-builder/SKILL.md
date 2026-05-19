@@ -21,9 +21,9 @@ Quick mode (`verbose=False`) — small response for fast checks:
 ```python
 {
   "skill":      "vti-slide-page-builder",
-  "version":    "3.13.9",
+  "version":    "3.16.3",
   "components": ["bullet-list-checked", "catalog-column", ...],   # 9 names
-  "icons":      ["bell", "brain", "building-skyscraper", ...],    # 22 names
+  "icons":      ["bell", "brain", "building-skyscraper", ...],    # 40 names
 }
 ```
 

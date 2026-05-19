@@ -7,6 +7,10 @@
   justify-content: center;
   min-height: 60px;
 }
+.vti-vs-divider[data-orientation="vertical"] {
+  min-height: 0;
+  min-width: 60px;
+}
 .vti-vs-divider__line {
   position: absolute;
   left: 4px;
@@ -15,8 +19,21 @@
   border-top: 1px dashed #B5D4F4;
   transform: translateY(-50%);
 }
+.vti-vs-divider[data-orientation="vertical"] .vti-vs-divider__line {
+  left: 50%;
+  right: auto;
+  top: 4px;
+  bottom: 4px;
+  border-top: 0;
+  border-left: 1px dashed #B5D4F4;
+  transform: translateX(-50%);
+}
 .vti-vs-divider[data-line-style="solid"] .vti-vs-divider__line {
   border-top-style: solid;
+}
+.vti-vs-divider[data-orientation="vertical"][data-line-style="solid"] .vti-vs-divider__line {
+  border-top-style: none;
+  border-left-style: solid;
 }
 .vti-vs-divider__badge {
   width: 60px;

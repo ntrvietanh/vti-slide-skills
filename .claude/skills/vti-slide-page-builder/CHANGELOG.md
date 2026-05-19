@@ -1,5 +1,157 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v3.16.3 (2026-05-19) — fix: vs-compare middle-aligns its content stack
+
+Bug: inside a vs-compare panel, the narrative paragraph sat at the top
+and the bullets at the bottom with a huge dead gap between them.
+Cause: `.vti-narrative` self-sets `height: 100%` + `justify-content:
+center` so a standalone narrative cell pleasantly centers vertically;
+but inside a flex column with sibling kicker + bullets, that `height:
+100%` made the narrative consume the column's remaining vertical
+space, pushing bullets to the floor of the column.
+
+Fix: in `vs-compare/component.css`, override `.vti-narrative` to
+`height: auto; justify-content: flex-start` for the context only, and
+add `justify-content: center` to `.vti-vs-compare__col` so the (now
+compact) kicker + narrative + bullets stack sits visually centered in
+the panel.
+
+## v3.16.2 (2026-05-19) — fix: vs-compare bundles inner-component CSS
+
+Bug: `_r_vs_compare` (introduced in v3.16.0) called `_r_kicker`,
+`_r_narrative_paragraph`, `_r_bullet_list_checked`, and `_r_vs_divider`
+directly instead of going through the `render_component()` wrapper.
+The wrapper is what adds component names to
+`_USED_COMPONENTS_THIS_RENDER`, which drives the CSS bundle. By
+bypassing it, none of those inner components were registered → their
+CSS was never loaded → SVG bullet markers fell back to browser-default
+SVG sizing (~300×150), rendering huge X / check marks on slide 5 of
+any deck using vs-compare (e.g. the Chat/Email Summary Agent deck,
+Act I problem slide).
+
+Fix: switch the four direct `_r_*` calls inside `_r_vs_compare` to
+`render_component()` so transitive component usage is tracked the
+same way `kpi-row → stat-mini` already does. No schema changes.
+
+## v3.16.1 (2026-05-19) — fix: grid-cell children fill full width
+
+Bug: `.layout-grid .vti-grid-cell` declared `justify-content: stretch`,
+which is **not a valid flexbox value**, so any component placed inside
+a grid-cell that didn't self-set `width: 100%` rendered at intrinsic
+content width — even when the cell spanned the full 12 columns.
+
+Discovered on slide 18 of the Chat/Email Summary deck: a `callout`
+component spanning `col_span: 12` shrank to ~50% of the slide. Affects
+11 components missing `width: 100%`: callout, definition-list,
+headline, icon-list, kicker, lead-paragraph, numbered-list,
+pull-quote, section-header, tags, trend-stat.
+
+Fix: added `.layout-grid .vti-grid-cell > * { width: 100%; }` to the
+embedded grid CSS in `composer_grid.py`. Components that already
+self-set `width: 100%` (practice-card, stat-mini, kpi-row, etc.) are
+unaffected. No schema or contract changes.
+
+## v3.16.0 (2026-05-19) — vs-compare: official storytelling comparison variant
+
+Promotes the slide-5 (Act I · Problem) storytelling pattern into a
+first-class **composite component**: `vs-compare`. Each side = kicker
+label + narrative paragraph + check/x bullet list, with a vertical VS
+divider between. Solves the "trống trải" issue from the original
+3-row-stacked vs-divider layout and gives decks one block to author
+instead of seven hand-positioned grid cells.
+
+Changes:
+
+- **New component:** `vs-compare` (composition, not a leaf). Renderer
+  `_r_vs_compare` calls existing `_r_kicker`, `_r_narrative_paragraph`,
+  `_r_bullet_list_checked`, and `_r_vs_divider` (orientation: vertical)
+  to assemble both panels, so design discipline (font levels, weights,
+  marker SVGs) stays consistent.
+- **Schema:**
+  ```
+  left:  {label: ≤40, narrative: ≤500, items: list[≤100] (2-6)}
+  right: {label: ≤40, narrative: ≤500, items: list[≤100] (2-6)}
+  left_marker?:  'check'|'x' (default 'x'  — problem side)
+  right_marker?: 'check'|'x' (default 'check' — solution side)
+  vs_label?:     str≤6 (default 'VS')
+  line_style?:   'dashed'|'solid' (default 'dashed')
+  ```
+- **CSS grid:** 5fr / 2fr / 5fr columns; each panel is flex-column with
+  gap: 16px. Component is `width: 100%; height: 100%` — meant to occupy
+  one full-slide cell (best `col_span`: 10 or 12).
+- **Content-kind mappings added:** `vs_compare`, `comparison_story`,
+  `pull_vs_push` → `vs-compare`.
+- **+1 new icon:** `x` (24px cross stroke, currentColor) — used by
+  `bullet-list-checked` when `marker: "x"`.
+- **`bullet-list-checked` gained `marker` prop:** `"check"` (default,
+  blue) or `"x"` (gray). Backward compatible — existing callers
+  unchanged.
+- **`vs-divider` gained `orientation` prop:** `"horizontal"` (default,
+  unchanged) or `"vertical"` (border-left line, badge mid-column).
+  Used internally by `vs-compare` but available standalone.
+
+When to reach for `vs-compare` vs sibling components:
+- **`vs-compare`** — prose-led problem↔solution with bullets, single
+  block of authored content.
+- **`before-after`** — temporal transformation, has an arrow (not a VS
+  badge), no narrative slot.
+- **`comparison-table`** — n×m feature matrix, short cells only.
+
+## v3.15.0 (2026-05-19) — vs-divider: vertical orientation for side-by-side comparison
+
+Adds an `orientation` prop to the `vs-divider` component so it can sit in
+a narrow middle column between two side-by-side panels (drawing a vertical
+dashed line) rather than only between two stacked rows.
+
+Changes:
+
+- **New prop:** `orientation: "horizontal" | "vertical"` (default
+  `"horizontal"` — backward compatible). Validated in `_r_vs_divider`.
+- **Template:** `vs-divider/component.html` now emits
+  `data-orientation="{{ORIENTATION}}"`.
+- **CSS:** new selectors under `[data-orientation="vertical"]` flip the
+  line from `border-top` (horizontal, centered top:50%) to `border-left`
+  (vertical, centered left:50%, pinned top/bottom). Container's
+  `min-height` is dropped and `min-width: 60px` is added when vertical so
+  the line gets a usable axis even in tight column gutters. Solid line
+  style is mirrored for the vertical case.
+
+Why: Phase 3 already emits layout hints like `"narrative 5 + vs-divider 2
++ narrative 5"` for 2-panel comparisons. Without a vertical orientation,
+the rendered slide collapses into 3 stacked full-width rows and leaves
+~40% of the canvas empty. With this prop, LayoutPlans can place the
+divider in a 2-col middle slot spanning 2 rows.
+
+## v3.14.0 (2026-05-19) — icon registry: +18 names, fallback glyph, warn on miss
+
+Closes the silent-fail pattern where `render_icon(<unknown>)` returned an
+empty string, leaving icon slots in `value-medallion`, `practice-card`, and
+`kpi-row` rendering as **empty blue circles** when callers used reasonable
+but unregistered Lucide-style names (e.g. `clock`, `database`, `network`,
+`refresh-cw`, `inbox`). The result was inconsistent icon coverage across
+cards in the same deck — depending on which names happened to be present.
+
+Changes:
+
+- **+18 icons** added to `ICON_SVGS`: `clock`, `database`, `file-text`,
+  `inbox`, `at-sign`, `message-square`, `refresh-cw`, `network`,
+  `compass`, `gauge`, `route`, `trending-up`, `trending-flat`, `puzzle`,
+  `server-off`, `user-check`, `check-circle`, `split`. Registry total: 22 → 40.
+- **Fallback glyph** `_fallback` added (a small filled dot). `render_icon`
+  now returns this glyph instead of an empty string when a name is
+  unknown — so the slot never collapses, even if name resolution fails.
+- **One-time stderr warning** when `render_icon` is called with an
+  unknown name. The warning lists available icon names so callers can
+  fix at the source. Tracked via a module-level `_UNKNOWN_ICONS_SEEN` set
+  (no warning spam across many calls with the same name).
+- `catalog()` icon-count expected to read 40 going forward (callers that
+  hard-code 22 in tests should update).
+
+Migration: existing decks that depended on silent-empty behaviour now
+render a fallback dot. If you want the previous "render nothing" behaviour,
+inspect `name in ICON_SVGS` before calling — `render_icon` no longer raises
+and no longer returns `""`.
+
 ## v3.13.9 (2026-05-10) — practice-card: elevation shadow
 
 Cosmetic only. Adds a two-layer `box-shadow` to `.vti-practice-card` so cards

@@ -167,6 +167,10 @@ ICON_SVGS: dict[str, str] = {
     "check": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M5 12l5 5L20 7"/>
 </svg>''',
+    "x": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M6 6l12 12"/>
+<path d="M18 6L6 18"/>
+</svg>''',
     "bulb": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 <path d="M9 18h6"/>
 <path d="M10 21h4"/>
@@ -241,12 +245,120 @@ ICON_SVGS: dict[str, str] = {
 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
 </svg>''',
+    # ── Icons added 2026-05-19 to close common naming-gap silent-fails ──
+    "clock": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="10"/>
+<path d="M12 6v6l4 2"/>
+</svg>''',
+    "database": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<ellipse cx="12" cy="5" rx="9" ry="3"/>
+<path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+<path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/>
+</svg>''',
+    "file-text": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+<path d="M14 2v6h6"/>
+<path d="M8 13h8M8 17h8M8 9h2"/>
+</svg>''',
+    "inbox": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+<path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+</svg>''',
+    "at-sign": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="4"/>
+<path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>
+</svg>''',
+    "message-square": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+</svg>''',
+    "refresh-cw": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<polyline points="23 4 23 10 17 10"/>
+<polyline points="1 20 1 14 7 14"/>
+<path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+</svg>''',
+    "network": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="4" r="2"/>
+<circle cx="4" cy="20" r="2"/>
+<circle cx="20" cy="20" r="2"/>
+<path d="M12 6v6M12 12L4 18M12 12l8 6"/>
+</svg>''',
+    "compass": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="12" cy="12" r="10"/>
+<polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+</svg>''',
+    "gauge": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M12 14l4-4"/>
+<path d="M3.34 19a10 10 0 1 1 17.32 0"/>
+</svg>''',
+    "route": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<circle cx="6" cy="19" r="3"/>
+<path d="M9 19h6a4 4 0 0 0 0-8H9a4 4 0 0 1 0-8h6"/>
+<circle cx="18" cy="5" r="3"/>
+</svg>''',
+    "trending-up": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+<polyline points="17 6 23 6 23 12"/>
+</svg>''',
+    "trending-flat": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<polyline points="22 12 18 8 18 16 22 12"/>
+<line x1="2" y1="12" x2="18" y2="12"/>
+</svg>''',
+    "puzzle": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M19.5 11.5h-1c-1.1 0-2-.9-2-2s.9-2 2-2h1V5a1 1 0 0 0-1-1h-3v1.5c0 1.1-.9 2-2 2s-2-.9-2-2V4h-3a1 1 0 0 0-1 1v3h1.5c1.1 0 2 .9 2 2s-.9 2-2 2H5v3a1 1 0 0 0 1 1h2.5c0-1.1.9-2 2-2s2 .9 2 2H15a1 1 0 0 0 1-1v-2.5c1.1 0 2-.9 2-2s-.9-2-2-2"/>
+</svg>''',
+    "server-off": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M2 2l20 20"/>
+<path d="M5.7 5.7A2 2 0 0 0 4 7.7V10a2 2 0 0 0 2 2h2.3M18 12h-2.3M22 10V7.7a2 2 0 0 0-2-2H10.3"/>
+<path d="M6 17h12a2 2 0 0 0 2-2V13.3M4 13.3V15a2 2 0 0 0 2 2"/>
+</svg>''',
+    "user-check": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+<circle cx="8.5" cy="7" r="4"/>
+<polyline points="17 11 19 13 23 9"/>
+</svg>''',
+    "check-circle": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+<polyline points="22 4 12 14.01 9 11.01"/>
+</svg>''',
+    "split": '''<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<path d="M16 3h5v5"/>
+<path d="M8 3H3v5"/>
+<path d="M12 22V12"/>
+<path d="M21 3L12 12 3 3"/>
+</svg>''',
+    # ── Generic fallback (used by render_icon when an unknown name is passed) ──
+    "_fallback": '''<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+<circle cx="12" cy="12" r="3"/>
+</svg>''',
 }
 
 
+# Track unknown icon names seen this process so we warn once per name.
+_UNKNOWN_ICONS_SEEN: set[str] = set()
+
+
 def render_icon(name: str) -> str:
-    """Return inline SVG for an icon name, or empty string if unknown."""
-    return ICON_SVGS.get(name, "")
+    """Return inline SVG for an icon name.
+
+    If the name is unknown, emit a one-time stderr warning and fall back
+    to the generic ``_fallback`` glyph (a small filled dot). This avoids the
+    silent-fail pattern where unknown names rendered as empty space inside
+    a circle slot, leading decks to ship with inconsistent icon visibility.
+
+    Note: callers wanting strict behaviour can check ``name in ICON_SVGS``
+    before calling — render_icon never raises.
+    """
+    if name not in ICON_SVGS:
+        if name and name not in _UNKNOWN_ICONS_SEEN:
+            _UNKNOWN_ICONS_SEEN.add(name)
+            import sys
+            print(
+                f"[composer_grid] WARN: unknown icon name {name!r} — using fallback. "
+                f"Available: {sorted(n for n in ICON_SVGS if not n.startswith('_'))}",
+                file=sys.stderr,
+            )
+        return ICON_SVGS.get("_fallback", "")
+    return ICON_SVGS[name]
 
 
 # ---------------------------------------------------------------------------
@@ -561,7 +673,7 @@ def _r_kpi_row(props: dict) -> str:
     "bad_for":  ["numbered sequence (use practice-card with number instead)", "single short statement (use narrative-paragraph)"],
     "best_col_spans": [4, 5, 6, 7],
     "natural_height": "auto",
-    "schema_brief":   "items: list[str≤100] (2-8 items), density?: 'compact'|'default'|'loose'",
+    "schema_brief":   "items: list[str≤100] (2-8 items), density?: 'compact'|'default'|'loose', marker?: 'check'|'x' (default 'check' — use 'x' for negative/problem side of a comparison)",
     "font_levels_used":  ["body"],
     "font_weights_used": [400],
     "capacity_chars_per_col": 40,
@@ -580,18 +692,24 @@ def _r_bullet_list_checked(props: dict) -> str:
         raise ValidationError("invalid_value",
                               "bullet-list-checked.props.density",
                               "must be 'compact', 'default', or 'loose'")
-    check_svg = render_icon("check")
+    marker = props.get("marker", "check")
+    if marker not in ("check", "x"):
+        raise ValidationError("invalid_value",
+                              "bullet-list-checked.props.marker",
+                              "must be 'check' or 'x'")
+    marker_svg = render_icon(marker)
     item_html_parts: list[str] = []
     for item in items:
         _check_max_chars(item, 100, "bullet-list-checked.props.items[]")
         item_html_parts.append(
             f'<li class="vti-bullet-list-checked__item">'
-            f'<span class="vti-bullet-list-checked__icon">{check_svg}</span>'
+            f'<span class="vti-bullet-list-checked__icon">{marker_svg}</span>'
             f'<span class="vti-bullet-list-checked__text">{_esc(item)}</span>'
             f'</li>'
         )
     return _fill(_component_template("bullet-list-checked"), {
         "DENSITY":    density,
+        "MARKER":     marker,
         "ITEMS_HTML": "\n".join(item_html_parts),
     })
 
@@ -735,7 +853,7 @@ def _r_catalog_column(props: dict) -> str:
     "bad_for":  ["general spacer (use empty cell or 1fr row)", "more than 2 panels (use a different shape)"],
     "best_col_spans": [1, 2],
     "natural_height": "auto / 1fr",
-    "schema_brief":   "label?: str≤6 (default 'VS'), has_line?: bool, line_style?: 'dashed'|'solid'",
+    "schema_brief":   "label?: str≤6 (default 'VS'), has_line?: bool, line_style?: 'dashed'|'solid', orientation?: 'horizontal'|'vertical' (default 'horizontal')",
     "font_levels_used":  ["caption"],
     "font_weights_used": [500],
     "capacity_chars_fixed":   10,
@@ -745,15 +863,20 @@ def _r_vs_divider(props: dict) -> str:
     label    = _esc(props.get("label", "VS"))
     has_line = props.get("has_line", True)
     line_style = props.get("line_style", "dashed")
+    orientation = props.get("orientation", "horizontal")
     _check_max_chars(props.get("label", "VS"), 6, "vs-divider.props.label")
     if line_style not in ("dashed", "solid"):
         raise ValidationError("invalid_value", "vs-divider.props.line_style",
                               "must be 'dashed' or 'solid'")
+    if orientation not in ("horizontal", "vertical"):
+        raise ValidationError("invalid_value", "vs-divider.props.orientation",
+                              "must be 'horizontal' or 'vertical'")
     line_html = '<div class="vti-vs-divider__line"></div>' if has_line else ""
     return _fill(_component_template("vs-divider"), {
-        "LINE_STYLE": line_style,
-        "LINE_HTML":  line_html,
-        "LABEL":      label,
+        "LINE_STYLE":  line_style,
+        "LINE_HTML":   line_html,
+        "LABEL":       label,
+        "ORIENTATION": orientation,
     })
 
 
@@ -2810,6 +2933,101 @@ def _r_before_after(props: dict) -> str:
     })
 
 
+# ---------- vs-compare ------------------------------------------------------
+
+@register_component("vs-compare", meta={
+    "role": "Two-panel storytelling comparison with VS badge between — each "
+            "panel = kicker label + narrative paragraph + check/x bullet list. "
+            "Use for problem↔solution, pull↔push, manual↔automated, on-demand"
+            "↔scheduled. Composite of kicker + narrative-paragraph + "
+            "bullet-list-checked + vs-divider (vertical).",
+    "kind": "comparison",
+    "good_for": [
+        "problem vs solution storytelling",
+        "pull vs push, manual vs automated",
+        "before-state with explanation + after-state with explanation",
+    ],
+    "bad_for": [
+        "purely temporal before→after (use before-after — has arrow)",
+        "more than 2 sides (use comparison-table)",
+        "short labels only without prose (use comparison-table)",
+    ],
+    "best_col_spans": [10, 12],
+    "natural_height": "auto",
+    "schema_brief":
+        "left: {label: str≤40, narrative: str≤500, items: list[str≤100] (2-6)}, "
+        "right: {label: str≤40, narrative: str≤500, items: list[str≤100] (2-6)}, "
+        "left_marker?: 'check'|'x' (default 'x'), "
+        "right_marker?: 'check'|'x' (default 'check'), "
+        "vs_label?: str≤6 (default 'VS'), "
+        "line_style?: 'dashed'|'solid' (default 'dashed')",
+    "font_levels_used":  ["caption", "body"],
+    "font_weights_used": [400, 500],
+    "capacity_chars_fixed":   1200,
+    "picks_content_kinds": ["vs_compare", "comparison_story"],
+})
+def _r_vs_compare(props: dict) -> str:
+    left  = _require(props, "left",  "vs-compare.props")
+    right = _require(props, "right", "vs-compare.props")
+
+    def _panel_blocks(side: dict, where: str, marker: str) -> tuple[str, str, str]:
+        label     = _require(side, "label",     f"vs-compare.props.{where}")
+        narrative = _require(side, "narrative", f"vs-compare.props.{where}")
+        items     = _require(side, "items",     f"vs-compare.props.{where}")
+        _check_max_chars(label,     40,  f"vs-compare.props.{where}.label")
+        _check_max_chars(narrative, 500, f"vs-compare.props.{where}.narrative")
+        if not isinstance(items, list) or not (2 <= len(items) <= 6):
+            raise ValidationError("invalid_count",
+                                  f"vs-compare.props.{where}.items",
+                                  f"must have 2-6 items, got {len(items) if isinstance(items, list) else type(items).__name__}")
+        # Use render_component() (not _r_*) so transitive component usage
+        # is tracked in _USED_COMPONENTS_THIS_RENDER and the inner CSS
+        # (kicker / narrative-paragraph / bullet-list-checked) gets
+        # bundled into the deck. Bypassing the wrapper left those CSS
+        # chunks out, so SVG bullets rendered at browser default (~300px).
+        kicker_html = render_component(
+            "kicker", {"text": label, "rule": True, "align": "left"}
+        )
+        narrative_html = render_component(
+            "narrative-paragraph", {"paragraphs": [narrative]}
+        )
+        bullets_html = render_component("bullet-list-checked", {
+            "items":   items,
+            "density": "default",
+            "marker":  marker,
+        })
+        return kicker_html, narrative_html, bullets_html
+
+    left_marker  = props.get("left_marker",  "x")
+    right_marker = props.get("right_marker", "check")
+    if left_marker not in ("check", "x"):
+        raise ValidationError("invalid_value", "vs-compare.props.left_marker",
+                              "must be 'check' or 'x'")
+    if right_marker not in ("check", "x"):
+        raise ValidationError("invalid_value", "vs-compare.props.right_marker",
+                              "must be 'check' or 'x'")
+
+    l_kicker, l_narr, l_bullets = _panel_blocks(left,  "left",  left_marker)
+    r_kicker, r_narr, r_bullets = _panel_blocks(right, "right", right_marker)
+
+    divider_html = render_component("vs-divider", {
+        "label":       props.get("vs_label", "VS"),
+        "has_line":    True,
+        "line_style":  props.get("line_style", "dashed"),
+        "orientation": "vertical",
+    })
+
+    return _fill(_component_template("vs-compare"), {
+        "LEFT_KICKER_HTML":     l_kicker,
+        "LEFT_NARRATIVE_HTML":  l_narr,
+        "LEFT_BULLETS_HTML":    l_bullets,
+        "DIVIDER_HTML":         divider_html,
+        "RIGHT_KICKER_HTML":    r_kicker,
+        "RIGHT_NARRATIVE_HTML": r_narr,
+        "RIGHT_BULLETS_HTML":   r_bullets,
+    })
+
+
 # ---------- icon-list -------------------------------------------------------
 
 _VALID_ICON_LIST_DENSITY = {"compact", "default", "loose"}
@@ -3430,6 +3648,16 @@ _GRID_CSS = """
   min-width: 0;     /* prevents grid blowout from long content */
   min-height: 0;
 }
+/* v3.13.9 — ensure the single component inside each grid-cell fills the
+ * cell's width. `justify-content: stretch` on the flex parent is not a
+ * valid flexbox value, so without this rule a content-width child (e.g.
+ * .vti-callout, .vti-tags) only takes the width of its inline content
+ * even when the cell spans 12 columns. Width-stretchers like
+ * .vti-practice-card / .vti-stat-mini already self-set width:100% so
+ * they're unaffected; this just covers the gap for components that
+ * don't.
+ */
+.layout-grid .vti-grid-cell > * { width: 100%; }
 """
 
 
@@ -4077,7 +4305,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.13.9",
+        "version":    "3.16.0",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }
@@ -5402,6 +5630,9 @@ BLOCK_KIND_MAP: dict[str, str] = {
     "tip":             "callout",
     "before_after":    "before-after",
     "transformation":  "before-after",
+    "vs_compare":      "vs-compare",
+    "comparison_story": "vs-compare",
+    "pull_vs_push":    "vs-compare",
     "icon_list":       "icon-list",
     "feature_list":    "icon-list",
 

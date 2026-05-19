@@ -1,0 +1,24 @@
+.vti-vs-compare {
+  display: grid;
+  grid-template-columns: 5fr 2fr 5fr;
+  width: 100%;
+  height: 100%;
+  column-gap: 0;
+}
+.vti-vs-compare__col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  min-width: 0;
+}
+/* Override narrative-paragraph's standalone height:100% so it doesn't
+ * steal all vertical space inside the column — keep kicker / narrative
+ * / bullets stacked tight, then center the whole stack via the column's
+ * justify-content above. */
+.vti-vs-compare__col .vti-narrative { height: auto; justify-content: flex-start; }
+.vti-vs-compare__center {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}

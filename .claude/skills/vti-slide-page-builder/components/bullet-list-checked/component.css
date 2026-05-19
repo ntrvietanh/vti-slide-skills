@@ -28,6 +28,9 @@
   justify-content: center;
   margin-top: 2px;
 }
+.vti-bullet-list-checked[data-marker="x"] .vti-bullet-list-checked__icon {
+  color: #8A8A87;
+}
 .vti-bullet-list-checked__icon svg {
   width: 100%;
   height: 100%;
