@@ -29,9 +29,10 @@ sessions/
 # Test outputs (keep inputs + expected)
 tests/outputs/
 
-# Per-session driver scripts (regenerated each iteration; wiped by scripts/reset.sh)
-scripts/build_phase_*.py
-scripts/ingest_*.py
+# Per-deck scripts + patches (regenerated per deck; wiped by scripts/reset.sh).
+# Rule: everything under scripts/ is per-deck EXCEPT *.sh (tracked tooling).
+scripts/**
+!scripts/**/*.sh
 
 # IDE
 .vscode/

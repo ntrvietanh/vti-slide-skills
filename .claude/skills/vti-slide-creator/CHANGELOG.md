@@ -1,5 +1,18 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.7.0 (2026-05-20) — Deliverable filename convention
+
+New `deck_filename.py` module exports a single function:
+
+    deck_filename(title, customer=None, version="1.0", ext="html")
+        → "VTI{-Customer}_Title-Slug_vX.Y.ext"
+
+Phase 6 drivers now write two artifacts: `work/deck-composed.html`
+(canonical working file referenced by patches + decorator) and a
+deliverable copy under the formula above. PPTX export inherits the
+stem automatically. Title/customer slugifier strips Vietnamese
+diacritics (ả→a, đ→d) so filenames stay ASCII-portable.
+
 ## v4.6.2 (2026-05-19) — Forward diagram captions to image-tile cell
 
 `layout_designer._image_cell_props` accepts a new `captions: list[str] |

@@ -562,12 +562,24 @@ _PRACTICE_TONE_MAP = {
 })
 def _r_practice_card(props: dict) -> str:
     title = _esc(_require(props, "title", "practice-card.props"))
-    body  = _esc(_require(props, "body",  "practice-card.props"))
+    raw_body = _require(props, "body", "practice-card.props")
     icon  = props.get("icon", "")
     number = props.get("number", "")
     color_tone = props.get("color_tone", "deep")
     _check_max_chars(props["title"], 28, "practice-card.props.title")
     _check_max_chars(props["body"], 220, "practice-card.props.body")
+
+    # Body with `\n` becomes a bulleted list — one intent per item.
+    # Single-line bodies stay as a flowing paragraph.
+    if "\n" in raw_body:
+        items = [ln.strip() for ln in raw_body.split("\n") if ln.strip()]
+        body = (
+            '<ul class="vti-practice-card__bullets">'
+            + "".join(f"<li>{_esc(it)}</li>" for it in items)
+            + "</ul>"
+        )
+    else:
+        body = f'<p class="vti-practice-card__text">{_esc(raw_body)}</p>'
 
     # Resolve color: token name OR raw hex.
     if color_tone in _PRACTICE_TONE_MAP:
@@ -4445,7 +4457,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.18.0",
+        "version":    "3.18.1",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }

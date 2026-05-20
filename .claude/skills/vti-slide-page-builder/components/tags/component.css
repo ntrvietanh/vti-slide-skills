@@ -6,6 +6,8 @@
 .vti-tags {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
   gap: 6px;
   font-family: var(--font-b);
   min-width: 0;

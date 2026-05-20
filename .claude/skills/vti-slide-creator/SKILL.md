@@ -1,6 +1,6 @@
 # vti-slide-creator
 
-**Version: 4.6.1**
+**Version: 4.7.0**
 
 Multi-phase orchestrator for VTI deck building. Pairs with
 `vti-slide-page-builder` (the renderer).
@@ -11,6 +11,28 @@ Multi-phase orchestrator for VTI deck building. Pairs with
 > must NOT mutate the deck HTML between compose and disk-write. Page
 > numbers are owned by the chrome footer chevron — there is no second
 > badge. (Removed in v4.0.1 after the "16 in top-left" regression.)
+
+> **Deliverable filename contract (v4.7.0).** Phase 6 writes a working
+> file at `work/deck-composed.html` (referenced by patches + decorator)
+> AND a deliverable copy named per the VTI convention:
+>
+> ```
+> VTI{-Customer}_Title-Slug_vX.Y.html
+> ```
+>
+> Use `deck_filename(title, customer=None, version="1.0", ext="html")`
+> from `deck_filename.py` to construct the name — drivers must not
+> hand-format it. The customer segment is omitted when `customer=None`.
+> Vietnamese diacritics are stripped (`ả → a`, `đ → d`) so the result
+> is ASCII-portable. Examples:
+>
+> | Inputs | Filename |
+> |---|---|
+> | `("Day-to-Day Info Summarization Agent")` | `VTI_Day-to-Day-Info-Summarization-Agent_v1.0.html` |
+> | `("Cloud Modernization", customer="LG Magna", version="2.1")` | `VTI-LG-Magna_Cloud-Modernization_v2.1.html` |
+>
+> The PPTX exporter inherits this stem automatically — same name with
+> `.pptx` extension.
 
 ## Strict rules — VTI deck structural mandates (v4.2.0)
 

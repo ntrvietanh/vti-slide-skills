@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Source this file (don't execute): `source scripts/setup.sh`
-# Sets PYTHONPATH so the 4 VTI slide skills can import from each other.
+# Sets PYTHONPATH so the 5 VTI slide skills can import from each other.
 
 # Resolve repo root (works whether sourced from repo root or scripts/)
 if [ -n "${BASH_SOURCE[0]}" ]; then
@@ -16,7 +16,8 @@ $SKILLS_DIR/vti-slide-creator:\
 $SKILLS_DIR/vti-slide-page-builder:\
 $SKILLS_DIR/vti-slide-decorator:\
 $SKILLS_DIR/vti-slide-decorator/strategies:\
-$SKILLS_DIR/vti-slide-diagram-builder${PYTHONPATH:+:$PYTHONPATH}"
+$SKILLS_DIR/vti-slide-diagram-builder:\
+$SKILLS_DIR/vti-slide-pptx-exporter${PYTHONPATH:+:$PYTHONPATH}"
 
 # Activate venv if exists and not already active
 if [ -z "${VIRTUAL_ENV:-}" ] && [ -f "$REPO_ROOT/.venv/bin/activate" ]; then
@@ -30,6 +31,6 @@ if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
   echo "    Run: unset ANTHROPIC_API_KEY"
 fi
 
-echo "✅ PYTHONPATH set to include 4 skill dirs"
+echo "✅ PYTHONPATH set to include 5 skill dirs"
 echo "   Repo: $REPO_ROOT"
 [ -n "$VIRTUAL_ENV" ] && echo "   venv: $VIRTUAL_ENV"

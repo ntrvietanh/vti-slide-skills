@@ -1,5 +1,48 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v3.18.3 (2026-05-20) — practice-card: multi-line body renders as bullet list
+
+Promotes the v3.18.2 `\n` handling from `<br>` line breaks to a proper semantic
+`<ul class="vti-practice-card__bullets">` with disc markers, blue marker color,
+and tightened line-height. Single-line bodies still render as a flowing `<p>`.
+
+Template now emits the body wrapper directly (was always wrapped in `<p>` —
+which produced invalid HTML when body was a list). Single-paragraph callers
+are unaffected because the renderer now produces the `<p>` itself.
+
+## v3.18.2 (2026-05-20) — practice-card: body honours `\n` as line break
+
+`practice-card.props.body` previously rendered as a single flowing paragraph,
+forcing authors to use em-dash density to separate multiple intents inside one
+card. Now any `\n` in the body string is converted to `<br>` after HTML escape,
+so authors can write one intent per line for readability.
+
+Backwards compatible: existing single-line bodies render unchanged.
+
+## v3.18.1 (2026-05-20) — tags: don't stretch pill height to fill cell
+
+`.vti-tags` container is placed inside a `.vti-grid-cell` which uses
+`align-items: stretch`. That stretched `.vti-tags` to 100% of the cell
+height; combined with its own `display: flex; flex-wrap: wrap` (default
+`align-content: stretch`), the wrapped flex lines distributed the
+spare height across rows and individual pills ballooned to ~2-3× the
+text height.
+
+Fix: add `align-content: flex-start; align-items: flex-start;` to
+`.vti-tags` so:
+- wrapped flex lines pack at the top of the container instead of
+  stretching to fill it
+- each pill keeps its content-derived height regardless of how tall
+  the parent cell happens to be
+
+Visual result: pills now hug the text with just the configured
+`padding: 4px 11px`, matching the chip aesthetic described in the
+component role.
+
+- **CSS only** — `.claude/skills/vti-slide-page-builder/components/tags/component.css`.
+- No schema / API change.
+- **Bumped `version: 3.18.1`** in `info()` and `SKILL.md`.
+
 ## v3.18.0 (2026-05-19) — image-tile captions strip
 
 `image-tile` accepts a new optional prop `captions: list[str≤80]` (up to
