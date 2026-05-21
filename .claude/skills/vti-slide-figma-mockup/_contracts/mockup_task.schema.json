@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vti-slide-figma-mockup/mockup_task",
+  "title": "Mockup task descriptor",
+  "description": "Shape returned by mockup_builder.make_* — the Figma render task the orchestrator executes via Figma MCP.",
+  "type": "object",
+  "required": ["kind", "backend", "brief", "frame_label", "style", "hint_w", "hint_h", "title"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "screen-mobile",
+        "screen-tablet",
+        "screen-desktop",
+        "screen-bare",
+        "flow-mobile",
+        "flow-desktop",
+        "wireframe-mobile",
+        "wireframe-desktop"
+      ]
+    },
+    "backend": {
+      "type": "string",
+      "const": "figma"
+    },
+    "brief": {
+      "type": "string",
+      "description": "Full text prompt passed to mcp__claude_ai_Figma__use_figma. Composed by mockup_builder._compose_brief()."
+    },
+    "frame_label": {
+      "type": "string",
+      "description": "Device or browser chrome label, e.g. 'iPhone 15 Pro'."
+    },
+    "style": {
+      "type": "string",
+      "enum": ["brand-vti", "neutral", "dark-mode"]
+    },
+    "hint_w": {
+      "type": "integer",
+      "minimum": 100
+    },
+    "hint_h": {
+      "type": "integer",
+      "minimum": 100
+    },
+    "title": {
+      "type": "string"
+    },
+    "subtitle": {
+      "type": ["string", "null"]
+    },
+    "captions": {
+      "type": ["array", "null"],
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}

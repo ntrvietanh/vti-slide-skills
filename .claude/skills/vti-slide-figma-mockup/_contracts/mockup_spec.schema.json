@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vti-slide-figma-mockup/mockup_spec",
+  "title": "Mockup spec (post-render)",
+  "description": "Shape returned by mockup_executor.record_render() — stored in content_plan['mockup_spec'] for Phase 4 to consume.",
+  "type": "object",
+  "required": ["kind", "png_path", "figma_url", "figma_file_key", "figma_node_id", "natural_w", "natural_h"],
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "screen-mobile",
+        "screen-tablet",
+        "screen-desktop",
+        "screen-bare",
+        "flow-mobile",
+        "flow-desktop",
+        "wireframe-mobile",
+        "wireframe-desktop"
+      ]
+    },
+    "brief": {"type": "string"},
+    "frame_label": {"type": ["string", "null"]},
+    "style": {
+      "type": ["string", "null"],
+      "enum": ["brand-vti", "neutral", "dark-mode", null]
+    },
+    "title": {"type": ["string", "null"]},
+    "subtitle": {"type": ["string", "null"]},
+    "captions": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "png_path": {
+      "type": "string",
+      "description": "Repo-relative path to render.png, e.g. 'work/mockups/s07-demo_01/render.png'."
+    },
+    "svg_path": {
+      "type": ["string", "null"],
+      "description": "Repo-relative path to render.svg when Figma exports SVG for the node, else null."
+    },
+    "figma_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Direct link to the Figma node — user opens this to tweak the design."
+    },
+    "figma_file_key": {"type": "string"},
+    "figma_node_id": {"type": "string"},
+    "natural_w": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "natural_h": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "rendered_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}
