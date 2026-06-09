@@ -26,8 +26,9 @@ work/
 # Session snapshots (saved work/ states for switching between projects)
 sessions/
 
-# Test outputs (keep inputs + expected)
-tests/outputs/
+# Tests — inputs are archived by scripts/session_save.sh into sessions/*.zip,
+# so the whole tests/ tree is per-deck and does not belong in git.
+tests/
 
 # Per-deck scripts + patches (regenerated per deck; wiped by scripts/reset.sh).
 # Rule: everything under scripts/ is per-deck EXCEPT *.sh (tracked tooling).
