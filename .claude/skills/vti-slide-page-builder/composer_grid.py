@@ -4373,10 +4373,26 @@ def compose_slide_grid(slide_input: dict) -> dict:
     # Decoration is handled by the separate ``vti-slide-decorator`` skill
     # post-compose. The composer emits clean content slides only.
 
-    # Render body grid (delegates to shared helper) ----------------------
-    grid_html, top_level_components, warnings = _compose_grid_body(
-        rows, layout_class=layout_class, density_mode=density_mode,
-        vertical_align=vertical_align)
+    # Principle-5 escape hatch (v3.18.4) — a slide carrying a ``custom_block``
+    # (produced by slide_edits.replace_with_custom_html) bypasses the
+    # row/cell grid entirely and renders the author's raw HTML inside the
+    # content area, still wrapped by chrome. Its CSS is appended verbatim
+    # to the slide CSS bundle.
+    custom_block = slide_input.get("custom_block")
+    if custom_block:
+        if not custom_block.get("keep_chrome", True):
+            show_chrome = False
+        grid_html = (
+            f'<div class="vti-custom-block">\n'
+            f'{custom_block.get("html", "")}\n'
+            f'</div>'
+        )
+        top_level_components, warnings = [], []
+    else:
+        # Render body grid (delegates to shared helper) ------------------
+        grid_html, top_level_components, warnings = _compose_grid_body(
+            rows, layout_class=layout_class, density_mode=density_mode,
+            vertical_align=vertical_align)
 
     # Chrome --------------------------------------------------------------
     if show_chrome:
@@ -4405,11 +4421,19 @@ def compose_slide_grid(slide_input: dict) -> dict:
     all_used = sorted(_USED_COMPONENTS_THIS_RENDER)
     tokens_css = _read_file(TOKENS_PATH)
     component_css_parts = [_component_css(c) for c in all_used]
+    custom_css = ""
+    if custom_block:
+        custom_css = (
+            ".layout-grid .vti-custom-block { flex: 1; min-height: 0; "
+            "display: flex; flex-direction: column; }\n"
+            + custom_block.get("css", "")
+        )
     slide_css = "\n\n".join(filter(None, [
         tokens_css,
         chrome_css,
         _GRID_CSS,
         *component_css_parts,
+        custom_css,
     ]))
 
     # Inline any local asset references that components emit (image-tile,
@@ -4428,7 +4452,8 @@ def compose_slide_grid(slide_input: dict) -> dict:
             "components_used":     sorted(top_level_components),
             "components_rendered": all_used,
             "row_count":  len(rows),
-            "cell_count": sum(len(r["cells"]) for r in rows),
+            "cell_count": sum(len(r.get("cells", [])) for r in rows),
+            "custom_block": bool(custom_block),
             "warnings":   warnings,
         },
     }
@@ -4457,7 +4482,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.18.1",
+        "version":    "3.18.5",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }

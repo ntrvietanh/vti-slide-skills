@@ -96,7 +96,12 @@
   height: 100%;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 16px 22px;
+  grid-auto-rows: min-content;   /* rows take natural (content) height … */
+  align-content: start;          /* … pack to top; leftover space → bottom,
+                                    so a section-header sits tight above its
+                                    own content instead of being pushed apart
+                                    by stretched auto-rows. */
+  gap: 14px 22px;
 }
 
 .cs-body .vti-grid-cell {

@@ -1,5 +1,40 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v3.18.5 (2026-06-09) — case-study body grid: stop auto-rows stretching
+
+The case-study layout's `.cs-body .vti-grid` set `height:100%` but never
+constrained row sizing, so when the body content was shorter than the
+panel the implicit auto-rows stretched to fill — pushing each
+`section-header` far above its own bullet list / paragraph (a visibly
+large header↔content gap). Added `grid-auto-rows: min-content` +
+`align-content: start` so rows take their natural height and pack to the
+top (leftover space falls to the bottom of the panel). Row-gap trimmed
+16px→14px. The main `.layout-grid .vti-grid` already did this; case-study
+slides (class `layout-case-study-*`, not `layout-grid`) were missing it.
+
+## v3.18.4 (2026-06-09) — wire Principle-5 custom_block escape hatch into composer
+
+`slide_edits.replace_with_custom_html` has long produced a `custom_block`
+flag on a slide, and its docstring promised "the composer recognizes this
+and bypasses the row/cell rendering" — but `compose_slide_grid` never
+checked for it, so any custom-HTML slide raised
+`[missing_required] rows: must be non-empty array`. The escape hatch was
+documented-but-dead.
+
+`compose_slide_grid` now honours `custom_block`:
+- renders `custom_block['html']` inside `.vti-custom-block` within the
+  content area, still wrapped by chrome (unless `keep_chrome=False`);
+- skips `_compose_grid_body` (no rows/cells required);
+- appends `custom_block['css']` to the slide CSS bundle, plus a default
+  `.vti-custom-block { flex:1; min-height:0; display:flex; flex-direction:column }`
+  so the block fills the content area;
+- reports `metadata.custom_block=True`; `cell_count` is now null-safe for
+  row dicts without a `cells` key.
+
+Unblocks structured custom one-pagers (e.g. the CTC case-study 6-block
+layout: Customer · Painpoint · VTI Solution · Technology · Diagram ·
+Achievement).
+
 ## v3.18.3 (2026-05-20) — practice-card: multi-line body renders as bullet list
 
 Promotes the v3.18.2 `\n` handling from `<br>` line breaks to a proper semantic
