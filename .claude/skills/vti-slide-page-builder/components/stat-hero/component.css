@@ -40,6 +40,21 @@
   position: relative;
   z-index: 2;
 }
+/* v4.5 EDITORIAL — scale="mega": the numeral jumps to the --vti-fs-mega tier
+   (≤140px) so one number can dominate ~half a slide; the deco rings scale up
+   to frame it. On a dark stage cell, --vti-blue-deep is flipped to white by
+   the surface, so the value reads light automatically. */
+.vti-stat-hero[data-scale="mega"] .vti-stat-hero__value {
+  font-size: var(--vti-fs-mega);
+}
+.vti-stat-hero[data-scale="mega"] .vti-stat-hero__deco--outer {
+  width: 380px;
+  height: 380px;
+}
+.vti-stat-hero[data-scale="mega"] .vti-stat-hero__deco--inner {
+  width: 280px;
+  height: 280px;
+}
 .vti-stat-hero__label {
   font-family: var(--vti-font-body, "Inter", sans-serif);
   font-size: var(--vti-fs-body);  /* was 15px */

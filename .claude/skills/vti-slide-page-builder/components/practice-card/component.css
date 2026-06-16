@@ -71,10 +71,14 @@
 }
 .vti-practice-card__body {
   background: #FFFFFF;
-  padding: 14px 18px 16px;
+  padding: 16px 18px;
   flex: 1;
   display: flex;
-  align-items: flex-start;
+  /* v4.5 — vertically centre the body copy in the white area. In a tall 1fr
+     card (e.g. a 3-up triad filling the canvas) this keeps the text optically
+     balanced instead of clinging under the header with a void below. For a
+     short/dense card the body fills, so this is a no-op there. */
+  align-items: center;
 }
 .vti-practice-card__text {
   font-family: var(--vti-font-body, "Inter", sans-serif);

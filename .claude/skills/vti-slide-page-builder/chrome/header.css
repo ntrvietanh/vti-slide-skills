@@ -6,56 +6,66 @@
    lives at top-right. Both are positioned absolutely so layouts don't have
    to reserve grid rows for them.                                            */
 
+/* v4.5 — STACKED breadcrumb: section (small) above, slide title (large) below,
+   left-aligned. align-items:stretch lets the leading bar grow to the full
+   height of BOTH text lines. */
 .bc {
   position: absolute;
-  top: 22px;
+  top: 16px;
   left: 60px;
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: stretch;
+  gap: 13px;
   z-index: 10;
 }
 
-/* The dark-blue accent bar before the breadcrumb text. Sized larger
-   than the previous 3×16 to give the slide title a stronger visual
-   anchor and clearer separation from the content below. */
+/* The dark-blue accent bar. No fixed height — it stretches to span both the
+   section line and the slide-title line. */
 .bc-bar {
-  display: inline-block;
-  width: 4px;
-  height: 22px;
+  width: 5px;
+  align-self: stretch;
+  border-radius: 2px;
   background: var(--blue-deep);
+  flex: 0 0 auto;
 }
 
+/* Text block: section stacked above title, left-aligned, vertically centred
+   against the bar. */
 .bc-text {
   font-family: var(--font-h);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: var(--gray-text);   /* #3D3D3D, sampled from sw_slide_05            */
   white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4px;
 }
 
-/* Breadcrumb sub-parts for the "SECTION | TITLE" form. The section name
-   sits in the lighter weight, then a separator, then the slide title in
-   bold. Used when both inp.section_name and inp.slide_title are present
-   and distinct. */
+/* SECTION title — small, on top, muted. */
 .bc-text .bc-section {
-  font-weight: 500;
-}
-.bc-text .bc-sep {
-  font-weight: 500;
-  margin: 0 2px;
-  opacity: 0.7;
-}
-.bc-text .bc-title {
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 1.2px;
+  line-height: 1;
+  color: var(--gray-soft);
+}
+/* SLIDE title — large, below, brand-blue, the prominent element. */
+.bc-text .bc-title {
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1.04;
+  color: var(--blue-deep);
 }
 
 /* Dark-background variant — flip breadcrumb to white when the slide's top
-   region is a dark banner (e.g. hero-banner-stats). The slide root must
-   carry data-bc-on-dark="true" for this rule to apply.                     */
-.slide[data-bc-on-dark="true"] .bc-text {
+   region is a dark banner / stage. The slide root must carry
+   data-bc-on-dark="true" for this rule to apply.                          */
+.slide[data-bc-on-dark="true"] .bc-text .bc-section {
+  color: rgba(255, 255, 255, 0.70);
+}
+.slide[data-bc-on-dark="true"] .bc-text .bc-title {
   color: var(--white);
 }
 .slide[data-bc-on-dark="true"] .bc-bar {
@@ -70,7 +80,7 @@
    offset that read as visually misaligned. */
 .logo-tr {
   position: absolute;
-  top: 24px;
+  top: 31px;            /* v4.5 — dropped to sit level with the (lower) slide title line */
   right: 60px;
   z-index: 10;
 }

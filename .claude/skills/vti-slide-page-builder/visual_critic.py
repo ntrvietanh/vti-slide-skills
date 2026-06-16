@@ -378,7 +378,125 @@ def render_review(html_path: str | Path,
     return out_html
 
 
+# ---------------------------------------------------------------------------
+# Static richness floor (v4.5) — pre-render enforcement on slide_input
+# descriptors. No Playwright/Pillow needed; complements the pixel checks in
+# critique(). This is the codified answer to "decks come out flat": every
+# content slide must carry a real visual anchor and actually fill the canvas.
+# ---------------------------------------------------------------------------
+
+# Plain-prose components — a slide built ONLY from these is "flat" (the exact
+# failure mode: a full-width narrative + one text row, floating).
+_TEXT_KIND_COMPONENTS = {
+    "narrative-paragraph", "lead-paragraph", "bullet-list-checked",
+    "numbered-list", "section-header", "headline", "kicker", "body",
+    "definition-list",
+}
+
+
+def _slide_cells(slide: dict) -> list[dict]:
+    return [c for row in slide.get("rows", []) for c in row.get("cells", [])]
+
+
+def richness_floor(slides: list[dict]) -> dict:
+    """Grade a deck's descriptors against the visual-richness floor.
+
+    Pure/static — operates on ``slide_input`` dicts (no rendering). Per content
+    slide it checks:
+
+      R2 — has a visual anchor: ≥1 non-text component, OR a dark ``stage``
+           surface (cell or whole-slide), OR a full-bleed ``bg_image``.
+      R3 — is NOT a flat slide: a ≤2-row, all-text layout with no 1fr fill and
+           no anchor is the precise "narrative + one row" failure → fail.
+      R4 — fills the canvas: ≥1 row with ``height:"1fr"`` + ``_fill_verified``.
+
+    Deck level:
+      R8 — mega scarcity: ``stat-hero scale:"mega"`` on ≤25% of content slides.
+
+    Special pages (``{"special": ...}``) are exempt. Slides whose
+    ``density_mode`` is ``"sparse-ok"`` waive R2/R4 (intentional breathing
+    room — hero statements, quotes). Returns a report; it never raises, so the
+    orchestrator's ``richness_gate`` decides block/warn/ok.
+    """
+    per_slide: list[dict] = []
+    content_idx = 0
+    mega_slides = 0
+
+    for i, slide in enumerate(slides):
+        if not isinstance(slide, dict) or slide.get("special") or "rows" not in slide:
+            per_slide.append({"index": i + 1, "status": "exempt",
+                              "reasons": ["special / non-grid slide"]})
+            continue
+
+        content_idx += 1
+        meta = slide.get("slide_meta") or {}
+        rows = slide.get("rows", [])
+        cells = _slide_cells(slide)
+        sparse_ok = meta.get("density_mode") == "sparse-ok"
+
+        comps = [c.get("component") for c in cells]
+        has_surface_stage = any(
+            c.get("surface") in ("stage", "stage-grad") for c in cells)
+        has_bleed = bool(meta.get("stage") or meta.get("bg_image"))
+        has_anchor = (
+            any(comp not in _TEXT_KIND_COMPONENTS for comp in comps if comp)
+            or has_surface_stage or has_bleed
+        )
+        # R4 is satisfied by EITHER a 1fr _fill_verified row OR an explicit
+        # vertical_align="center" (a centred band balances space top+bottom, so
+        # content isn't "dumped at the top with dead space below").
+        has_fill = (
+            meta.get("vertical_align") == "center"
+            or any(
+                str(r.get("height")) == "1fr" and r.get("_fill_verified") is True
+                for r in rows
+            )
+        )
+        is_flat = (len(rows) <= 2 and not has_anchor and not has_fill)
+
+        if any(c.get("component") == "stat-hero"
+               and (c.get("props") or {}).get("scale") == "mega" for c in cells):
+            mega_slides += 1
+
+        reasons: list[str] = []
+        status = "pass"
+        if is_flat:
+            status = "fail"
+            reasons.append("R3 flat: ≤2 all-text rows, no anchor, no 1fr fill "
+                           "— the 'narrative + one row' failure shape")
+        if not has_anchor and not sparse_ok:
+            status = "fail"
+            reasons.append("R2 no visual anchor: slide is all plain-prose "
+                           "components (add a chart/diagram/stat/cards/dark stage)")
+        if not has_fill and not sparse_ok and status != "fail":
+            status = "warn"
+            reasons.append("R4 no 1fr fill: no _fill_verified 1fr row — content "
+                           "will float and leave dead space")
+        if not reasons:
+            reasons.append("ok")
+        per_slide.append({"index": i + 1, "status": status, "reasons": reasons})
+
+    deck_issues: list[str] = []
+    if content_idx and mega_slides > max(1, round(0.25 * content_idx)):
+        deck_issues.append(
+            f"R8 mega overuse: {mega_slides}/{content_idx} content slides use a "
+            f"mega stat — oversized numerals lose impact when common (≤25%)")
+
+    n_fail = sum(1 for s in per_slide if s["status"] == "fail")
+    n_warn = sum(1 for s in per_slide if s["status"] == "warn")
+    flag = "block" if n_fail else ("warn" if (n_warn or deck_issues) else "ok")
+    return {
+        "flag": flag,
+        "content_slides": content_idx,
+        "n_fail": n_fail,
+        "n_warn": n_warn,
+        "deck_issues": deck_issues,
+        "slides": per_slide,
+    }
+
+
 __all__ = [
     "measure_html", "critique", "verdict", "auto_repair", "render_review",
+    "richness_floor",
     "MIN_FONT_PX", "MAX_OVERFLOW_PX", "SPARSE_INK",
 ]

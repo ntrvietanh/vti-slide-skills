@@ -83,6 +83,7 @@
      small between body and caption. The budget audit collapses adjacent
      tiers when counting (composer_grid.py _aggregate_type_budget).
      ================================================================ */
+  --vti-fs-mega:       clamp(72px, calc(44px    + 7.5cqw),  140px);  /* T1 mega    · EDITORIAL — oversized numeral / chapter no. ≤1/slide; stat-hero scale:"mega", display-number ONLY — never body/caption */
   --vti-fs-hero:       clamp(40px, calc(31px    + 3.0cqw),   64px);  /* T1 hero    · 1/slide — big stat, cover */
   --vti-fs-display:    clamp(22px, calc(18.25px + 1.25cqw),  32px);  /* T1 display · 1-2/slide — section/divider */
   --vti-fs-title:      clamp(17px, calc(14.4px  + 0.875cqw), 24px);  /* T1 title   · card titles, in-slide H2 */
@@ -200,6 +201,43 @@
   --vti-muted:       rgba(255, 255, 255, 0.62);
   --vti-border:      rgba(255, 255, 255, 0.18);
   --vti-divider:     rgba(255, 255, 255, 0.12);
+}
+
+/* ============================================================================
+   EDITORIAL DARK STAGE  (v4.5 — bold editorial layer)
+   ----------------------------------------------------------------------------
+   Dark "stage" surfaces for hero / section-divider / mega-stat slides — the
+   single biggest lever against flat, washed-out decks. The navy stage is the
+   canonical dark beat; the gradient adds depth (navy → blue-deep, sampled
+   direction from the cover hero). Any cell or whole slide can opt into a stage;
+   children flip to light-on-dark by REUSING .vti-on-dark above (no per-block
+   edits). Tokens here are intent-named aliases so usage reads clearly.
+   ============================================================================ */
+:root {
+  --vti-stage-navy:      #051934;                                              /* = --vti-navy, named for dark-stage intent */
+  --vti-stage-grad:      linear-gradient(135deg, #051934 0%, #0A2A78 55%, #0844A4 100%); /* depth: navy → blue-deep */
+  --vti-stage-grad-soft: linear-gradient(160deg, #07203F 0%, #051934 100%);    /* subtler, for KPI bands */
+  --vti-on-stage-text:   #FFFFFF;
+  --vti-on-stage-muted:  rgba(255, 255, 255, 0.72);
+  --vti-on-stage-hair:   rgba(255, 255, 255, 0.16);
+
+  /* ---- Full-bleed scrim gradients --------------------------------------
+     For image-bleed slides: a photo fills the whole canvas; a scrim keeps
+     overlaid text legible. Left-anchored scrim = text lives on the dark left,
+     photo breathes on the right (the magazine-cover move). Bottom-anchored
+     mirrors the image-tile overlay-caption recipe. */
+  --vti-scrim-left:   linear-gradient(90deg, rgba(5,25,52,0.84) 0%, rgba(5,25,52,0.58) 45%, rgba(5,25,52,0.12) 100%);
+  --vti-scrim-bottom: linear-gradient(0deg,  rgba(5,25,52,0.86) 0%, rgba(5,25,52,0.40) 38%, rgba(5,25,52,0.00) 70%);
+
+  /* ---- Accent policy (intent-named; ONE accent per slide) --------------
+     Blue family = structure + default emphasis (unchanged). A single accent
+     hue may appear on AT MOST one element per slide (a stat underline, one
+     card's top band, one chart series). Charts stay blue-mono unless the
+     slide's one accent is intentionally carried into exactly one series.
+     The richness floor enforces "≤1 accent hue per slide". */
+  --vti-accent-momentum: var(--vti-amber);     /* momentum / "the one number that matters" */
+  --vti-accent-growth:   var(--vti-teal);      /* positive transformation / the "after" state */
+  --vti-accent-contrast: var(--vti-magenta);   /* contrast / the single standout card */
 }
 
 /* ---- tokens originally from vti-slide-layout-v1 ---- */

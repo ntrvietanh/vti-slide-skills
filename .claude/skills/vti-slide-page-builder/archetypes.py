@@ -305,6 +305,225 @@ ARCHETYPES: dict[str, dict[str, Any]] = {
             ]},
         ],
     },
+
+    # ======================================================================
+    # EDITORIAL ARCHETYPES (v4.5) — bold, dark, oversized, full-bleed,
+    # chart-led, asymmetric. These break the flat "narrative + one row"
+    # default; each fills the canvas with a 1fr row and carries a real visual
+    # anchor. Dark / bleed archetypes are self-contained via slide_meta_defaults.
+    # ======================================================================
+
+    # ---- dark full-bleed section divider with oversized chapter numeral --
+    "stage-divider": {
+        "intent": "section-divider",
+        "summary": "A dark full-bleed chapter open: an oversized numeral on the "
+                   "left anchors a large title on the right, with one framing "
+                   "line. The whole slide goes navy-gradient.",
+        "best_for": ["section / chapter opener", "a dramatic transition beat"],
+        "avoid_when": ["dense content", "data"],
+        "whitespace": "The dark stage IS the design; the numeral + title float "
+                      "in deliberate space.",
+        "accent_policy": "Mega numeral + display title, everything light on dark.",
+        "slide_meta_defaults": {"stage": "grad", "layout_class": "editorial"},
+        "rows": [
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "number", "component": "stat-hero",
+                 "col_start": 1, "col_span": 4, "valign": "center",
+                 "required": False},
+                {"slot": "title", "component": "headline",
+                 "col_start": 5, "col_span": 8, "valign": "center",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "framing", "component": "lead-paragraph",
+                 "col_start": 5, "col_span": 8, "required": False},
+            ]},
+        ],
+    },
+
+    # ---- one giant number owns ~half the canvas (dark stat panel) --------
+    "mega-stat": {
+        "intent": "stat-anchor",
+        "summary": "A single oversized stat on a dark stage panel owns the left "
+                   "half; a narrative + proof points read the number on the right.",
+        "best_for": ["one dramatic headline metric", "a scale / impact claim"],
+        "avoid_when": ["no real number (do NOT fabricate)", "several peer metrics"],
+        "whitespace": "Dark panel anchors left; text column paces the read.",
+        "accent_policy": "The number is the whole slide — mega tier, light on dark.",
+        "rows": [
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "stat", "component": "stat-hero",
+                 "col_start": 1, "col_span": 6, "surface": "stage",
+                 "required": True},
+                {"slot": "story", "component": "narrative-paragraph",
+                 "col_start": 7, "col_span": 6, "valign": "center",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "points", "component": "bullet-list-checked",
+                 "col_start": 7, "col_span": 6, "required": False},
+            ]},
+        ],
+    },
+
+    # ---- full-bleed photo + left-anchored text overlay -------------------
+    "image-bleed-overlay": {
+        "intent": "image-statement",
+        "summary": "A full-bleed photo fills the canvas behind a legibility "
+                   "scrim; an eyebrow + bold headline + one line sit on the dark "
+                   "left. Requires slide_meta.bg_image.",
+        "best_for": ["a cinematic opener", "a human / context moment", "a hero image"],
+        "avoid_when": ["no strong photo available", "data / detail"],
+        "whitespace": "Text on the dark left third; the photo breathes right.",
+        "accent_policy": "Headline white over the scrim; everything else recedes.",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "kicker", "component": "kicker",
+                 "col_start": 1, "col_span": 7, "required": False},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "headline", "component": "headline",
+                 "col_start": 1, "col_span": 7, "valign": "center",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "support", "component": "lead-paragraph",
+                 "col_start": 1, "col_span": 6, "required": False},
+            ]},
+        ],
+    },
+
+    # ---- asymmetric 60/40 split with a single visual anchor --------------
+    "split-anchor-60-40": {
+        "intent": "feature+visual",
+        "summary": "A deliberate 7/5 imbalance: argument (lead + checklist) on "
+                   "the left, a single strong visual anchor (image, chart or "
+                   "dark stat) on the right.",
+        "best_for": ["a point that needs one supporting visual", "claim + proof"],
+        "avoid_when": ["two equal columns (use two-panel-compare)"],
+        "whitespace": "Text leads; the anchor grounds the right at full height.",
+        "accent_policy": "One anchor carries the colour; text stays neutral.",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "lead", "component": "lead-paragraph",
+                 "col_start": 1, "col_span": 7, "required": False},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "points", "component": "bullet-list-checked",
+                 "col_start": 1, "col_span": 7, "valign": "center",
+                 "required": True},
+                {"slot": "anchor", "component": "image-tile",
+                 "col_start": 8, "col_span": 5, "required": True},
+            ]},
+        ],
+    },
+
+    # ---- chart-led data slide (chart dominates, not a table) -------------
+    "chart-lead": {
+        "intent": "data-story",
+        "summary": "A chart owns two-thirds of the slide; a narrative reads the "
+                   "data and a deep-tone callout lands the single takeaway.",
+        "best_for": ["a metric / breakdown / trend with real numbers"],
+        "avoid_when": ["categorical lists (use catalog/icon-list)", "no numbers"],
+        "whitespace": "Chart fills its column; the right rail paces the read.",
+        "accent_policy": "Chart carries brand palette (≤1 accent series); "
+                         "takeaway callout is the one deep-tone emphasis.",
+        "rows": [
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "chart", "component": "bar-chart",
+                 "col_start": 1, "col_span": 8, "required": True},
+                {"slot": "read", "component": "narrative-paragraph",
+                 "col_start": 9, "col_span": 4, "valign": "center",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "takeaway", "component": "callout",
+                 "col_start": 9, "col_span": 4, "required": False},
+            ]},
+        ],
+    },
+
+    # ---- three full-height bold cards (strong colour rhythm) -------------
+    "triad-bold": {
+        "intent": "pillars",
+        "summary": "Three full-height cards with strong coloured headers + icons "
+                   "fill the slide. An optional eyebrow frames them. Bolder than "
+                   "lead-plus-three-cards (no lead paragraph eating height).",
+        "best_for": ["three peer capabilities / pillars / steps with icons"],
+        "avoid_when": ["only two items", "more than four items",
+                       "long multi-paragraph card bodies (use lead-plus-three-cards, 1fr)"],
+        "whitespace": "Cards size to content as a centred band — balanced "
+                      "breathing room above + below, never tall hollow tiles.",
+        "accent_policy": "Cards step deep / sky / navy (or one accent standout).",
+        # Centred band: cards are content-height (not stretched), the whole
+        # group sits vertically centred so brief peer cards read as an
+        # intentional tile band rather than hollow full-height columns.
+        "slide_meta_defaults": {"vertical_align": "center"},
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "kicker", "component": "kicker",
+                 "col_start": 1, "col_span": 8, "required": False},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "card1", "component": "practice-card",
+                 "col_start": 1, "col_span": 4, "required": True},
+                {"slot": "card2", "component": "practice-card",
+                 "col_start": 5, "col_span": 4, "required": True},
+                {"slot": "card3", "component": "practice-card",
+                 "col_start": 9, "col_span": 4, "required": True},
+            ]},
+        ],
+    },
+
+    # ---- process-flow as a full-width band -------------------------------
+    "process-band": {
+        "intent": "process",
+        "summary": "A short lead, then a full-width process-flow band (tinted) "
+                   "owns the slide's centre mass, with an optional outcome "
+                   "callout grounding the base.",
+        "best_for": ["a sequence / workflow / pipeline of 3-7 steps"],
+        "avoid_when": ["unordered items (use icon-list / catalog)"],
+        "whitespace": "The flow band fills the middle; lead + outcome frame it.",
+        "accent_policy": "Flow carries the brand gradient; callout deep-tone.",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "lead", "component": "lead-paragraph",
+                 "col_start": 1, "col_span": 8, "required": False},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "flow", "component": "process-flow",
+                 "col_start": 1, "col_span": 12, "surface": "tint",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "outcome", "component": "callout",
+                 "col_start": 1, "col_span": 12, "required": False},
+            ]},
+        ],
+    },
+
+    # ---- KPI band on a dark stage + framing ------------------------------
+    "stage-kpi-band": {
+        "intent": "metrics",
+        "summary": "A luminous dark KPI band across the top, then a narrative "
+                   "that frames what the numbers mean. The dark stage makes the "
+                   "metrics read as one band instead of a pale flat strip.",
+        "best_for": ["3-5 headline metrics + a sentence of context"],
+        "avoid_when": ["a single dominant number (use mega-stat)"],
+        "whitespace": "Dark band anchors the top; narrative grounds the middle.",
+        "accent_policy": "Metrics light on dark; narrative recedes.",
+        "rows": [
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "kpis", "component": "kpi-row",
+                 "col_start": 1, "col_span": 12, "surface": "stage-grad",
+                 "required": True},
+            ]},
+            {"height": "auto", "cells": [
+                {"slot": "context", "component": "narrative-paragraph",
+                 "col_start": 1, "col_span": 8, "required": True},
+            ]},
+        ],
+    },
 }
 
 
@@ -442,7 +661,11 @@ def realize_archetype(archetype_id: str,
             f"the required slots {[s['name'] for s in _slots(arch) if s['required']]}"
         )
 
-    return {"slide_meta": slide_meta or {}, "rows": out_rows}
+    # v4.5 — an archetype may declare ``slide_meta_defaults`` (e.g. a dark
+    # ``stage`` or a ``layout_class``) that should travel with it so editorial
+    # archetypes are self-contained; the caller's slide_meta always wins.
+    meta = {**arch.get("slide_meta_defaults", {}), **(slide_meta or {})}
+    return {"slide_meta": meta, "rows": out_rows}
 
 
 __all__ = [

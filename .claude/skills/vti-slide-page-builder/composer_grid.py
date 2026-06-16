@@ -512,8 +512,8 @@ def _r_narrative_paragraph(props: dict) -> str:
     "bad_for":  ["multiple stats (use kpi-row)", "supporting context number (use stat-mini)"],
     "best_col_spans": [4, 5, 6, 7, 8, 12],
     "natural_height": "1fr (centered) or auto",
-    "schema_brief":   "value: str≤8, label: str≤30, decoration?: 'rings'|'none'",
-    "font_levels_used":  ["hero", "caption"],
+    "schema_brief":   "value: str≤8, label: str≤30, decoration?: 'rings'|'none', scale?: 'hero'|'mega'",
+    "font_levels_used":  ["hero", "mega", "caption"],
     "font_weights_used": [400, 600],
     "capacity_chars_fixed":   40,
     "picks_content_kinds": ["hero_stat"],
@@ -527,6 +527,13 @@ def _r_stat_hero(props: dict) -> str:
     if decoration not in ("rings", "none"):
         raise ValidationError("invalid_value", "stat-hero.props.decoration",
                               "must be 'rings' or 'none'")
+    # v4.5 — EDITORIAL oversized numeral. scale="mega" swaps the value to the
+    # --vti-fs-mega tier (≤140px) so one number can own ~50% of a slide; the
+    # deco rings scale up to match. Default "hero" is the unchanged 64px tier.
+    scale = props.get("scale", "hero")
+    if scale not in ("hero", "mega"):
+        raise ValidationError("invalid_value", "stat-hero.props.scale",
+                              "must be 'hero' or 'mega'")
 
     deco_html = ""
     if decoration == "rings":
@@ -536,6 +543,7 @@ def _r_stat_hero(props: dict) -> str:
         )
     return _fill(_component_template("stat-hero"), {
         "DECORATION": decoration,
+        "SCALE":      scale,
         "DECO_HTML":  deco_html,
         "VALUE":      value,
         "LABEL":      label,
@@ -3374,18 +3382,17 @@ def _render_chrome(slide_meta: dict,
     #   2) section + title:     "ABOUT VTI | OUR PRACTICES"
     # The chrome CSS has .bc-section + .bc-sep + .bc-title classes that
     # render the title in heavier weight than the section.
+    # v4.5 — STACKED breadcrumb: section title on top (small), slide title
+    # below (large), left-aligned. The leading bar stretches to both lines.
     if slide_title and section_raw:
         breadcrumb_html = (
             f'<span class="bc-section">{_esc(section_raw)}</span>'
-            f'<span class="bc-sep"> | </span>'
             f'<span class="bc-title">{_esc(slide_title)}</span>'
         )
     elif slide_title:
-        breadcrumb_html = (
-            f'<span class="bc-title">{_esc(slide_title)}</span>'
-        )
+        breadcrumb_html = f'<span class="bc-title">{_esc(slide_title)}</span>'
     else:
-        breadcrumb_html = _esc(section_raw)
+        breadcrumb_html = f'<span class="bc-title">{_esc(section_raw)}</span>'
 
     header_html = _fill(header_tpl, {"BREADCRUMB": breadcrumb_html})
     header_html = _resolve_logo_markers(header_html)
@@ -3506,12 +3513,96 @@ _GRID_CSS = """
  * already centre their content, so valign is ignored when a surface is set.) */
 .layout-grid .vti-grid-cell--vcenter { align-items: center; }
 .layout-grid .vti-grid-cell--vbottom { align-items: flex-end; }
+
+/* v4.5 EDITORIAL — DARK cell surfaces (stage | stage-grad). A cell becomes a
+ * navy / gradient dark panel; children flip to light-on-dark by REUSING the
+ * .vti-on-dark token overrides inline (no per-component edits). The blue-keyed
+ * text tokens (stat-hero value/label, headings) are also lightened so they
+ * stay legible on navy. Charts must NOT go on a stage cell (ECharts text is
+ * hard-set ink/muted → dark-on-dark). */
+.layout-grid .vti-grid-cell--stage,
+.layout-grid .vti-grid-cell--stage-grad {
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--vti-space-2xl);
+  border-radius: var(--vti-radius-lg);
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--vti-white);
+  --vti-block-bg:   rgba(255, 255, 255, 0.06);
+  --vti-block-text: var(--vti-white);
+  --vti-ink:        var(--vti-white);
+  --vti-ink-soft:   rgba(255, 255, 255, 0.80);
+  --vti-muted:      rgba(255, 255, 255, 0.64);
+  --vti-border:     rgba(255, 255, 255, 0.18);
+  --vti-divider:    rgba(255, 255, 255, 0.12);
+  /* blue-keyed text → light on dark */
+  --vti-blue-deep:   #FFFFFF;
+  --vti-blue-medium: #9FC6FF;
+  --vti-blue:        #C7DCFF;
+  --vti-sky:         #BBD9FF;
+  /* light-fill surfaces (e.g. stat-mini cards, table stripes) → translucent
+     white so a child card reads as a dark glass tile, not a light box with
+     now-white (invisible) text. */
+  --vti-light:       rgba(255, 255, 255, 0.10);
+}
+.layout-grid .vti-grid-cell--stage      { background: var(--vti-stage-navy); }
+.layout-grid .vti-grid-cell--stage-grad { background: var(--vti-stage-grad); }
+/* On any dark context, a stat-mini icon disc would otherwise become a solid
+   white circle (its --vti-blue-deep bg is flipped white) with a white glyph —
+   invisible. Make it a translucent glass disc so the glyph reads. */
+.layout-grid .vti-grid-cell--stage .vti-stat-mini__icon-disc,
+.layout-grid .vti-grid-cell--stage-grad .vti-stat-mini__icon-disc,
+.layout-grid--dark .vti-stat-mini__icon-disc {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* v4.5 EDITORIAL — WHOLE-SLIDE dark stage. Set slide_meta.stage = navy|grad
+ * to make the entire content area a dark canvas; the same token flip applies
+ * scoped to .vti-slide-content, and the chrome breadcrumb/footer flip white via
+ * the existing data-bc-on-dark / data-fbar-on-dark attributes + full-white logo. */
+.layout-grid--dark .vti-slide-content {
+  color: var(--vti-white);
+  --vti-block-bg:   rgba(255, 255, 255, 0.06);
+  --vti-block-text: var(--vti-white);
+  --vti-ink:        var(--vti-white);
+  --vti-ink-soft:   rgba(255, 255, 255, 0.80);
+  --vti-muted:      rgba(255, 255, 255, 0.64);
+  --vti-border:     rgba(255, 255, 255, 0.18);
+  --vti-divider:    rgba(255, 255, 255, 0.12);
+  --vti-blue-deep:   #FFFFFF;
+  --vti-blue-medium: #9FC6FF;
+  --vti-blue:        #C7DCFF;
+  --vti-sky:         #BBD9FF;
+  --vti-light:       rgba(255, 255, 255, 0.10);
+}
+
+/* v4.5 EDITORIAL — FULL-BLEED background image + scrim. Set slide_meta.bg_image
+ * to a path; the photo fills the whole canvas behind a legibility scrim, with
+ * content + chrome lifted above it. Left-anchored scrim keeps overlaid text on
+ * the dark left while the photo breathes on the right. */
+.layout-grid .vti-bleed-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background-size: cover; background-position: center;
+}
+.layout-grid .vti-bleed-scrim {
+  position: absolute; inset: 0; z-index: 1;
+  background: var(--vti-scrim-left);
+}
+.layout-grid.has-bleed .vti-slide-content { position: relative; z-index: 3; }
+.layout-grid.has-bleed .bc,
+.layout-grid.has-bleed .logo-tr,
+.layout-grid.has-bleed .fbar,
+.layout-grid.has-bleed .fbar-copy { z-index: 4; }
 """
 
 
 # M3 — light cell-surface treatments (see _GRID_CSS). Wrap a cell's
 # component in a styled container without a bespoke component.
-_VALID_CELL_SURFACES = {"panel", "tint", "elevated"}
+# v4.5 — added DARK editorial surfaces (stage | stage-grad) that flip their
+# children light-on-dark. NB: do not place charts on a stage surface (ECharts
+# text is hard-set to ink/muted → dark-on-dark).
+_VALID_CELL_SURFACES = {"panel", "tint", "elevated", "stage", "stage-grad"}
 # M3.1 — vertical alignment of a cell's content (default = top/stretch).
 _VALID_CELL_VALIGN = {"center", "bottom"}
 
@@ -3555,8 +3646,12 @@ def _validate_cell(cell: dict, where: str) -> None:
 # neighbour (lead→body, small→caption) so they don't inflate the
 # "distinct visible levels" budget — the fluid sizes still differ on the
 # page, this only governs the discipline audit.
-_TYPE_LEVELS = {"hero", "display", "title", "lead", "body", "small", "caption"}
+_TYPE_LEVELS = {"mega", "hero", "display", "title", "lead", "body", "small", "caption"}
 _TYPE_LEVEL_TIER = {
+    # v4.5 — `mega` (editorial oversized numeral) collapses onto the hero
+    # tier for the hierarchy budget: a mega stat is a bigger hero, not a new
+    # distinct level, so it never inflates the "distinct visible levels" count.
+    "mega": "hero",
     "hero": "hero", "display": "display", "title": "title",
     "lead": "body", "body": "body",
     "small": "caption", "caption": "caption",
@@ -3584,6 +3679,15 @@ _LAYOUT_BUDGETS = {
     },
     "data-dense": {
         "max_type_levels":   4,   # display + title + body + caption (e.g. Why-VTI)
+        "max_non_600_weights": 2,
+        "allow_600_anchor":  True,
+    },
+    # v4.5 — EDITORIAL: dark dividers / mega-stat / bleed slides legitimately
+    # carry a big numeral or display headline + a framing line + an eyebrow.
+    # Allow 4 distinct tiers (mega/hero + display + body + caption) and the
+    # airy/strong anchor weights on the big text.
+    "editorial": {
+        "max_type_levels":   4,
         "max_non_600_weights": 2,
         "allow_600_anchor":  True,
     },
@@ -3750,6 +3854,30 @@ def _walk_chars(obj: Any) -> int:
     return 0
 
 
+# v4.5 — components whose fill is VISUAL mass (a chart, a diagram/image, a
+# giant numeral, a flow, a metric band) rather than characters. The char-based
+# fill-honesty / sparse model mis-judges these (a mega "87%" is ~3 chars but
+# owns half the slide), so they opt OUT of the char capacity check entirely —
+# they may anchor a 1fr _fill_verified row without tripping a fill warning.
+# Genuinely-empty visual slides are caught by visual_critic's pixel ink-ratio.
+_VISUAL_FILL_COMPONENTS = {
+    "bar-chart", "pie-chart", "line-chart", "stacked-bar", "gauge-dial",
+    "progress-bar", "funnel", "image-tile", "stat-hero", "process-flow",
+    "timeline", "quadrant-matrix", "swimlane", "before-after", "logo-grid",
+    "value-medallion", "kpi-row",
+}
+
+# v4.5 — broader "structured anchor" set used ONLY to suppress the slide-level
+# sparse hint. These carry real visual mass as blocks (colored cards, catalog
+# columns, a VS partition, a deep callout) so a slide built on them is not
+# "sparse" even when its prose is brief — but unlike _VISUAL_FILL_COMPONENTS
+# they DO keep their per-cell char check, since their body text should be real.
+_STRUCTURED_ANCHOR_COMPONENTS = _VISUAL_FILL_COMPONENTS | {
+    "practice-card", "practice-card-leveled", "catalog-column",
+    "callout", "vs-compare",
+}
+
+
 def _component_capacity(comp_name: str, col_span: int, props: dict | None = None) -> int:
     """Return projected char capacity for a component at the given col_span.
 
@@ -3757,12 +3885,18 @@ def _component_capacity(comp_name: str, col_span: int, props: dict | None = None
     (fixed-structure component, ignores col_span). Returns 0 if unknown
     (component opts out of capacity check).
 
+    v4.5 — visual-fill components (charts, image-tile, stat-hero, process-flow,
+    kpi-row, …) return 0 here so the char-based fill model never penalizes them
+    for being visual; the pixel-based visual_critic guards real emptiness.
+
     v3.9 — narrative-paragraph gets dynamic capacity inferred from props:
     - intro pattern (col_span >= 10, 1 paragraph, <300 chars total) →
       reduced capacity 35/col so a one-line intro at col-12 doesn't
       register as "sparse" (a tiny intro IS the right content there).
     - main body (col_span <= 8 or multi-paragraph) → keeps 80/col.
     """
+    if comp_name in _VISUAL_FILL_COMPONENTS:
+        return 0
     meta = _COMPONENT_META.get(comp_name, {})
 
     # v3.9 — narrative-paragraph dynamic capacity based on usage role
@@ -3932,8 +4066,17 @@ def _validate_fill_honesty(rows: list, where_prefix: str,
     slide_fill = metrics["slide_fill"]
     slide_actual = metrics["slide_actual"]
 
+    # v4.5 — a slide whose anchor is a visual-fill component (chart, diagram,
+    # mega stat, flow, KPI band) is NOT sparse just because its text is brief:
+    # the visual owns the canvas. Suppress the char-based slide-sparse hint
+    # for these; visual_critic's pixel ink-ratio is the real emptiness guard.
+    has_visual_anchor = any(
+        cell.get("component") in _STRUCTURED_ANCHOR_COMPONENTS
+        for row in rows for cell in row.get("cells", [])
+    )
+
     if slide_capacity > 0:
-        if slide_fill < sparse_below:
+        if slide_fill < sparse_below and not has_visual_anchor:
             warnings.append(
                 f"[gap-E slide-sparse] {where_prefix}: total slide fill "
                 f"{slide_fill:.0%} ({slide_actual} / {slide_capacity} chars) "
@@ -4145,20 +4288,57 @@ def compose_slide_grid(slide_input: dict) -> dict:
             rows, layout_class=layout_class, density_mode=density_mode,
             vertical_align=vertical_align)
 
+    # v4.5 EDITORIAL — whole-slide dark stage / full-bleed background.
+    #   slide_meta.stage    = "navy" | "grad"  → dark content canvas
+    #   slide_meta.bg_image = "<path>"          → full-bleed photo + scrim
+    # Both flip the chrome to its dark treatment (white logo + light breadcrumb
+    # / footer via the existing data-*-on-dark attributes).
+    stage = slide_meta.get("stage")
+    if stage not in (None, "navy", "grad"):
+        raise ValidationError(
+            "invalid_value", "slide_meta.stage",
+            f"must be 'navy' or 'grad', got {stage!r}",
+        )
+    bg_image = slide_meta.get("bg_image")
+    is_dark = bool(stage) or bool(bg_image)
+
     # Chrome --------------------------------------------------------------
     if show_chrome:
-        header_html, footer_html, chrome_css = _render_chrome(slide_meta)
+        chrome_logo = "full-white" if is_dark else "full-color"
+        header_html, footer_html, chrome_css = _render_chrome(
+            slide_meta, logo_variant=chrome_logo)
     else:
         header_html, footer_html, chrome_css = "", "", ""
 
     # Final slide HTML ----------------------------------------------------
-    section_class = ""  # reserved for future variant layouts
-    # position:relative kept so the future decorator skill's overlay layer
-    # can anchor to the slide canvas via position:absolute.
+    # position:relative kept so the decorator skill's overlay layer can anchor
+    # to the slide canvas via position:absolute.
+    root_classes = ["slide", "layout-grid"]
+    root_styles  = ["position: relative;"]
+    root_attrs   = [f'data-layout-class="{layout_class}"']
+    bleed_html   = ""
+    if is_dark:
+        root_classes.append("layout-grid--dark")
+        root_attrs.append('data-bc-on-dark="true"')
+        root_attrs.append('data-fbar-on-dark="true"')
+    if bg_image:
+        root_classes.append("has-bleed")
+        root_styles.append("background: var(--vti-stage-navy);")
+        bleed_html = (
+            f'<div class="vti-bleed-bg" '
+            f"style=\"background-image: url('{bg_image}');\"></div>\n"
+            f'<div class="vti-bleed-scrim"></div>\n'
+        )
+    elif stage == "grad":
+        root_styles.append("background: var(--vti-stage-grad);")
+    elif stage == "navy":
+        root_styles.append("background: var(--vti-stage-navy);")
+
     slide_html = (
-        f'<div class="slide layout-grid {section_class}" '
-        f'data-layout-class="{layout_class}" '
-        f'style="position: relative;">\n'
+        f'<div class="{" ".join(root_classes)}" '
+        f'{" ".join(root_attrs)} '
+        f'style="{" ".join(root_styles)}">\n'
+        f'{bleed_html}'
         f'{header_html}\n'
         f'<div class="vti-slide-content">\n'
         f'  {grid_html}\n'
