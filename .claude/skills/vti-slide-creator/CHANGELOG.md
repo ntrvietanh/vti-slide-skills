@@ -1,5 +1,26 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.8.0 (2026-06-16) — M2 chart runtime + M3 art-director (DESIGN phase)
+
+- **M2** — `build_deck_html` injects the ECharts runtime (vendored bundle +
+  boot script) once per deck, only when a chart placeholder is present
+  (`composer_grid.deck_uses_charts` / `chart_runtime_html`), before
+  `</body>`. Chart-less decks are unchanged.
+- **M3** — Phase 4 becomes **DESIGN (art-director)**: instead of the
+  deterministic `design_slide_layout` scorer, the orchestrator reasons
+  through a 6-step scaffold (focal → visual-weight budget → reading path →
+  archetype pick → whitespace → type ramp) and SELECTS + FILLS a layout
+  archetype from the page-builder library (`realize_archetype`). Phase 5 is
+  now "realize + validate". New `art_direction.py` adds the deck-level **Art
+  Direction Brief** (`make_brief` / `brief_guidance`) + `ration_archetypes`
+  for layout rhythm (Governor 1, coherence). SKILL.md Phase 4/5 rewritten.
+  The old scorer is retained as the fallback for image-dominant slides.
+- **M4** — SKILL.md Phase 6 documents the visual-critique loop: at compose
+  time, call `visual_critic.auto_repair` (≤2 safe rounds) then
+  `render_review` to produce a sighted `work/layout-review.html` (real PNGs +
+  measured verdicts) for the ★ checkpoint. (Logic lives in the page-builder's
+  `visual_critic`; the creator orchestrates it — no creator code change.)
+
 ## v4.7.0 (2026-05-20) — Deliverable filename convention
 
 New `deck_filename.py` module exports a single function:

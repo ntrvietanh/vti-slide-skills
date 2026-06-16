@@ -63,7 +63,7 @@
   );
   color: var(--vti-white);
   font-family: var(--font-b);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   line-height: 1.45;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -84,7 +84,7 @@
 .vti-image-tile__caption--below {
   margin-top: 12px;
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   line-height: 1.5;
   color: var(--vti-ink-soft);
   font-style: italic;

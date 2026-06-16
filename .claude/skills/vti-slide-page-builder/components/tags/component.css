@@ -24,11 +24,11 @@
 
 /* Sizes */
 .vti-tags--default .vti-tag {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   padding: 4px 11px;
 }
 .vti-tags--small   .vti-tag {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   padding: 3px 9px;
 }
 

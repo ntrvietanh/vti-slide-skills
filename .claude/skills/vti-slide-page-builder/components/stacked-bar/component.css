@@ -11,7 +11,7 @@
 }
 .vti-stacked-bar__title {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   text-transform: uppercase;
@@ -24,7 +24,7 @@
 .vti-stacked-bar__segment { transition: opacity 0.15s; }
 .vti-stacked-bar__cat-label {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   fill: var(--vti-ink);
   text-anchor: middle;
 }
@@ -33,7 +33,7 @@
   display: flex;
   gap: 14px;
   flex-wrap: wrap;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
 }
 .vti-stacked-bar__legend-row {
   display: flex; align-items: center; gap: 6px;

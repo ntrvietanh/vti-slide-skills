@@ -40,7 +40,7 @@
  * the value-medallion originally carried. */
 .vti-practice-card__core {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 11.5px;
+  font-size: var(--vti-fs-caption);  /* was 11.5px */
   font-weight: 500;
   font-style: italic;
   line-height: 1.4;
@@ -61,7 +61,7 @@
   gap: 8px;
   padding: 6px 0;
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 11.5px;
+  font-size: var(--vti-fs-caption);  /* was 11.5px */
   font-weight: 400;
   line-height: 1.45;
   color: var(--vti-ink, #1F2A3A);
@@ -75,7 +75,7 @@
   background: var(--vti-paleblue, #EAF2FB);
   color: var(--vti-blue-deep, #0844A4);
   font-weight: 500;
-  font-size: 10px;
+  font-size: var(--vti-fs-caption);  /* was 10px */
   width: 22px;
   height: 22px;
   border-radius: 50%;

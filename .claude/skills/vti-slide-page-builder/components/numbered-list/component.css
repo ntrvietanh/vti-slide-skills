@@ -34,7 +34,7 @@
   justify-content: center;
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-white);
   background: var(--vti-blue-deep);
   flex: 0 0 auto;
@@ -54,14 +54,14 @@
 
 .vti-numbered-list__title {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   line-height: 1.35;
 }
 
 .vti-numbered-list__body {
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   color: #4B5563;
   line-height: 1.45;
 }
@@ -70,7 +70,7 @@
 .vti-numbered-list__item--plain .vti-numbered-list__title {
   font-family: var(--font-b);
   font-weight: 500;
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   padding-top: 6px;
   color: var(--vti-ink);
 }

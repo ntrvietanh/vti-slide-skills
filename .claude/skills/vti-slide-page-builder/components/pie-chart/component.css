@@ -47,7 +47,7 @@
 /* Center label inside donut hole */
 .vti-pie-chart__center-value {
   font-family: var(--font-h);
-  font-size: 24px;
+  font-size: var(--vti-fs-title);  /* was 24px */
   font-weight: 600;
   fill: var(--vti-blue-deep);
   text-anchor: middle;
@@ -55,7 +55,7 @@
 }
 .vti-pie-chart__center-label {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   fill: var(--vti-ink);
   text-anchor: middle;
@@ -82,7 +82,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-ink);
   min-width: 0;
 }

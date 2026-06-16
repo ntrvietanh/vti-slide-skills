@@ -41,14 +41,14 @@
 }
 .vti-stat-mini__value {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 24px;
+  font-size: var(--vti-fs-title);  /* was 24px */
   font-weight: 600;
   color: var(--vti-blue-deep, #0844A4);
   line-height: 1;
 }
 .vti-stat-mini__label {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   color: var(--vti-muted, #5F5E5A);
   letter-spacing: 0.12em;

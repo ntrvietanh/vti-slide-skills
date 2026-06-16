@@ -10,7 +10,7 @@
 }
 .vti-line-chart__title {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   text-transform: uppercase;
@@ -33,13 +33,13 @@
 .vti-line-chart__grid-line { stroke: var(--vti-divider); stroke-width: 0.5; stroke-dasharray: 2 3; }
 .vti-line-chart__cat-label {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   fill: var(--vti-ink);
   text-anchor: middle;
 }
 .vti-line-chart__value-label {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   fill: var(--vti-blue-deep);
   text-anchor: middle;

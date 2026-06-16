@@ -13,7 +13,7 @@
   display: flex;
   gap: 11px;
   align-items: flex-start;
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   line-height: 1.55;
   color: var(--vti-ink, #2C2C2A);
   font-family: var(--vti-font-body, "Inter", sans-serif);

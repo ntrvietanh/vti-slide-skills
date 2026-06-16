@@ -7,7 +7,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.10em;

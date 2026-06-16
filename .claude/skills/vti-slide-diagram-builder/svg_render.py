@@ -253,9 +253,11 @@ def quadrant(
     for (cx, cy), cell in zip(positions, cells):
         accent_alias = cell.get("accent", "deep")
         bg_color = tint(accent_alias, ratio=0.92)
+        # v4.0/M2 — lift each tinted cell with the shared soft shadow so the
+        # 2×2 grid reads as elevated panels, not flat colour fields.
         out += (
             f'  <rect x="{cx}" y="{cy}" width="{cell_w}" height="{cell_h}" '
-            f'rx="10" fill="{bg_color}"/>\n'
+            f'rx="10" fill="{bg_color}" filter="url(#vtiSoftShadow)"/>\n'
         )
         title_text = cell.get("title", "")
         out += svg_text(cx + 24, cy + 36, title_text,

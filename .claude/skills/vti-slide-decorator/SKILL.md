@@ -13,11 +13,11 @@ deck HTML. Do NOT invoke during composition or as part of the planner —
 this is a strictly post-processing step. The order is:
 
 ```
-vti-slide-creator (Phase 1-5) → composed deck HTML
+vti-slide-creator (Phase 1-6) → composed deck HTML
   ↓
 vti-slide-decorator (this skill) → decorated deck HTML
   ↓
-audit_typography → final deck
+visual_critic (M4: render + measure → review) → final deck
 ```
 
 Triggers: any user request mentioning "decorate", "fill empty space",

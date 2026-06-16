@@ -46,7 +46,7 @@
   align-items: center;
   justify-content: center;
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   letter-spacing: 0.10em;
   z-index: 2;

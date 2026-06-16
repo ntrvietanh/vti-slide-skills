@@ -33,7 +33,7 @@
   padding: 8px 10px;
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-white);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -101,7 +101,7 @@
 .vti-swimlane__step-icon svg { width: 18px; height: 18px; }
 
 .vti-swimlane__step-title {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   line-height: 1.25;
@@ -110,7 +110,7 @@
 /* Body text — only visible in rich mode (controlled by renderer omitting
    the markup in compact mode, but this rule pins typography). */
 .vti-swimlane__step-body {
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   color: #4B5563;
   line-height: 1.4;
   margin-top: 2px;

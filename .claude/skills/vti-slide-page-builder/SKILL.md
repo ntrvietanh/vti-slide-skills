@@ -21,7 +21,7 @@ Quick mode (`verbose=False`) — small response for fast checks:
 ```python
 {
   "skill":      "vti-slide-page-builder",
-  "version":    "3.18.5",
+  "version":    "4.4.0",
   "components": ["bullet-list-checked", "catalog-column", ...],   # 9 names
   "icons":      ["bell", "brain", "building-skyscraper", ...],    # 40 names
 }
@@ -180,46 +180,57 @@ These rules govern what every component is **technically allowed** to emit.
 The orchestrator (`vti-slide-creator`) layers higher-level reasoning on
 top, but the type/color/sizing contract lives here at the renderer.
 
-### T1 · Canonical 5-level type scale (v3.2)
+### T1 · Canonical FLUID type scale (v3.2 → fluid v4.0/M1)
 
-Every text element a component renders MUST use one of these 5 levels.
-Component authors are forbidden from inventing new sizes. Tokens live in
-`tokens.css`:
+Every text element a component renders MUST use one of these named levels.
+Component authors are forbidden from hardcoding raw px. Since v4.0/M1 each
+level is **fluid** — `clamp(min, calc(base + B·cqw), max)` — and resolves
+against the cell's width (`.vti-grid-cell` is a container query container),
+so a title in a 4-col cell shrinks while the same token in a 12-col cell
+holds its ceiling. **Each clamp's MAX equals the pre-M1 fixed px**, so any
+container-less context (chrome, special-pages) is unchanged — only narrow
+cells get smaller. Tokens live in `tokens.css`:
 
-| Level | Token | Size | Allowed uses |
+| Level | Token | Fluid range | Allowed uses |
 |---|---|---:|---|
-| `hero`    | `var(--vti-fs-hero)`    | 64px | Big stat numbers, cover headlines · **max 1 per slide** |
-| `display` | `var(--vti-fs-display)` | 32px | Section dividers, in-canvas slide titles · **max 1-2 per slide** |
-| `title`   | `var(--vti-fs-title)`   | 24px | Card titles, block heads, key labels |
-| `body`    | `var(--vti-fs-body)`    | 15px | Paragraphs, list items, card body |
-| `caption` | `var(--vti-fs-caption)` | 12px | Eyebrows, KPI sublabels, footers, captions |
+| `hero`    | `var(--vti-fs-hero)`    | 40→64px | Big stat numbers, cover headlines · **max 1 per slide** |
+| `display` | `var(--vti-fs-display)` | 22→32px | Section dividers, in-canvas slide titles · **max 1-2 per slide** |
+| `title`   | `var(--vti-fs-title)`   | 17→24px | Card titles, block heads, key labels |
+| `lead`    | `var(--vti-fs-lead)`    | 15→18px | Short intro / emphasised body *(M1, collapses to body in the budget)* |
+| `body`    | `var(--vti-fs-body)`    | 13→15px | Paragraphs, list items, card body |
+| `small`   | `var(--vti-fs-small)`   | 12→13px | Dense secondary text *(M1, collapses to caption in the budget)* |
+| `caption` | `var(--vti-fs-caption)` | 11→12px | Eyebrows, KPI sublabels, footers, captions |
 
 Legacy size tokens (`--vti-fs-section`, `--vti-fs-h2`, `--vti-fs-h3`,
-`--vti-fs-stat`, `--vti-fs-small`, `--vti-fs-tiny`) are kept for
-back-compat but **deprecated** for new components — they map to the 5
-canonical levels above.
+`--vti-fs-stat`, `--vti-fs-tiny`) are kept for back-compat but
+**deprecated** — they now point at the fluid canonical levels above.
 
-### T2 · 2-weight discipline (v3.2)
+### T2 · Weight discipline (v3.2 → v4.0/M1)
 
-Use only `--vti-fw-regular` (400) and `--vti-fw-medium` (500). The token
-`--vti-fw-semibold` (600) is permitted ONLY on text rendered at `hero`
-or `display` size. Tokens `--vti-fw-light` (300) and `--vti-fw-bold` (700)
-are **deprecated** — kept so legacy CSS still compiles, but new component
-CSS that introduces them will be rejected at code review.
+Body text uses only `--vti-fw-regular` (400) and `--vti-fw-medium` (500).
+The anchor-tier weights `--vti-fw-airy` (300), `--vti-fw-semibold` (600)
+and `--vti-fw-strong` (700) are permitted ONLY on text rendered at `hero`
+or `display` size — they recover real hierarchy on big text without
+muddying body copy. 300/700 on body/caption is rejected.
 
-### T3 · Per-slide budget (orchestrator-enforced) (v3.2)
+### T3 · Per-slide budget (orchestrator-enforced) (v3.2 → v4.0/M1)
 
 Components are individually disciplined; the **orchestrator** enforces the
 per-slide budget:
 
-- **Max 3** of the 5 type levels visible on any one slide
-- **Max 2 weights** visible on any one slide
-- **Max 1** dominant color (`--vti-blue-deep`) plus neutrals
+- **Max 3** type *tiers* visible on any one slide. The fluid in-between
+  steps collapse for counting: `lead → body`, `small → caption`, so the
+  richer scale never inflates the count.
+- **Max 2 body weights** (400/500); anchor weights {300, 600, 700} are free
+  only when a `hero`/`display` level is present.
+- **Max 1** dominant color (`--vti-blue-deep`) plus neutrals.
 
-Enforced by the creator's reasoning protocol (the renderer cannot detect
-cross-component combinations). See `vti-slide-creator/SKILL.md
-§ Design principles` for the reasoning contract. Validated post-render
-by `audit_typography.py` at the baseline root.
+Enforced pre-render by `_aggregate_type_budget()` in `composer_grid.py`
+(soft warnings on `compose_slide_grid` metadata; the renderer can't detect
+cross-component combinations, so the creator's reasoning protocol is the
+primary gate). Post-render, `vti-slide-page-builder/visual_critic.py`
+measures the ACTUAL rendered min font size (M4). See
+`vti-slide-creator/SKILL.md § Design principles` for the reasoning contract.
 
 ### T4 · Semantic colors LOCKED (v3.2)
 

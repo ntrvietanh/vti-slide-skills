@@ -30,7 +30,7 @@
 }
 .vti-value-medallion__num {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   letter-spacing: 0.22em;
   color: var(--vti-muted, #5F5E5A);
@@ -38,7 +38,7 @@
 }
 .vti-value-medallion__title {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   color: var(--vti-blue-deep, #0844A4);
   letter-spacing: 0.12em;
@@ -47,7 +47,7 @@
 }
 .vti-value-medallion__tagline {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-muted, #5F5E5A);
   font-style: italic;
   margin-top: 8px;

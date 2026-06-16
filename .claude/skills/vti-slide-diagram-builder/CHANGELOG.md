@@ -1,5 +1,35 @@
 # vti-slide-diagram-builder — CHANGELOG
 
+## v0.6.0 (2026-06-16) — M2: depth pass (gradients + soft shadow + icon set)
+
+Fixes "diagram không đẹp": the native SVG primitives were flat (white box +
+1-colour stroke, no depth). All five primitives flow through
+`svg_primitives.svg_box` / `svg_box_filled` / `svg_open`, so the upgrade is
+central and applies everywhere automatically:
+
+- **Shared `<defs>`** injected by `svg_open`: a white-card sheen gradient
+  (`vtiFillWhite`), per-accent vertical gradients (`vtiGrad-{navy,deep,blue,
+  medium,sky,light,teal,amber}` — lifted top → accent bottom), a soft
+  `feDropShadow` filter (`vtiSoftShadow`, tuned subtle to match the brand's
+  soft-elevated-surface identity), and a compact line-icon symbol set.
+- **`svg_box` / `svg_box_filled`** now fill with the matching gradient and
+  carry the soft shadow by default (opt out via `shadow=False`/`gradient=
+  False`; shadow auto-suppressed on translucent boxes). Outlined boxes read
+  as elevated cards; filled boxes (input/fusion/footer bands) get depth.
+- **Quadrant cells** (inline rect in `svg_render`) lifted with the same
+  shadow so the 2×2 grid reads as panels, not flat colour fields.
+- **Connectors** darkened `muted → ink-soft` for legible contrast on the
+  pale canvas (arrows were washed out).
+- **Icons**: `svg_icon(x, y, size, name)` + a 9-glyph set (gear, database,
+  cloud, check, user, chart, loop, shield, doc) available as `<symbol>`s.
+  Latent in M2 (no contract change) — the M3 archetype layer wires them
+  into nodes.
+
+All colours resolve via the token bridge (`accent`/`tint`) — no hex
+literals in source (verify-time lint preserved). Canvas heights unchanged
+to avoid rippling Phase-4 aspect/no-crop sizing (the "cramped" feel is
+addressed by M3 giving diagrams a dominant focal cell with breathing room).
+
 ## v0.5.0 (2026-05-19) — Native-SVG branch restored alongside Mermaid
 
 The v0.3.0 Mermaid migration produced diagrams with wildly inconsistent

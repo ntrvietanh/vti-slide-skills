@@ -56,7 +56,7 @@
    Same height as a real logo so the grid stays aligned. */
 .vti-logo-grid__name {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink-soft);
   letter-spacing: 0.04em;

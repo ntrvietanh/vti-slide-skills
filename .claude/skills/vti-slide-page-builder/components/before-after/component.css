@@ -26,7 +26,7 @@
 }
 .vti-before-after__label {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -35,7 +35,7 @@
 .vti-before-after__panel--after .vti-before-after__label { color: var(--vti-blue-deep); }
 .vti-before-after__title {
   font-family: var(--font-h);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   color: var(--vti-ink);
   line-height: 1.3;
@@ -43,7 +43,7 @@
 .vti-before-after__list {
   margin: 0;
   padding-left: 16px;
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   line-height: 1.5;
   color: var(--vti-ink);
   display: flex;

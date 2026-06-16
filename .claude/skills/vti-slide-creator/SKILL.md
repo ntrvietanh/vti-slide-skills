@@ -210,6 +210,104 @@ Phase 6 REVIEW-AND-COMPOSE     ──▶ layout-review.html             ★ chec
 | 5 | COMPONENT-PICK | `slide_input` (×N) | mostly mechanical translation |
 | 6 | REVIEW-AND-COMPOSE | `deck-composed.html` | render layout-review widget → user confirms → compose final HTML |
 
+### Phase 4 = DESIGN — the art-director path (v4.0 / M3, DEFAULT)
+
+Pre-M3, Phase 4 was a deterministic Python scorer (`design_slide_layout`)
+that emitted a handful of patterns, so similar slides converged to the same
+frame. M3 inverts the authority: **Claude art-directs each slide** by
+reasoning through a fixed scaffold and then SELECTING + FILLING a layout
+**archetype** from the page-builder library. Bounded creativity — varied,
+intentful, on-brand layouts without free-handing raw geometry.
+
+**Per-slide reasoning scaffold (do this, in order, then emit the layout):**
+1. **Focal sentence** — the one thing this slide says (reuse Principle 1).
+2. **Visual-weight budget** — % of attention per block; the focal element ≥ 50%.
+3. **Reading path** — Z / F / diagonal / center-out.
+4. **Pick + fill an archetype** — match the slide's *intent* to an archetype
+   (see below); this is the lever that breaks "same frame".
+5. **Whitespace intent** — name where the empty space goes and why.
+6. **Type ramp** — focal in the higher tier, support recedes (fluid tokens
+   from M1 size each cell automatically).
+
+**Archetype API (page-builder — discover via the same `catalog()` call):**
+```python
+from composer_grid import catalog
+cat = catalog(verbose=True)
+cat["archetypes"]      # [{id, intent, summary, best_for, avoid_when,
+                       #   required_slots, optional_slots}] — pick by intent
+cat["cell_surfaces"]   # ['elevated','panel','tint'] — wrap a cell for variety
+
+from archetypes import describe_archetype, slots_for, realize_archetype
+describe_archetype("stat-anchor-left")   # full detail + derived slot list
+slide_input = realize_archetype(
+    "stat-anchor-left",
+    slots={                              # fill each slot with component props
+        "stat":  {"value": "72%", "label": "tickets auto-resolved"},
+        "story": {"paragraphs": ["…"]},
+        "points":{"items": ["…", "…"]},
+    },
+    slide_meta={"section_name": "...", "slide_title": "..."},
+    overrides={"stat": {"col_span": 6}},  # optional per-slot fine-tuning
+)
+```
+`realize_archetype` returns a standard `slide_input` (the composer already
+renders any asymmetric grid + the M3 surfaces), so **Phase 5 becomes
+"realize + validate"**: realize the chosen archetype, then read the
+`compose_slide_grid` warnings (fill / type-budget / col-span) and adjust
+slots, overrides, or archetype if needed. No new validation surface.
+
+**Deck coherence (Governor 1 — `creator.art_direction`):** Phase 2 produces
+one **Art Direction Brief** (`make_brief(...)`, store on `plan['art_brief']`).
+Inject `brief_guidance(brief)` into every slide's DESIGN reasoning, and use
+`ration_archetypes(intent, used_counts, recent)` to vary the layout rhythm
+(avoid back-to-back repeats; favour least-used). Brand stays locked (tokens);
+only composition + rhythm vary.
+
+**Fallback:** the deterministic `design_slide_layout` scorer is retained for
+image-dominant slides (it does the no-crop aspect math) and back-compat. Use
+the archetype path for content slides; fall back to the scorer when a slide
+is essentially one resolved image + caption.
+
+### Phase 6 = visual critique + render-for-review (v4.0 / M4)
+
+Pre-M4 the deck was composed and shipped blind — nothing ever looked at a
+rendered pixel. M4 closes the loop with `vti-slide-page-builder/visual_critic`.
+At Phase 6, after `build_deck_html`:
+
+```python
+from visual_critic import auto_repair, render_review
+
+# 1. Light auto-repair (≤2 rounds) — applies ONLY the safe mechanical fix:
+#    a sparse, top-clustered slide gets slide_meta.vertical_align='center'
+#    (redistributes empty space on auto rows; no-op when rows already fill).
+res = auto_repair(descriptors, lambda sl: build_deck_html(sl, title=DOC_TITLE))
+descriptors = res["slides"]          # repaired
+print(res["changelog"])              # what was auto-centered, per slide
+
+# 2. Compose the (repaired) deck → work/deck-composed.html (the Phase-6 contract)
+# 3. Render-for-review: real PNGs + measured verdict badges for the ★ checkpoint
+render_review("work/deck-composed.html", "work/layout-review.html")
+```
+
+What `critique()` measures per slide (no vision model): min rendered font px
+(HTML text only — SVG chart/diagram text excluded), content **overflow /
+clipping** past the slide box, **blank charts** (an ECharts placeholder with
+no `<svg>`), **ink ratio + centroid** from the PNG (real whitespace; the DOM
+grid always fills so a bbox metric lies), and **near-duplicate neighbours**
+(avg-hash). Verdicts: `fail` (font_too_small / overflow / blank_chart) ·
+`warn` (sparse_top_clustered / neighbour_dup) · `pass`.
+
+The loop is **light by design** (user's choice): it auto-fixes only what has
+a safe mechanical remedy; every other finding is SURFACED in
+`work/layout-review.html` (rendered pixels + badges) for the ★ — Claude reads
+the same report and proposes targeted edits (trim a block, widen a cell, pick
+a roomier archetype, vary a repeated layout). The composer warnings remain
+the cheap pre-render check; visual_critic is the post-render truth.
+
+If you want the auto-centering codified per deck, write it as a
+`post_compose_*.py` patch (the changelog from `auto_repair` tells you which
+slides + the `vertical_align` value) so it survives re-runs.
+
 The creator package surface:
 
 ```python
@@ -315,8 +413,8 @@ moving to Phase 5.
 
 Per-slide budget enforced by the orchestrator (see page-builder T1/T2/T3):
 
-- **Max 3** of the 5 type levels (`hero`, `display`, `title`, `body`, `caption`)
-- **Max 2** font weights (regular 400 + medium 500; semibold 600 only on hero)
+- **Max 3** type tiers (fluid scale `hero`/`display`/`title`/`lead`/`body`/`small`/`caption`; the in-between steps collapse for the count: `lead`→`body`, `small`→`caption`)
+- **Max 2** body weights (regular 400 + medium 500); anchor weights 300/600/700 only when a `hero`/`display` level is on the slide
 - **Max 1** dominant color (`vti-blue-deep`) plus neutrals (navy + 1-2 grays)
 
 If Phase 5 reasoning produces a layout that would render >3 type levels
@@ -866,7 +964,7 @@ the conversation. Both weaken the pitch.
 | Phase 2 OUTLINE  | Each slide row in the outline table commits to **layout sketch + char budget** (P6 v3.4). Image strategy column commits to "lift / synthesize / custom-svg" — not just "no image". Already at this phase the slide's projected fill rate must be ≥70%. **Voice handshake (P10):** before exiting Phase 2, ask the user which voice the deck uses (consultative-sales / technical-deep / executive-brief / educational); store in `plan['voice']`. |
 | Phase 4 CONTENT  | Draft content to the budget declared in Phase 2 (P6 v3.4). If draft falls below 70%, BOUNCE BACK to Phase 2 with a narrower-layout proposal — do not proceed. **Voice (P10):** every narrative paragraph and bullet conforms to the locked `plan['voice']` and the universal rules (full sentences, no stacked dashes, no tribal compressions like `Day-1`/`slideware`/`mid-pivot`). |
 | Phase 5 LAYOUT   | Default row height = `auto` (P7 Loop 1). `1fr` only with documented justification + content-fill verification. Wireframe MUST show focal point clearly. After Loop 1 settles, evaluate Loop 2 slide-bottom whitespace per P7 decision table. |
-| BUILD            | Re-screenshot each slide and audit DOM for type/color violations (`audit_typography.py`). Spot-check 3-5 slides for content-fill ratio AND slide-bottom whitespace (visual judgment under P7). |
+| BUILD            | Re-render + MEASURE each slide with `visual_critic` (M4): min rendered font / overflow / blank-chart / ink-ratio + neighbour-dup; pre-render type/weight budget via `_aggregate_type_budget()` in `composer_grid.py`. `auto_repair` applies the safe sparse→vertical-center fix; `render_review` produces the sighted `work/layout-review.html` for the ★. |
 
 ## Phase 1 — ANALYZE (Sprint 4)
 

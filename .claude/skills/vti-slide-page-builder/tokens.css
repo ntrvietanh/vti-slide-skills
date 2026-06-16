@@ -62,43 +62,56 @@
   --vti-font-body:     'Plus Jakarta Sans', 'Arial', system-ui, sans-serif;
   --vti-font-display:  'Plus Jakarta Sans', 'Arial', system-ui, sans-serif;
 
-  /* === CANONICAL 5-LEVEL TYPE SCALE (RULE T1, v3.2) =================
-     Every component MUST use ONE of these 5 levels for any text it
-     emits. New components are forbidden from inventing new sizes.
-     Per-slide budget: at most 3 of these 5 levels per slide.
-     Rationale: pre-v3.2 the library shipped 28 distinct font sizes
-     across components; combining 5 components on one slide produced
-     9-13 distinct text treatments → no clear hierarchy. Locking to 5
-     fixed levels caps cross-component combinations.
+  /* === CANONICAL FLUID TYPE SCALE (RULE T1, v3.2 → fluid v4.0/M1) =====
+     Every component MUST use ONE of these named levels for any text it
+     emits. New components are forbidden from inventing raw px sizes.
+
+     M1 change — from FIXED px to FLUID clamp(min, calc(base + B·cqw), max):
+     each level now SHRINKS in narrow grid cells and holds its ceiling in
+     wide ones. The `cqw` term resolves against the nearest container
+     (`.vti-grid-cell` carries `container-type: inline-size`, see
+     composer_grid.py _GRID_CSS), so a stat in a 4-col cell and a 12-col
+     cell auto-size differently — directly fixing "font không hợp với
+     trình bày tổng thể".
+
+     SAFE-BY-CONSTRUCTION: each clamp's MAX equals the pre-M1 fixed value,
+     so any container-less context (chrome, special-pages) resolves to the
+     SAME size as before — no regression. Only narrow cells get smaller.
+
+     Two steps added (lead / small) for a smoother ramp without breaking
+     the "few distinct sizes" discipline: lead sits between title and body,
+     small between body and caption. The budget audit collapses adjacent
+     tiers when counting (composer_grid.py _aggregate_type_budget).
      ================================================================ */
-  --vti-fs-hero:       64px;   /* T1 hero    · 1 per slide max — big stat, cover */
-  --vti-fs-display:    32px;   /* T1 display · 1-2 per slide   — section/divider */
-  --vti-fs-title:      24px;   /* T1 title   · card titles, in-slide H2 */
-  --vti-fs-body:       15px;   /* T1 body    · paragraphs, list items, card body */
-  --vti-fs-caption:    12px;   /* T1 caption · eyebrows, KPI sublabels, footers */
+  --vti-fs-hero:       clamp(40px, calc(31px    + 3.0cqw),   64px);  /* T1 hero    · 1/slide — big stat, cover */
+  --vti-fs-display:    clamp(22px, calc(18.25px + 1.25cqw),  32px);  /* T1 display · 1-2/slide — section/divider */
+  --vti-fs-title:      clamp(17px, calc(14.4px  + 0.875cqw), 24px);  /* T1 title   · card titles, in-slide H2 */
+  --vti-fs-lead:       clamp(15px, calc(13.9px  + 0.375cqw), 18px);  /* T1 lead    · short intro / emphasis body (NEW M1) */
+  --vti-fs-body:       clamp(13px, calc(12.25px + 0.25cqw),  15px);  /* T1 body    · paragraphs, list items, card body */
+  --vti-fs-small:      clamp(12px, calc(11.6px  + 0.125cqw), 13px);  /* T1 small   · dense secondary text (NEW M1) */
+  --vti-fs-caption:    clamp(11px, calc(10.6px  + 0.125cqw), 12px);  /* T1 caption · eyebrows, KPI sublabels, footers */
 
-  /* Legacy size tokens kept for back-compat with existing components.
-     New components MUST consume the 5-level scale above, not these.
-     v3.6 — values aliased to canonical T1 px values so audit_typography
-     count collapses; the legacy NAMES still work, only px values
-     unified. */
-  --vti-fs-section:    32px;   /* legacy → display (was 40px) */
-  --vti-fs-page-title: 32px;   /* legacy → display (was 28px) */
-  --vti-fs-h2:         24px;   /* legacy → title   (was 20px) */
-  --vti-fs-h3:         15px;   /* legacy → body    (was 16px) */
-  --vti-fs-stat:       64px;   /* legacy → hero    (already same) */
-  --vti-fs-small:      12px;   /* legacy → caption (already same) */
-  --vti-fs-tiny:       12px;   /* legacy → caption (was 11px) */
+  /* Legacy size tokens kept for back-compat. They now POINT AT the fluid
+     canonical levels above, so legacy-named consumers become fluid too
+     without per-component edits. New components MUST use the named scale. */
+  --vti-fs-section:    var(--vti-fs-display);  /* legacy → display */
+  --vti-fs-page-title: var(--vti-fs-display);  /* legacy → display */
+  --vti-fs-h2:         var(--vti-fs-title);    /* legacy → title   */
+  --vti-fs-h3:         var(--vti-fs-body);     /* legacy → body    */
+  --vti-fs-stat:       var(--vti-fs-hero);     /* legacy → hero    */
+  --vti-fs-tiny:       var(--vti-fs-caption);  /* legacy → caption */
 
-  /* === CANONICAL 2-WEIGHT DISCIPLINE (RULE T2, v3.2) ================
-     Use only these two weights in component CSS.
-     400 = regular reading; 500 = labels & titles. 600 ALLOWED only on
-     hero-level text (display/hero scale). 700/800 are BANNED — they
-     read too heavy against the host UI and create false hierarchy.
+  /* === WEIGHT DISCIPLINE (RULE T2, v3.2 → v4.0/M1) ==================
+     400 = regular reading; 500 = labels & titles; 600 = hero/display
+     anchor. M1 re-opens 300 (airy) and 700 (strong) but ONLY for the
+     display/hero tiers, to recover real hierarchy on big text — never on
+     body/caption. Body text stays 400/500.
      ================================================================ */
   --vti-fw-regular:    400;
   --vti-fw-medium:     500;
-  --vti-fw-semibold:   600;   /* hero/display only — never on body */
+  --vti-fw-semibold:   600;   /* hero/display anchor — never on body */
+  --vti-fw-airy:       300;   /* display/hero large text ONLY (M1) */
+  --vti-fw-strong:     700;   /* display/hero emphasis ONLY (M1) */
 
   /* DEPRECATED weights — kept only so legacy CSS continues to compile.
      Do NOT introduce these in new component CSS. */

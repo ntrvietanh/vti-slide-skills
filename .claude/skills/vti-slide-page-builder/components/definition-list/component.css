@@ -38,7 +38,7 @@
 .vti-definition-list--horizontal .vti-definition-list__term {
   margin: 0;
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -48,7 +48,7 @@
 
 .vti-definition-list--horizontal .vti-definition-list__value {
   margin: 0;
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   font-weight: 500;
   color: var(--vti-ink);
   line-height: 1.4;
@@ -65,7 +65,7 @@
 .vti-definition-list--stacked .vti-definition-list__term {
   margin: 0;
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -75,7 +75,7 @@
 .vti-definition-list--stacked .vti-definition-list__value {
   margin: 0;
   font-family: var(--font-h);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   color: var(--vti-ink);
   line-height: 1.25;

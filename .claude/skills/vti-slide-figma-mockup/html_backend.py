@@ -635,6 +635,14 @@ def render_to_png(
                 page.evaluate("() => document.fonts && document.fonts.ready")
             except Exception:
                 pass
+            # M2 — wait for embedded ECharts to finish painting before the
+            # screenshot (guarded so chart-less HTML doesn't pay a timeout).
+            if "vti-echart" in html:
+                try:
+                    page.wait_for_function(
+                        "window.__vtiChartsReady === true", timeout=8000)
+                except Exception:
+                    pass
             if extra_wait_ms > 0:
                 page.wait_for_timeout(extra_wait_ms)
             if not full_page:

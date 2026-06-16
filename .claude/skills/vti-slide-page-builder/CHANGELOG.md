@@ -1,5 +1,158 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v4.4.0 (2026-06-16) — finish ECharts migration + cell vertical-align
+
+- **gauge-dial / progress-bar / funnel → ECharts** (the last three SVG
+  charts). gauge = native ECharts gauge (progress arc + centre value);
+  progress-bar = horizontal bars with a track (`showBackground`); funnel =
+  native funnel with "% of top" labels. Prop contracts unchanged; the
+  `tone="sky"`-style bugs are gone (tones map to brand hexes). Now every
+  data chart shares one ECharts path + the chart-ready handshake.
+- **Cell `valign` option** (`center` | `bottom`) — fixes "content floats at
+  the top of a tall 1fr row" (e.g. a pull-quote) that grid-level
+  `vertical_align` couldn't reach: it aligns the content WITHIN the cell.
+  Ignored when a surface is set (surfaces already centre). Applied in the
+  `quote-impact` and `stat-anchor-*` archetypes; quote slides now grade
+  `pass` instead of `warn` in visual_critic.
+
+## v4.3.0 (2026-06-16) — M4: visual critique loop (the system looks at its output)
+
+New `visual_critic.py` — the pipeline finally renders + measures its own
+output instead of composing blind.
+
+- **`critique(html_path)`** renders the deck to PNGs (reusing the exporter's
+  chart-ready wait) and measures each slide: min rendered font px (HTML text
+  only — SVG chart/diagram text excluded, it scales with its cell);
+  **overflow/clipping** past the 1280×720 box; **blank charts** (ECharts
+  placeholder with no `<svg>`); **ink ratio + vertical centroid** from the
+  PNG (real whitespace — the DOM grid always fills, so a bbox-fill metric
+  lies); **near-duplicate neighbours** (avg-hash). Verdicts: fail
+  (font_too_small / overflow / blank_chart) · warn (sparse_top_clustered /
+  neighbour_dup) · pass.
+- **`auto_repair(slides, compose_fn, max_rounds=2)`** — light loop (user's
+  choice). Auto-applies ONLY the safe mechanical fix: a sparse, top-clustered
+  slide gets `slide_meta.vertical_align='center'` (redistributes empty space
+  on auto rows; a no-op when rows already fill — never destructive). Returns
+  the repaired slides + a changelog; everything else is surfaced, not mutated.
+  Takes `compose_fn` as a callback so this module never imports the creator.
+- **`render_review(html_path, out_html)`** — builds a single review HTML:
+  each slide's real PNG + verdict badge + measured issues. Makes the Phase-6
+  ★ checkpoint sighted (rendered pixels, not a descriptor wireframe).
+
+Reuses Pillow (already present) for PNG metrics; no new heavy deps. Purely
+additive — composition is unchanged.
+
+## v4.2.0 (2026-06-16) — M3: archetype library + cell surfaces (art-director layer)
+
+Breaks "luôn một khung cố định". The composer already rendered arbitrary
+asymmetric grids; M3 adds the authoring layer that actually uses that range.
+
+- **`archetypes.py`** — a curated library of 12 hand-tuned, intentful slide
+  layouts (hero-statement, stat-anchor-left/right, lead-plus-three-cards,
+  narrative-with-sidebar, two-panel-compare, data-story-left, kpi-band-top,
+  quote-impact, dominant-diagram, feature-with-visual, catalog-grid). Each is
+  data (asymmetric col spans + focal cells + surfaces + deliberate
+  whitespace). API: `list_archetypes()`, `describe_archetype(id)`,
+  `slots_for(id)`, `realize_archetype(id, slots, slide_meta, overrides)` →
+  a standard `slide_input`. The orchestrator SELECTS by intent and FILLS
+  slots; optional slots drop cleanly, required ones raise.
+- **Cell surfaces** — a cell may set `surface = panel | tint | elevated` to
+  wrap its component in a styled container (padding + radius + shadow/bg) via
+  `_GRID_CSS`, so archetypes build panels / tinted cards / elevated blocks
+  without bespoke components. All light surfaces (dark text stays legible);
+  unknown values warn + ignore. Cells with no surface are unchanged.
+- **Discovery** — `catalog(verbose=True)` now also returns `archetypes`
+  (the selection list) and `cell_surfaces`, so the whole design system is
+  visible from the one call the creator already makes.
+- The deterministic `layout_designer` scorer path is untouched (kept as the
+  fallback for image-dominant slides + back-compat). This milestone is
+  purely additive.
+
+## v4.1.0 (2026-06-16) — M2: ECharts-backed data charts
+
+Fixes "chart cũng không có" / the flat-and-buggy state of the existing SVG
+charts. The four data-chart components now render via **Apache ECharts**
+(vendored locally, SVG renderer) instead of hand-templated SVG:
+
+- **bar-chart, pie-chart, line-chart, stacked-bar** → `echarts_specs.py`
+  builds an ECharts `option` from the *unchanged* prop contract; the
+  component emits a `<div class="vti-echart" data-vti-echart="…">`
+  placeholder. Richer output: gradient bar fills + value labels + dashed
+  y-gridlines; donut centre label; smooth line + gradient area; brand
+  palette + legend. Fixes the old bug where `tone="sky"` had no CSS class
+  and rendered **black** bars.
+- **Vendored runtime**: `vendor/echarts.min.js` (ECharts 5.5.1, ~1MB).
+  `chart_runtime_html()` returns the bundle + a tiny boot script; injected
+  **once per deck** by `creator.build_deck_html`, and **only when a chart is
+  present** (`deck_uses_charts()`), so chart-less decks stay lean.
+- **Export-safe by design** (the screenshot race any JS-charting path
+  risks): the boot script inits each chart with the **SVG renderer** and
+  **`animation:false`**, so `setOption` paints synchronously into the DOM,
+  then sets `window.__vtiChartsReady`. `exporter.render_slides_to_pngs` and
+  the figma `html_backend.render_to_png` now wait on that flag (guarded by a
+  `vti-echart` content check + 8s timeout fallback) before screenshotting.
+- gauge-dial / progress-bar / funnel stay on their existing SVG (simple
+  indicator widgets, no race); the dead SVG-chart template helpers remain
+  but are no longer the bar/pie/line/stacked path.
+
+The decorator's faint `_motif_data_bars` background motif is intentionally
+left as-is: it is decorative texture (opacity ~0.2), not a presented data
+chart, so it does not conflict with the real charts now in the page-builder.
+
+## v4.0.0 (2026-06-16) — M1: fluid typography (clamp + container-query)
+
+First milestone of the "art-director" restructure (see repo plan). Kills
+the root cause of "font không hợp với trình bày tổng thể": typography was
+locked to 5 FIXED px sizes (64/32/24/15/12) that never adapted to how much
+room a cell had. Now the named type scale is **fluid** and **container-aware**.
+
+**tokens.css — fluid scale.** The 5 canonical levels became
+`clamp(min, calc(base + B·cqw), max)`, and two in-between steps were added
+(`--vti-fs-lead`, `--vti-fs-small`) for a smoother ramp:
+
+| token | fluid range |
+|---|---|
+| `--vti-fs-hero`    | 40 → 64px |
+| `--vti-fs-display` | 22 → 32px |
+| `--vti-fs-title`   | 17 → 24px |
+| `--vti-fs-lead`    | 15 → 18px *(new)* |
+| `--vti-fs-body`    | 13 → 15px |
+| `--vti-fs-small`   | 12 → 13px *(new)* |
+| `--vti-fs-caption` | 11 → 12px |
+
+  - **Safe by construction:** each clamp's MAX = the pre-M1 fixed value, so
+    any container-less context (chrome, special-pages) resolves to exactly
+    the old size — no regression. Only narrow cells shrink.
+  - Legacy fs aliases (`--vti-fs-section/page-title/h2/h3/stat/tiny`) now
+    point at the fluid canonical levels, so legacy-named consumers become
+    fluid for free.
+  - Weights: `--vti-fw-airy` (300) and `--vti-fw-strong` (700) re-opened,
+    but only for the display/hero tiers (body stays 400/500).
+
+**composer_grid.py — container queries.** `.vti-grid-cell` now sets
+`container-type: inline-size`, so the `cqw` terms resolve against each
+cell's own width. A title in a 4-col cell shrinks; the same token in a
+12-col cell holds its ceiling.
+
+**Typography budget audit.** `_TYPE_LEVELS` gains `lead`/`small`;
+`_aggregate_type_budget` collapses them onto their neighbour (lead→body,
+small→caption) so the richer scale does not inflate the "distinct visible
+levels" count. Weight check updated: anchor-tier weights {300,600,700}
+are free only when a hero/display level is present.
+
+**Component CSS sweep.** All 113 hardcoded `font-size: Npx` declarations
+across 37 component CSS files were replaced with `var(--vti-fs-*)` tokens
+(context-judged: labels/eyebrows → caption, dense running text → small),
+each carrying a `/* was Npx */` traceability comment. Components now
+consume the fluid scale instead of bypassing it with raw px (the literal
+source of the "12px overused 68×" finding).
+
+Adaptive row HEIGHT was found to already be `auto` for content rows —
+the rigidity was the fixed font, not the row. The deterministic
+`BLOCK_KIND_EST_H` estimate is retained for now (it only feeds the
+still-active Phase-4 scorer) and will be removed in M3 when that scorer
+is replaced.
+
 ## v3.18.5 (2026-06-09) — case-study body grid: stop auto-rows stretching
 
 The case-study layout's `.cs-body .vti-grid` set `height:100%` but never

@@ -32,7 +32,7 @@
 }
 .vti-stat-hero__value {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 64px;
+  font-size: var(--vti-fs-hero);  /* was 64px */
   font-weight: 600;
   color: var(--vti-blue-deep, #0844A4);
   line-height: 0.95;
@@ -42,7 +42,7 @@
 }
 .vti-stat-hero__label {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   color: var(--vti-blue-medium, #1B5DE6);
   letter-spacing: 0.18em;

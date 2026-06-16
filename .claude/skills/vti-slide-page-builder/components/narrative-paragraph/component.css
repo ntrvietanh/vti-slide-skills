@@ -12,7 +12,7 @@
 }
 .vti-narrative__p {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 400;
   line-height: 1.65;
   color: var(--vti-ink, #2C2C2A);

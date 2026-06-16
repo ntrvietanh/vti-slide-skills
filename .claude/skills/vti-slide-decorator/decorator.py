@@ -67,7 +67,7 @@ _PIPELINE_STATUS = {
         'none':               'IMPLEMENTED (W3.4)',
     },
     'injection':             'IMPLEMENTED (W3.6 — v0.5)',
-    'audit':                 'STUB (planned for v0.6 — extends audit_typography)',
+    'audit':                 'SUPERSEDED — see vti-slide-page-builder/visual_critic.py (M4)',
 }
 
 

@@ -12,7 +12,7 @@
 .vti-funnel__segment { transition: opacity 0.15s; }
 .vti-funnel__segment-label {
   font-family: var(--font-h);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   fill: var(--vti-white);
   text-anchor: middle;
@@ -20,7 +20,7 @@
 }
 .vti-funnel__segment-value {
   font-family: var(--font-h);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   fill: var(--vti-white);
   text-anchor: middle;
@@ -28,7 +28,7 @@
 }
 .vti-funnel__segment-pct {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   fill: rgba(255, 255, 255, 0.85);
   text-anchor: middle;
   dominant-baseline: central;

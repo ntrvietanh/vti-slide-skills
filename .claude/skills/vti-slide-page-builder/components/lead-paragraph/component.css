@@ -5,7 +5,7 @@
    ============================================================================= */
 .vti-lead-paragraph {
   font-family: var(--font-b);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 500;
   line-height: 1.5;
   color: var(--vti-ink);

@@ -17,7 +17,7 @@
   padding: 24px 0 36px;
 }
 .vti-quadrant__y-end, .vti-quadrant__y-start {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-blue-deep);
   text-transform: uppercase;
@@ -55,7 +55,7 @@
 .vti-quadrant__cell-label {
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-blue-deep);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -64,7 +64,7 @@
   display: flex;
   flex-direction: column;
   gap: 3px;
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   color: var(--vti-ink);
   line-height: 1.35;
 }
@@ -79,7 +79,7 @@
   display: flex;
   justify-content: space-between;
   padding: 0 8px;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-blue-deep);
   text-transform: uppercase;

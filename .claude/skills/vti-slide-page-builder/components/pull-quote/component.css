@@ -20,7 +20,7 @@
   top: -8px;
   left: 0;
   font-family: 'Plus Jakarta Sans', Georgia, serif;
-  font-size: 64px;
+  font-size: var(--vti-fs-hero);  /* was 64px */
   line-height: 1;
   color: var(--vti-blue-deep);
   font-weight: 600;
@@ -47,14 +47,14 @@
   letter-spacing: -0.005em;
 }
 
-.vti-pull-quote--default .vti-pull-quote__text { font-size: 24px; }
-.vti-pull-quote--large   .vti-pull-quote__text { font-size: 32px; }
+.vti-pull-quote--default .vti-pull-quote__text { font-size: var(--vti-fs-title); }  /* was 24px */
+.vti-pull-quote--large   .vti-pull-quote__text { font-size: var(--vti-fs-display); }  /* was 32px */
 
 .vti-pull-quote__attribution {
   display: block;
   margin-top: 12px;
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-blue-deep);
   font-style: normal;

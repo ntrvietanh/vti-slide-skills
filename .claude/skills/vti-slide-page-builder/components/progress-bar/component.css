@@ -12,7 +12,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
 }
 .vti-progress-bar__label {
   font-weight: 600;

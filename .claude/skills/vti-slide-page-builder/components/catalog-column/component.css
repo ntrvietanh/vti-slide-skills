@@ -36,7 +36,7 @@
 }
 .vti-catalog-column__label-text {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -45,7 +45,7 @@
   background: rgba(255, 255, 255, 0.22);
   color: #FFFFFF;
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   padding: 3px 10px;
   border-radius: 99px;
@@ -64,7 +64,7 @@
   gap: 10px;
   padding: 8px 16px;
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   color: var(--vti-ink, #2C2C2A);
   line-height: 1.4;
 }
@@ -91,7 +91,7 @@
   margin-left: auto;
   background: var(--vti-light, #DAE9F6);
   color: var(--vti-blue-deep, #0844A4);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   padding: 2px 8px;
   border-radius: 99px;

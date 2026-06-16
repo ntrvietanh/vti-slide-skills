@@ -145,6 +145,17 @@ def render_slides_to_pngs(
             # Wait for fonts to settle so Plus Jakarta Sans is not
             # mid-swap when we screenshot.
             page.evaluate("() => document.fonts && document.fonts.ready")
+            # M2 — if the deck embeds ECharts charts, wait for the boot
+            # script to finish painting them (window.__vtiChartsReady) so we
+            # never screenshot a blank chart cell. Guarded by a content check
+            # so chart-less decks don't pay a timeout.
+            if "vti-echart" in html:
+                try:
+                    page.wait_for_function(
+                        "window.__vtiChartsReady === true", timeout=8000)
+                except Exception:
+                    print("  ! charts: __vtiChartsReady not set within 8s — "
+                          "screenshotting anyway")
 
             slides = page.locator(_SLIDE_SELECTOR)
             count = slides.count()

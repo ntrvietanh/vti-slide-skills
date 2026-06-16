@@ -27,13 +27,13 @@
 .vti-gauge__value {
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: 32px;
+  font-size: var(--vti-fs-display);  /* was 32px */
   fill: var(--vti-blue-deep);
   text-anchor: middle;
 }
 .vti-gauge__suffix {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   fill: #6B7280;
   text-anchor: middle;
@@ -42,7 +42,7 @@
 }
 .vti-gauge__label {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   text-align: center;

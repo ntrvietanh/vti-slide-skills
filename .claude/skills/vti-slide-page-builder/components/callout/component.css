@@ -76,14 +76,14 @@
 .vti-callout__title {
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-blue-deep);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .vti-callout__text {
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   color: inherit;
   line-height: 1.5;
 }

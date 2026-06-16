@@ -14,7 +14,7 @@
 
 .vti-trend-stat__value {
   font-family: var(--font-h);
-  font-size: 32px;
+  font-size: var(--vti-fs-display);  /* was 32px */
   font-weight: 600;
   line-height: 1;
   color: var(--vti-blue-deep);
@@ -25,7 +25,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   margin-top: 4px;
 }
@@ -48,7 +48,7 @@
 .vti-trend-stat__period {
   font-weight: 400;
   color: #6B7280;
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   margin-left: 4px;
 }
 
@@ -61,7 +61,7 @@
 .vti-trend-stat--flat .vti-trend-stat__delta { color: #6B7280; }
 
 .vti-trend-stat__label {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   color: var(--vti-ink);
   margin-top: 8px;
@@ -70,5 +70,5 @@
 }
 
 /* Compact variant for narrow cells (col_span ≤ 4) */
-.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__value { font-size: 24px; }
-.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__label { font-size: 12px; }
+.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__value { font-size: var(--vti-fs-title); }  /* was 24px */
+.vti-trend-stat.vti-trend-stat--small .vti-trend-stat__label { font-size: var(--vti-fs-caption); }  /* was 12px */

@@ -74,7 +74,7 @@ from svg_primitives import (
 )
 from tokens_bridge import accent
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 # Default backend for the 5 dual-backend primitives. Can be overridden
 # per-call (kwarg ``backend=``) or globally via env var

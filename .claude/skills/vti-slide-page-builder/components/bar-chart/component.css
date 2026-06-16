@@ -20,7 +20,7 @@
 
 .vti-bar-chart__title {
   font-family: var(--font-h);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 600;
   color: var(--vti-ink);
   text-transform: uppercase;
@@ -53,7 +53,7 @@
 /* SVG text labels — scale with viewBox so size depends on container */
 .vti-bar-chart__cat-label {
   font-family: var(--font-b);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   fill: var(--vti-ink);
   text-anchor: middle;
 }
@@ -63,7 +63,7 @@
 
 .vti-bar-chart__value-label {
   font-family: var(--font-h);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   fill: var(--vti-blue-deep);
   text-anchor: middle;
@@ -74,7 +74,7 @@
 
 .vti-bar-chart__y-tick {
   font-family: var(--font-b);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   fill: #6B7280;
   text-anchor: end;
 }

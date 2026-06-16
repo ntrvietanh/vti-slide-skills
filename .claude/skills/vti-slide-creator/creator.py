@@ -121,7 +121,7 @@ from deck_planner import (                                       # noqa: F401
     renumber_slide_ids,                                          # v3.14
 )
 
-__version__ = "4.6.2"
+__version__ = "4.8.0"
 
 
 def info() -> dict:
@@ -507,11 +507,23 @@ def build_deck_html(slides, title="VTI Deck", lang="en", shell=None):
         html = build_deck_html(slides, title=outline['doc_title'])
         open('/tmp/deck.html', 'w', encoding='utf-8').write(html)
     """
-    from composer_grid import compose_deck
+    from composer_grid import compose_deck, deck_uses_charts, chart_runtime_html
     deck = compose_deck(slides)
     template = shell if shell is not None else DECK_SHELL_DEFAULT
-    return template.format(
+    html = template.format(
         title=title, lang=lang,
         css=deck["deck_css"],
         slides=deck["deck_html"],
     )
+    # M2 — inject the ECharts runtime (vendored bundle + boot) ONCE, just
+    # before </body>, and only when the deck actually contains a chart so
+    # chart-less decks don't carry the ~1MB bundle. The boot script renders
+    # with the SVG renderer + animation off (synchronous paint) and sets
+    # window.__vtiChartsReady, which the PNG/PPTX renderers wait on.
+    if deck_uses_charts(deck["deck_html"]):
+        runtime = chart_runtime_html()
+        if "</body>" in html:
+            html = html.replace("</body>", runtime + "</body>", 1)
+        else:
+            html += runtime
+    return html

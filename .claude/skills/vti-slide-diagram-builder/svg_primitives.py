@@ -17,7 +17,7 @@ Constants
 from __future__ import annotations
 
 import html as _html
-from tokens_bridge import accent, font_body, token
+from tokens_bridge import accent, font_body, token, tint
 
 CANVAS_W = 1180
 # v4.5 (2026-05-10): canvas heights reduced to remove the ~150-200px of
@@ -29,10 +29,18 @@ CANVAS_W = 1180
 # more.
 CANVAS_H_WIDE = 280   # was 460 — a 4-step horizontal flow needs ~210px
 CANVAS_H_TALL = 480   # was 600 — quadrant 2x2 with 5-item cells needs ~430px
+STROKE_THIN = 1.5
 STROKE_NORMAL = 2
 STROKE_THICK = 3
 ARROW_HEAD_SIZE = 6
 CORNER_RADIUS = 8
+
+# v4.0/M2 — depth pass. Accent aliases that get a pre-defined vertical
+# gradient (lighter top → accent bottom) so filled boxes read with depth
+# instead of flat colour. Outlined (white) boxes get a barely-there sheen
+# gradient + a soft drop shadow. Every colour is resolved via the token
+# bridge (accent/tint) — no hex literals in source (verify-time lint).
+_GRAD_ALIASES = ["navy", "deep", "blue", "medium", "sky", "light", "teal", "amber"]
 
 
 def esc(text: str | None) -> str:
@@ -40,6 +48,80 @@ def esc(text: str | None) -> str:
     if text is None:
         return ""
     return _html.escape(str(text), quote=True)
+
+
+# ---------------------------------------------------------------------------
+# v4.0/M2 — shared <defs>: gradients, soft shadow, icon symbols
+# ---------------------------------------------------------------------------
+def _lin_grad(gid: str, top_hex: str, bottom_hex: str) -> str:
+    return (
+        f'    <linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1">\n'
+        f'      <stop offset="0" stop-color="{top_hex}"/>\n'
+        f'      <stop offset="1" stop-color="{bottom_hex}"/>\n'
+        f'    </linearGradient>\n'
+    )
+
+
+# A compact line-icon set (24×24, currentColor strokes). Latent in M2 —
+# available via svg_icon() for the M3 archetype layer to wire into nodes;
+# adding them to <defs> costs nothing when unused.
+_ICON_PATHS: dict[str, str] = {
+    "gear":     '<path d="M12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM12 3v2M12 19v2M5 12H3M21 12h-2M6 6l1.5 1.5M16.5 16.5L18 18M18 6l-1.5 1.5M7.5 16.5L6 18" />',
+    "database": '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.66 3.13 3 7 3s7-1.34 7-3V6M5 12c0 1.66 3.13 3 7 3s7-1.34 7-3"/>',
+    "cloud":    '<path d="M7 18a4 4 0 01-.5-7.97A5.5 5.5 0 0117.5 11 3.5 3.5 0 0117 18H7z"/>',
+    "check":    '<path d="M4 12.5l5 5L20 6.5"/>',
+    "user":     '<circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/>',
+    "chart":    '<path d="M4 20V4M4 20h16M8 17v-5M12 17V8M16 17v-8"/>',
+    "loop":     '<path d="M4 9a8 8 0 0114-3l2 2M20 15a8 8 0 01-14 3l-2-2M18 4v4h-4M6 20v-4h4"/>',
+    "shield":   '<path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z"/>',
+    "doc":      '<path d="M7 3h7l4 4v14H7zM14 3v4h4M9 12h6M9 16h6"/>',
+}
+_ICON_SYMBOLS = "".join(
+    f'    <symbol id="vti-ic-{name}" viewBox="0 0 24 24" '
+    f'fill="none" stroke="currentColor" stroke-width="1.8" '
+    f'stroke-linecap="round" stroke-linejoin="round">{path}</symbol>\n'
+    for name, path in _ICON_PATHS.items()
+)
+
+
+def _defs() -> str:
+    """Shared gradient/filter/icon definitions injected once per <svg>.
+
+    IDs are stable (matching the existing `diag-title`/`diag-desc` pattern):
+    every diagram defines identical content, so url(#…) references resolve
+    consistently even with multiple diagrams inlined in one deck document.
+    """
+    parts = ["  <defs>\n"]
+    # White-card sheen: white → barely-there blue tint at the bottom.
+    parts.append(_lin_grad("vtiFillWhite", accent("white"), tint("deep", 0.94)))
+    # Accent gradients: a lifted (lighter) top → the accent at the bottom.
+    for a in _GRAD_ALIASES:
+        parts.append(_lin_grad(f"vtiGrad-{a}", tint(a, 0.28), accent(a)))
+    # Soft drop shadow — tuned subtle to match the brand's "soft elevated
+    # surfaces" identity (see tokens.css --vti-shadow-*).
+    parts.append(
+        '    <filter id="vtiSoftShadow" x="-25%" y="-25%" width="150%" height="160%">\n'
+        f'      <feDropShadow dx="0" dy="2.5" stdDeviation="5" '
+        f'flood-color="{accent("navy")}" flood-opacity="0.16"/>\n'
+        '    </filter>\n'
+    )
+    parts.append(_ICON_SYMBOLS)
+    parts.append("  </defs>\n")
+    return "".join(parts)
+
+
+def svg_icon(x: int, y: int, size: int, name: str, *,
+             color_alias: str = "deep") -> str:
+    """Render a line icon from the built-in set via <use>.
+
+    No-op (empty string) for an unknown name so callers never crash.
+    """
+    if name not in _ICON_PATHS:
+        return ""
+    return (
+        f'  <use href="#vti-ic-{name}" x="{x}" y="{y}" '
+        f'width="{size}" height="{size}" color="{accent(color_alias)}"/>\n'
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +143,7 @@ def svg_open(width: int, height: int, *,
         f'style="width:100%;height:auto;display:block;">\n'
         f'  <title id="diag-title">{esc(title)}</title>\n'
         f'  <desc id="diag-desc">{esc(desc)}</desc>\n'
+        f'{_defs()}'
         f'  <rect width="{width}" height="{height}" fill="{accent(bg)}"/>\n'
     )
 
@@ -116,28 +199,54 @@ def svg_text(x: int, y: int, text: str, *,
 def svg_box(x: int, y: int, w: int, h: int, *,
             fill_alias: str = "white",
             stroke_alias: str = "border",
-            stroke_width: int = STROKE_NORMAL,
+            stroke_width: float = STROKE_NORMAL,
             radius: int = CORNER_RADIUS,
-            opacity: float = 1.0) -> str:
-    """Outlined rounded rectangle."""
+            opacity: float = 1.0,
+            shadow: bool = True,
+            gradient: bool = True) -> str:
+    """Outlined rounded rectangle.
+
+    v4.0/M2 — depth pass: a white box gets a barely-there sheen gradient
+    (``vtiFillWhite``) and a soft drop shadow; an accent fill gets its
+    pre-defined accent gradient. Pass ``shadow=False`` / ``gradient=False``
+    to opt out (e.g. decorative or semi-transparent boxes). Shadow is
+    auto-suppressed for translucent boxes so it never doubles up.
+    """
     op = f' opacity="{opacity}"' if opacity < 1.0 else ""
-    fill = "white" if fill_alias == "white" else accent(fill_alias)
+    if fill_alias == "white":
+        fill = "url(#vtiFillWhite)" if gradient else "white"
+    elif gradient and fill_alias in _GRAD_ALIASES:
+        fill = f"url(#vtiGrad-{fill_alias})"
+    else:
+        fill = accent(fill_alias)
+    filt = ' filter="url(#vtiSoftShadow)"' if (shadow and opacity >= 1.0) else ""
     return (
         f'  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" '
         f'fill="{fill}" stroke="{accent(stroke_alias)}" '
-        f'stroke-width="{stroke_width}"{op}/>\n'
+        f'stroke-width="{stroke_width}"{op}{filt}/>\n'
     )
 
 
 def svg_box_filled(x: int, y: int, w: int, h: int, *,
                    fill_alias: str,
                    radius: int = CORNER_RADIUS,
-                   opacity: float = 1.0) -> str:
-    """Solid fill rounded rectangle (no stroke)."""
+                   opacity: float = 1.0,
+                   shadow: bool = True,
+                   gradient: bool = True) -> str:
+    """Solid fill rounded rectangle (no stroke).
+
+    v4.0/M2 — uses the accent's vertical gradient + a soft drop shadow for
+    depth. Shadow auto-suppressed when translucent.
+    """
     op = f' opacity="{opacity}"' if opacity < 1.0 else ""
+    if gradient and fill_alias in _GRAD_ALIASES:
+        fill = f"url(#vtiGrad-{fill_alias})"
+    else:
+        fill = accent(fill_alias)
+    filt = ' filter="url(#vtiSoftShadow)"' if (shadow and opacity >= 1.0) else ""
     return (
         f'  <rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" '
-        f'fill="{accent(fill_alias)}"{op}/>\n'
+        f'fill="{fill}"{op}{filt}/>\n'
     )
 
 
@@ -165,12 +274,14 @@ def svg_card(x: int, y: int, w: int, h: int, label: str,
 # Arrow + connector helpers
 # ---------------------------------------------------------------------------
 def svg_arrow(x1: int, y1: int, x2: int, y2: int, *,
-              accent_alias: str = "muted",
-              stroke_width: int = STROKE_NORMAL,
+              accent_alias: str = "ink-soft",
+              stroke_width: float = STROKE_NORMAL,
               dashed: bool = False) -> str:
     """Straight arrow with filled-triangle head at (x2, y2).
 
     The triangle points in the direction (x1, y1) → (x2, y2).
+    v4.0/M2 — default connector colour darkened muted→ink-soft for legible
+    contrast on the pale canvas (muted read washed out).
     """
     dash = ' stroke-dasharray="4 3"' if dashed else ""
     line = (
@@ -237,9 +348,10 @@ def even_split_x(canvas_w: int, n: int, *,
 
 __all__ = [
     "CANVAS_W", "CANVAS_H_WIDE", "CANVAS_H_TALL",
-    "STROKE_NORMAL", "STROKE_THICK", "ARROW_HEAD_SIZE", "CORNER_RADIUS",
+    "STROKE_THIN", "STROKE_NORMAL", "STROKE_THICK", "ARROW_HEAD_SIZE",
+    "CORNER_RADIUS",
     "esc",
-    "svg_open", "svg_close",
+    "svg_open", "svg_close", "svg_icon",
     "svg_title_label", "svg_subtitle_label", "svg_text",
     "svg_box", "svg_box_filled", "svg_card",
     "svg_arrow", "svg_connector_horizontal", "svg_connector_vertical",

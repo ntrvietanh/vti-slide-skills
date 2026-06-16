@@ -30,7 +30,7 @@
 }
 .vti-practice-card__num {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   font-weight: 500;
   letter-spacing: 0.20em;
   color: #ffffff; opacity: 0.65;
@@ -63,7 +63,7 @@
 }
 .vti-practice-card__title {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -78,7 +78,7 @@
 }
 .vti-practice-card__text {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   font-weight: 400;
   line-height: 1.6;
   color: var(--vti-ink, #444441);
@@ -86,7 +86,7 @@
 }
 .vti-practice-card__bullets {
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: 12px;
+  font-size: var(--vti-fs-small);  /* was 12px */
   font-weight: 400;
   line-height: 1.5;
   color: var(--vti-ink, #444441);

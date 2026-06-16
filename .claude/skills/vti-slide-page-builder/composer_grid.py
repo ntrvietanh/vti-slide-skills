@@ -34,6 +34,9 @@ import re
 from pathlib import Path
 from typing import Any, Callable
 
+import echarts_specs  # M2 — ECharts-backed data charts (bar/pie/line/stacked)
+import archetypes      # M3 — curated slide-archetype library (art-director layer)
+
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -1613,112 +1616,26 @@ def _r_bar_chart(props: dict) -> str:
             f"must be one of {sorted(_VALID_BAR_ORIENTATION)}",
         )
 
-    title       = props.get("title", "")
-    show_values = bool(props.get("show_values", True))
-    max_value   = props.get("max_value")
-    if max_value is None:
-        max_value = max(float(it.get("value", 0)) for it in items)
-    max_value = float(max_value) or 1.0   # avoid div-by-zero
+    title = props.get("title", "")
 
-    n = len(items)
+    # Validate tones up-front (ECharts maps each to a brand hex). v4.0/M2:
+    # rendering moved from hand-templated SVG to ECharts (svg renderer); the
+    # prop contract is unchanged so existing plans compose as-is. This also
+    # fixes the old bug where tone="sky" had no CSS class and rendered black.
+    for i, it in enumerate(items):
+        tone = it.get("tone", "deep")
+        if tone not in _VALID_BAR_TONES:
+            raise ValidationError(
+                "invalid_value",
+                f"bar-chart.props.items[{i}].tone",
+                f"must be one of {sorted(_VALID_BAR_TONES)}",
+            )
 
-    if orientation == "vertical":
-        VB_W, VB_H = 800, 400
-        plot_left, plot_right  = 60, 780
-        plot_top,  plot_bottom = 30, 340
-        plot_w = plot_right - plot_left
-        plot_h = plot_bottom - plot_top
-
-        bar_slot = plot_w / n
-        bar_w    = bar_slot * 0.55
-
-        bars_svg, value_labels, cat_labels = [], [], []
-        for i, it in enumerate(items):
-            value = float(it.get("value", 0))
-            label = str(it.get("label", ""))
-            tone  = it.get("tone", "deep")
-            if tone not in _VALID_BAR_TONES:
-                raise ValidationError(
-                    "invalid_value",
-                    f"bar-chart.props.items[{i}].tone",
-                    f"must be one of {sorted(_VALID_BAR_TONES)}",
-                )
-            h = (value / max_value) * plot_h
-            x = plot_left + bar_slot * i + (bar_slot - bar_w) / 2
-            y = plot_bottom - h
-            bars_svg.append(
-                f'<rect class="vti-bar-chart__bar vti-bar-chart__bar--{tone}" '
-                f'x="{x:.1f}" y="{y:.1f}" width="{bar_w:.1f}" '
-                f'height="{h:.1f}" rx="3"/>')
-            cat_labels.append(
-                f'<text class="vti-bar-chart__cat-label" '
-                f'x="{x + bar_w / 2:.1f}" y="{plot_bottom + 22:.1f}">'
-                f'{_esc(label)}</text>')
-            if show_values:
-                value_labels.append(
-                    f'<text class="vti-bar-chart__value-label" '
-                    f'x="{x + bar_w / 2:.1f}" y="{y - 8:.1f}">'
-                    f'{_esc(_fmt_num(value))}</text>')
-
-        axes = (f'<line class="vti-bar-chart__axis-line" '
-                f'x1="{plot_left}" y1="{plot_bottom}" '
-                f'x2="{plot_right}" y2="{plot_bottom}"/>')
-    else:
-        # horizontal
-        VB_W, VB_H = 800, 60 * n + 40
-        plot_left, plot_right  = 160, 760
-        plot_top,  plot_bottom = 20, VB_H - 20
-        plot_w = plot_right - plot_left
-
-        bar_slot = (plot_bottom - plot_top) / n
-        bar_h    = bar_slot * 0.55
-
-        bars_svg, value_labels, cat_labels = [], [], []
-        for i, it in enumerate(items):
-            value = float(it.get("value", 0))
-            label = str(it.get("label", ""))
-            tone  = it.get("tone", "deep")
-            if tone not in _VALID_BAR_TONES:
-                raise ValidationError(
-                    "invalid_value",
-                    f"bar-chart.props.items[{i}].tone",
-                    f"must be one of {sorted(_VALID_BAR_TONES)}",
-                )
-            w = (value / max_value) * plot_w
-            y = plot_top + bar_slot * i + (bar_slot - bar_h) / 2
-            x = plot_left
-            bars_svg.append(
-                f'<rect class="vti-bar-chart__bar vti-bar-chart__bar--{tone}" '
-                f'x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" '
-                f'height="{bar_h:.1f}" rx="3"/>')
-            cat_labels.append(
-                f'<text class="vti-bar-chart__cat-label" '
-                f'x="{plot_left - 10:.1f}" y="{y + bar_h / 2 + 5:.1f}">'
-                f'{_esc(label)}</text>')
-            if show_values:
-                value_labels.append(
-                    f'<text class="vti-bar-chart__value-label" '
-                    f'x="{x + w + 8:.1f}" y="{y + bar_h / 2 + 5:.1f}">'
-                    f'{_esc(_fmt_num(value))}</text>')
-
-        axes = (f'<line class="vti-bar-chart__axis-line" '
-                f'x1="{plot_left}" y1="{plot_top}" '
-                f'x2="{plot_left}" y2="{plot_bottom}"/>')
-
-    title_html = ""
-    if title:
-        title_html = f'<div class="vti-bar-chart__title">{_esc(title)}</div>'
-
-    return _fill(_component_template("bar-chart"), {
-        "ORIENTATION":      orientation,
-        "TITLE_HTML":       title_html,
-        "VB_W":             str(VB_W),
-        "VB_H":             str(VB_H),
-        "AXES_SVG":         axes,
-        "BARS_SVG":         "\n".join(bars_svg),
-        "VALUE_LABELS_SVG": "\n".join(value_labels),
-        "CAT_LABELS_SVG":   "\n".join(cat_labels),
-    })
+    return echarts_specs.echart_div(
+        echarts_specs.bar_option(props),
+        title_html=echarts_specs.chart_title_html(title),
+        min_h=200,
+    )
 
 
 def _fmt_num(n: float) -> str:
@@ -1805,10 +1722,7 @@ def _r_pie_chart(props: dict) -> str:
             "too many segments (>8 unreadable); aggregate small slices",
         )
 
-    donut        = bool(props.get("donut", False))
-    center_value = props.get("center_value", "")
-    center_label = props.get("center_label", "")
-    layout       = props.get("layout", "legend-right")
+    layout = props.get("layout", "legend-right")
     if layout not in _VALID_PIE_LAYOUTS:
         raise ValidationError(
             "invalid_value", "pie-chart.props.layout",
@@ -1822,63 +1736,12 @@ def _r_pie_chart(props: dict) -> str:
             "sum of item values must be positive",
         )
 
-    cx, cy, r = 100.0, 100.0, 90.0
-
-    segments_svg = []
-    legend_rows  = []
-    angle_pos    = 0.0
-    for i, it in enumerate(items):
-        value = float(it.get("value", 0))
-        label = str(it.get("label", ""))
-        color = it.get("color", _PIE_DEFAULT_COLORS[i % len(_PIE_DEFAULT_COLORS)])
-        share = value / total
-        pct   = round(share * 100, 1)
-        end_a = angle_pos + share * 360.0
-
-        # Single-segment full-circle special case (avoid 360° arc bug)
-        if len(items) == 1:
-            seg = (f'<circle class="vti-pie-chart__segment" '
-                   f'cx="{cx}" cy="{cy}" r="{r}" fill="{color}"/>')
-        else:
-            d = _arc_path(cx, cy, r, angle_pos, end_a)
-            seg = (f'<path class="vti-pie-chart__segment" '
-                   f'd="{d}" fill="{color}"/>')
-        segments_svg.append(seg)
-
-        legend_rows.append(
-            f'<div class="vti-pie-chart__legend-row">'
-            f'<span class="vti-pie-chart__swatch" '
-            f'style="background:{color};"></span>'
-            f'<span class="vti-pie-chart__legend-label">{_esc(label)}</span>'
-            f'<span class="vti-pie-chart__legend-pct">{pct:.0f}%</span>'
-            f'</div>'
-        )
-        angle_pos = end_a
-
-    donut_hole_svg = ""
-    center_label_svg = ""
-    if donut:
-        donut_hole_svg = (f'<circle class="vti-pie-chart__hole" '
-                          f'cx="{cx}" cy="{cy}" r="55"/>')
-        if center_value:
-            center_label_svg += (
-                f'<text class="vti-pie-chart__center-value" '
-                f'x="{cx}" y="{cy - 4}">{_esc(center_value)}</text>')
-        if center_label:
-            center_label_svg += (
-                f'<text class="vti-pie-chart__center-label" '
-                f'x="{cx}" y="{cy + 16}">{_esc(center_label)}</text>')
-
-    legend_html = (f'<div class="vti-pie-chart__legend">'
-                   f'{"".join(legend_rows)}</div>')
-
-    return _fill(_component_template("pie-chart"), {
-        "LAYOUT":            layout,
-        "SEGMENTS_SVG":      "\n".join(segments_svg),
-        "DONUT_HOLE_SVG":    donut_hole_svg,
-        "CENTER_LABEL_SVG":  center_label_svg,
-        "LEGEND_HTML":       legend_html,
-    })
+    # v4.0/M2 — ECharts pie/donut (svg renderer). Auto-percentage, brand
+    # palette, optional donut centre label. Prop contract unchanged.
+    return echarts_specs.echart_div(
+        echarts_specs.pie_option(props),
+        min_h=200,
+    )
 
 
 # ---------- trend-stat -------------------------------------------------------
@@ -2762,62 +2625,11 @@ def _r_funnel(props: dict) -> str:
         raise ValidationError("invalid_value", "funnel.props.stages",
                               "max 6 stages (>6 becomes cramped)")
 
-    show_pct_of_top = bool(props.get("show_pct_of_top", True))
-    n = len(stages)
-    seg_height = 60   # px per segment in viewBox
-    VB_H = seg_height * n + 20
-    max_val = float(stages[0].get("value", 1)) or 1.0
-    cx = 200
-    max_w = 320
-
-    segments_svg, labels_svg = [], []
-    for i, st in enumerate(stages):
-        label = str(st.get("label", ""))
-        value = float(st.get("value", 0))
-        color = st.get("color", _FUNNEL_DEFAULT_COLORS[i % len(_FUNNEL_DEFAULT_COLORS)])
-
-        ratio_top = value / max_val
-        next_val = float(stages[i + 1].get("value", value * 0.6)) if i + 1 < n else value * 0.6
-        ratio_bot = next_val / max_val
-
-        w_top = max(max_w * ratio_top, 30)
-        w_bot = max(max_w * ratio_bot, 24)
-        y_top = 10 + i * seg_height
-        y_bot = y_top + seg_height - 4   # small gap between segments
-
-        x1 = cx - w_top / 2
-        x2 = cx + w_top / 2
-        x3 = cx + w_bot / 2
-        x4 = cx - w_bot / 2
-
-        segments_svg.append(
-            f'<polygon class="vti-funnel__segment" '
-            f'points="{x1:.1f},{y_top} {x2:.1f},{y_top} '
-            f'{x3:.1f},{y_bot} {x4:.1f},{y_bot}" fill="{color}"/>'
-        )
-
-        # Labels (centered)
-        cy = (y_top + y_bot) / 2
-        pct = (value / max_val * 100) if show_pct_of_top else 100
-        labels_svg.append(
-            f'<text class="vti-funnel__segment-label" x="{cx}" y="{cy - 12}">'
-            f'{_esc(label)}</text>'
-        )
-        labels_svg.append(
-            f'<text class="vti-funnel__segment-value" x="{cx}" y="{cy + 6}">'
-            f'{_esc(_fmt_num(value))}</text>'
-        )
-        if show_pct_of_top:
-            labels_svg.append(
-                f'<text class="vti-funnel__segment-pct" x="{cx}" y="{cy + 22}">'
-                f'{pct:.1f}% of top</text>'
-            )
-
-    return _fill(_component_template("funnel"), {
-        "VB_H":         str(VB_H),
-        "SEGMENTS_SVG": "\n".join(segments_svg),
-        "LABELS_SVG":   "\n".join(labels_svg),
-    })
+    # v4.0/M2.1 — ECharts funnel (svg renderer). Prop contract unchanged.
+    return echarts_specs.echart_div(
+        echarts_specs.funnel_option(props),
+        min_h=240,
+    )
 
 
 # ---------- quadrant-matrix -------------------------------------------------
@@ -3283,37 +3095,23 @@ def _r_progress_bar(props: dict) -> str:
         raise ValidationError("missing_required", "progress-bar.props.items",
                               "items must be a non-empty list")
 
-    bars_html = []
+    # Validate item shape + tones up-front (ECharts renders the bars).
     for i, it in enumerate(items):
         if not isinstance(it, dict):
             raise ValidationError("invalid_type", f"progress-bar.props.items[{i}]",
                                   "each item must be a dict")
-        label = it.get("label", "")
-        value = float(it.get("value", 0))
-        max_v = float(it.get("max", 100))
-        tone  = it.get("tone", "deep")
-        value_text = it.get("value_text", "")
+        tone = it.get("tone", "deep")
         if tone not in _VALID_PROGRESS_TONES:
             raise ValidationError("invalid_value",
                                   f"progress-bar.props.items[{i}].tone",
                                   f"must be one of {sorted(_VALID_PROGRESS_TONES)}")
-        pct = max(0.0, min(100.0, value / max_v * 100.0))
-        if not value_text:
-            value_text = f"{pct:.0f}%"
-        bars_html.append(
-            f'<div class="vti-progress-bar vti-progress-bar--{tone}">'
-            f'<div class="vti-progress-bar__row">'
-            f'<span class="vti-progress-bar__label">{_esc(label)}</span>'
-            f'<span class="vti-progress-bar__value">{_esc(value_text)}</span>'
-            f'</div>'
-            f'<div class="vti-progress-bar__track">'
-            f'<div class="vti-progress-bar__fill" style="width: {pct:.1f}%;"></div>'
-            f'</div></div>'
-        )
 
-    return _fill(_component_template("progress-bar"), {
-        "BARS_HTML": "\n".join(bars_html),
-    })
+    # v4.0/M2.1 — ECharts horizontal bars w/ track (showBackground). Prop
+    # contract unchanged.
+    return echarts_specs.echart_div(
+        echarts_specs.progress_option(props),
+        min_h=max(120, 46 * len(items)),
+    )
 
 
 # ---------- gauge-dial ------------------------------------------------------
@@ -3347,7 +3145,7 @@ _VALID_GAUGE_TONES = {"deep", "medium", "sky", "navy", "success", "warning"}
     "picks_content_kinds": ["gauge", "gauge_dial"],
 })
 def _r_gauge_dial(props: dict) -> str:
-    value = float(_require(props, "value", "gauge-dial.props"))
+    float(_require(props, "value", "gauge-dial.props"))  # validate presence/type
     max_v = float(props.get("max", 100))
     if max_v <= 0:
         raise ValidationError("invalid_value", "gauge-dial.props.max",
@@ -3356,38 +3154,12 @@ def _r_gauge_dial(props: dict) -> str:
     if tone not in _VALID_GAUGE_TONES:
         raise ValidationError("invalid_value", "gauge-dial.props.tone",
                               f"must be one of {sorted(_VALID_GAUGE_TONES)}")
-    suffix     = props.get("suffix", f"/ {int(max_v)}" if max_v != 100 else "")
-    label      = props.get("label", "")
-    value_text = str(props.get("value_text", _fmt_num(value)))
 
-    # Arc math: center (100, 110), radius 80. Track from (20, 110) → (180, 110)
-    # going through top. For value v, fill arc goes from (20, 110) clockwise
-    # (sweep_flag=1) through the top to end point at angle 180°-t*180°.
-    t = max(0.0, min(1.0, value / max_v))
-    if t < 0.001:
-        fill_path = "M 20 110"   # degenerate — just a point
-    else:
-        end_angle_deg = 180 - t * 180
-        end_angle_rad = _math.radians(end_angle_deg)
-        x_end = 100 + 80 * _math.cos(end_angle_rad)
-        y_end = 110 - 80 * _math.sin(end_angle_rad)
-        large = 0   # always less than 180° for values 0-1 of t
-        fill_path = f"M 20 110 A 80 80 0 {large} 1 {x_end:.2f} {y_end:.2f}"
-
-    label_html = ""
-    if label:
-        label_html = f'<div class="vti-gauge__label">{_esc(label)}</div>'
-
-    out = _fill(_component_template("gauge-dial"), {
-        "FILL_PATH":  fill_path,
-        "VALUE_TEXT": _esc(value_text),
-        "SUFFIX":     _esc(suffix),
-        "LABEL_HTML": label_html,
-    })
-    # Add tone class to root element
-    out = out.replace('class="vti-gauge"',
-                      f'class="vti-gauge vti-gauge--{tone}"', 1)
-    return out
+    # v4.0/M2.1 — ECharts gauge (svg renderer). Prop contract unchanged.
+    return echarts_specs.echart_div(
+        echarts_specs.gauge_option(props),
+        min_h=180,
+    )
 
 
 # ---------- stacked-bar -----------------------------------------------------
@@ -3436,73 +3208,14 @@ def _r_stacked_bar(props: dict) -> str:
                 f"must have exactly {n_cat} values matching categories",
             )
 
-    # Compute totals per category, find max for scaling
-    totals = []
-    for ci in range(n_cat):
-        totals.append(sum(float(s["values"][ci]) for s in series))
-    max_total = max(totals) or 1.0
-
-    VB_W, VB_H = 800, 400
-    plot_left, plot_right = 50, 780
-    plot_top,  plot_bottom = 30, 340
-    plot_w = plot_right - plot_left
-    plot_h = plot_bottom - plot_top
-
-    bar_slot = plot_w / n_cat
-    bar_w = bar_slot * 0.55
-
-    bars_svg = []
-    for ci in range(n_cat):
-        x = plot_left + bar_slot * ci + (bar_slot - bar_w) / 2
-        y_cursor = plot_bottom
-        for si, s in enumerate(series):
-            v = float(s["values"][ci])
-            color = s.get("color", _STACKED_DEFAULT_COLORS[si % len(_STACKED_DEFAULT_COLORS)])
-            seg_h = (v / max_total) * plot_h
-            y_cursor -= seg_h
-            bars_svg.append(
-                f'<rect class="vti-stacked-bar__segment" '
-                f'x="{x:.1f}" y="{y_cursor:.1f}" '
-                f'width="{bar_w:.1f}" height="{seg_h:.1f}" fill="{color}"/>'
-            )
-
-    cat_labels_svg = []
-    for ci, label in enumerate(categories):
-        x_center = plot_left + bar_slot * ci + bar_slot / 2
-        cat_labels_svg.append(
-            f'<text class="vti-stacked-bar__cat-label" '
-            f'x="{x_center:.1f}" y="{plot_bottom + 22:.1f}">{_esc(label)}</text>'
-        )
-
-    axes_svg = (
-        f'<line class="vti-stacked-bar__axis-line" '
-        f'x1="{plot_left}" y1="{plot_bottom}" '
-        f'x2="{plot_right}" y2="{plot_bottom}"/>'
-    )
-
-    legend_rows = []
-    for si, s in enumerate(series):
-        color = s.get("color", _STACKED_DEFAULT_COLORS[si % len(_STACKED_DEFAULT_COLORS)])
-        legend_rows.append(
-            f'<div class="vti-stacked-bar__legend-row">'
-            f'<span class="vti-stacked-bar__swatch" style="background:{color};"></span>'
-            f'<span>{_esc(s.get("name", f"Series {si + 1}"))}</span>'
-            f'</div>'
-        )
-    legend_html = f'<div class="vti-stacked-bar__legend">{"".join(legend_rows)}</div>'
-
+    # v4.0/M2 — ECharts stacked bar (svg renderer). Brand palette per series,
+    # legend on top. Prop contract unchanged.
     title = props.get("title", "")
-    title_html = ""
-    if title:
-        title_html = f'<div class="vti-stacked-bar__title">{_esc(title)}</div>'
-
-    return _fill(_component_template("stacked-bar"), {
-        "TITLE_HTML":     title_html,
-        "AXES_SVG":       axes_svg,
-        "BARS_SVG":       "\n".join(bars_svg),
-        "CAT_LABELS_SVG": "\n".join(cat_labels_svg),
-        "LEGEND_HTML":    legend_html,
-    })
+    return echarts_specs.echart_div(
+        echarts_specs.stacked_option(props),
+        title_html=echarts_specs.chart_title_html(title),
+        min_h=210,
+    )
 
 
 # ---------- line-chart ------------------------------------------------------
@@ -3540,76 +3253,15 @@ def _r_line_chart(props: dict) -> str:
         raise ValidationError("invalid_value", "line-chart.props.items",
                               "line-chart needs at least 2 points")
 
-    area_fill   = bool(props.get("area_fill", True))
-    show_dots   = bool(props.get("show_dots", True))
-    show_values = bool(props.get("show_values", False))
-    title       = props.get("title", "")
-
-    n = len(items)
-    values = [float(it.get("value", 0)) for it in items]
-    max_v = max(values) or 1.0
-
-    plot_left, plot_right = 60, 770
-    plot_top,  plot_bottom = 30, 340
-    plot_w = plot_right - plot_left
-    plot_h = plot_bottom - plot_top
-
-    pts = []
-    for i, v in enumerate(values):
-        x = plot_left + (i / max(1, n - 1)) * plot_w
-        y = plot_bottom - (v / max_v) * plot_h
-        pts.append((x, y))
-
-    line_d = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in pts)
-    line_svg = f'<path class="vti-line-chart__line" d="{line_d}"/>'
-
-    area_svg = ""
-    if area_fill:
-        area_d = (f"M {pts[0][0]:.1f} {plot_bottom} "
-                  + " ".join(f"L {x:.1f} {y:.1f}" for x, y in pts)
-                  + f" L {pts[-1][0]:.1f} {plot_bottom} Z")
-        area_svg = f'<path class="vti-line-chart__area" d="{area_d}"/>'
-
-    dots_svg = []
-    if show_dots:
-        for x, y in pts:
-            dots_svg.append(f'<circle class="vti-line-chart__dot" '
-                            f'cx="{x:.1f}" cy="{y:.1f}" r="4"/>')
-
-    value_labels_svg = []
-    if show_values:
-        for (x, y), v in zip(pts, values):
-            value_labels_svg.append(
-                f'<text class="vti-line-chart__value-label" '
-                f'x="{x:.1f}" y="{y - 12:.1f}">{_esc(_fmt_num(v))}</text>'
-            )
-
-    cat_labels_svg = []
-    for i, it in enumerate(items):
-        x = plot_left + (i / max(1, n - 1)) * plot_w
-        cat_labels_svg.append(
-            f'<text class="vti-line-chart__cat-label" '
-            f'x="{x:.1f}" y="{plot_bottom + 22:.1f}">'
-            f'{_esc(it.get("label", ""))}</text>'
-        )
-
-    axes_svg = (f'<line class="vti-line-chart__axis-line" '
-                f'x1="{plot_left}" y1="{plot_bottom}" '
-                f'x2="{plot_right}" y2="{plot_bottom}"/>')
-
-    title_html = ""
-    if title:
-        title_html = f'<div class="vti-line-chart__title">{_esc(title)}</div>'
-
-    return _fill(_component_template("line-chart"), {
-        "TITLE_HTML":       title_html,
-        "AXES_SVG":         axes_svg,
-        "AREA_SVG":         area_svg,
-        "LINE_SVG":         line_svg,
-        "DOTS_SVG":         "\n".join(dots_svg),
-        "VALUE_LABELS_SVG": "\n".join(value_labels_svg),
-        "CAT_LABELS_SVG":   "\n".join(cat_labels_svg),
-    })
+    # v4.0/M2 — ECharts line/area (svg renderer): smooth line, gradient area
+    # fill, optional dots/value labels, dashed y-gridlines. Prop contract
+    # unchanged.
+    title = props.get("title", "")
+    return echarts_specs.echart_div(
+        echarts_specs.line_option(props),
+        title_html=echarts_specs.chart_title_html(title),
+        min_h=200,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -3799,6 +3451,13 @@ _GRID_CSS = """
   justify-content: stretch;
   min-width: 0;     /* prevents grid blowout from long content */
   min-height: 0;
+  /* M1 (fluid type) — each cell is an inline-size query container so the
+   * fluid `cqw` terms in tokens.css (--vti-fs-*) resolve against THIS
+   * cell's width. A title in a 4-col cell shrinks; the same token in a
+   * 12-col cell holds its ceiling. Graceful: text outside any cell (chrome,
+   * special-pages) has no container → cqw falls back to the viewport and
+   * clamp() pins it to each level's MAX = the pre-M1 fixed size. */
+  container-type: inline-size;
 }
 /* v3.13.9 — ensure the single component inside each grid-cell fills the
  * cell's width. `justify-content: stretch` on the flex parent is not a
@@ -3810,7 +3469,51 @@ _GRID_CSS = """
  * don't.
  */
 .layout-grid .vti-grid-cell > * { width: 100%; }
+
+/* M3 — optional cell SURFACES. A cell may set surface = panel | tint |
+ * elevated to wrap its component in a styled container (padding + radius +
+ * shadow/bg) so archetypes can build panels / tinted cards / elevated
+ * blocks without bespoke components. All three are LIGHT surfaces (dark text
+ * stays legible). Cells with no surface render exactly as before. */
+.layout-grid .vti-grid-cell--panel,
+.layout-grid .vti-grid-cell--tint,
+.layout-grid .vti-grid-cell--elevated {
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--vti-space-lg);
+  border-radius: var(--vti-radius-lg);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.layout-grid .vti-grid-cell--panel {
+  background: var(--vti-surface-50);
+  border: 1px solid var(--vti-border);
+  box-shadow: var(--vti-shadow-sm);
+}
+.layout-grid .vti-grid-cell--tint {
+  background: var(--vti-surface-200);
+}
+.layout-grid .vti-grid-cell--elevated {
+  background: var(--vti-surface-50);
+  box-shadow: var(--vti-shadow-lg);
+}
+
+/* M3.1 — optional cell vertical alignment. The default cell stretches its
+ * child to full height, so the child's own content (e.g. a pull-quote) sits
+ * at the TOP of a tall 1fr cell. `valign = center | bottom` centres/bottoms
+ * the content within the cell — the proper fix for "content floats at the
+ * top of a 1fr row" that grid-level vertical_align can't reach. (Surfaces
+ * already centre their content, so valign is ignored when a surface is set.) */
+.layout-grid .vti-grid-cell--vcenter { align-items: center; }
+.layout-grid .vti-grid-cell--vbottom { align-items: flex-end; }
 """
+
+
+# M3 — light cell-surface treatments (see _GRID_CSS). Wrap a cell's
+# component in a styled container without a bespoke component.
+_VALID_CELL_SURFACES = {"panel", "tint", "elevated"}
+# M3.1 — vertical alignment of a cell's content (default = top/stretch).
+_VALID_CELL_VALIGN = {"center", "bottom"}
 
 
 def _validate_cell(cell: dict, where: str) -> None:
@@ -3845,9 +3548,23 @@ def _validate_cell(cell: dict, where: str) -> None:
 # Callers (creator skill, audit tooling) can read warnings post-render.
 # ---------------------------------------------------------------------------
 
-# T1 5-level type scale (from tokens.css). Used by Gap C aggregator.
-_TYPE_LEVELS = {"hero", "display", "title", "body", "caption"}
-_WEIGHT_VALUES = {400, 500, 600}
+# T1 type scale (from tokens.css). Used by Gap C aggregator.
+# v4.0/M1 — the scale is now FLUID (clamp + cqw) and gains two in-between
+# steps: `lead` (between title and body) and `small` (between body and
+# caption). For per-slide HIERARCHY counting these collapse onto their
+# neighbour (lead→body, small→caption) so they don't inflate the
+# "distinct visible levels" budget — the fluid sizes still differ on the
+# page, this only governs the discipline audit.
+_TYPE_LEVELS = {"hero", "display", "title", "lead", "body", "small", "caption"}
+_TYPE_LEVEL_TIER = {
+    "hero": "hero", "display": "display", "title": "title",
+    "lead": "body", "body": "body",
+    "small": "caption", "caption": "caption",
+}
+# v4.0/M1 — 300 (airy) and 700 (strong) re-opened, but only for the
+# display/hero tiers (see _ANCHOR_WEIGHTS).
+_WEIGHT_VALUES = {300, 400, 500, 600, 700}
+_ANCHOR_WEIGHTS = {300, 600, 700}   # permitted only when hero/display present
 
 # v3.10 — Per-layout-class budgets. Slides can declare layout_class to
 # opt into relaxed thresholds. Default is the strict T1/T2/T3 contract;
@@ -3905,7 +3622,7 @@ def _aggregate_type_budget(rows: list, where_prefix: str,
 
     Components that don't declare font_levels_used / font_weights_used are
     skipped (opt-in coverage). This is a soft pre-check that complements
-    the post-render audit_typography.py.
+    the post-render measurement in `visual_critic.py` (M4).
 
     v3.10 — applies per-layout-class budgets. layout_class='case-study'
     relaxes type-levels 3→4 (allows hero+title+body+caption); 'data-dense'
@@ -3934,7 +3651,9 @@ def _aggregate_type_budget(rows: list, where_prefix: str,
             if lv:
                 for x in lv:
                     if x in _TYPE_LEVELS:
-                        levels_seen.add(x)
+                        # Collapse lead→body, small→caption for the
+                        # hierarchy budget (v4.0/M1 fluid scale).
+                        levels_seen.add(_TYPE_LEVEL_TIER.get(x, x))
             if wt:
                 for x in wt:
                     if x in _WEIGHT_VALUES:
@@ -3951,15 +3670,23 @@ def _aggregate_type_budget(rows: list, where_prefix: str,
             f"'{layout_class}' allows max {max_levels}. Add chrome (~1 level) "
             f"makes this likely {max_levels + 1}+."
         )
-    # T2: 600 is permitted only when paired with hero or display level.
+    # T2 (v4.0/M1): anchor-tier weights (300 airy / 600 / 700 strong) are
+    # permitted only on big hero/display text. When an anchor level is on
+    # the slide they don't count against the body weight budget; otherwise
+    # only 600 is tolerated (if allow_600_anchor), and 300/700 without an
+    # anchor is itself a violation.
     has_anchor = ("hero" in levels_seen) or ("display" in levels_seen)
-    non_600_weights = weights_seen - {600}
+    if has_anchor:
+        body_weights = weights_seen - _ANCHOR_WEIGHTS
+    else:
+        body_weights = weights_seen - ({600} if budget["allow_600_anchor"] else set())
+    stray_anchor = bool((weights_seen & {300, 700}) and not has_anchor)
     weight_violation = (
-        (600 in weights_seen and not has_anchor and not budget["allow_600_anchor"]) or
-        (len(non_600_weights) > budget["max_non_600_weights"])
+        len(body_weights) > budget["max_non_600_weights"] or stray_anchor
     )
     if weight_violation:
-        explain = "T2: max 2 weights (400/500); 600 only when hero or display is on slide."
+        explain = ("T2: max 2 body weights (400/500); 300/600/700 only when "
+                   "hero or display is on the slide.")
         warnings.append(
             f"[gap-C weight-budget] {where_prefix}: weights={sorted(weights_seen)}, "
             f"hero_or_display={has_anchor}, layout_class='{layout_class}'. {explain}"
@@ -4309,8 +4036,32 @@ def _compose_grid_body(rows: list, where_prefix: str = "rows",
                 f"{cell.get('col_span', 12)}; "
                 f"grid-row: {ri + 1} / span {cell.get('row_span', 1)};"
             )
+            # M3 — optional cell surface (panel | tint | elevated). Unknown
+            # values are ignored with a warning so a typo never breaks render.
+            cell_cls = "vti-grid-cell"
+            surface = cell.get("surface")
+            if surface:
+                if surface in _VALID_CELL_SURFACES:
+                    cell_cls += f" vti-grid-cell--{surface}"
+                else:
+                    warnings.append(
+                        f"[surface] {where}: unknown surface={surface!r}; "
+                        f"must be one of {sorted(_VALID_CELL_SURFACES)} — ignored"
+                    )
+            # M3.1 — vertical alignment (ignored when a surface is set, since
+            # surfaces already centre their content).
+            valign = cell.get("valign")
+            if valign and not surface:
+                if valign in _VALID_CELL_VALIGN:
+                    cell_cls += (" vti-grid-cell--vcenter" if valign == "center"
+                                 else " vti-grid-cell--vbottom")
+                else:
+                    warnings.append(
+                        f"[valign] {where}: unknown valign={valign!r}; "
+                        f"must be one of {sorted(_VALID_CELL_VALIGN)} — ignored"
+                    )
             cell_html_parts.append(
-                f'<div class="vti-grid-cell" style="{grid_style}">'
+                f'<div class="{cell_cls}" style="{grid_style}">'
                 f'{comp_html}'
                 f'</div>'
             )
@@ -4482,7 +4233,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "3.18.5",
+        "version":    "4.4.0",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }
@@ -4505,6 +4256,10 @@ def catalog(*, verbose: bool = False) -> dict:
         for name in sorted(_COMPONENT_RENDERERS.keys())
     }
     base["picks_for_content_kind"] = picks
+    # M3 — surface the archetype library + cell surfaces so the orchestrator
+    # discovers the whole design system from one catalog() call.
+    base["archetypes"] = archetypes.list_archetypes()
+    base["cell_surfaces"] = sorted(_VALID_CELL_SURFACES)
     return base
 
 
@@ -5669,6 +5424,23 @@ def compose_case_study(spec: dict) -> dict:
 # ===========================================================================
 # Deck-level renderer — multi-slide aggregator with CSS dedup
 # ===========================================================================
+def deck_uses_charts(deck_html: str) -> bool:
+    """True if the composed deck HTML contains an ECharts placeholder.
+
+    Used by the deck shell builder to decide whether to inject the (large)
+    ECharts runtime — chart-less decks stay lean.
+    """
+    return "vti-echart" in (deck_html or "")
+
+
+def chart_runtime_html() -> str:
+    """Deck-level <script> block: vendored ECharts (svg renderer) + the boot
+    script that hydrates every `.vti-echart` placeholder and sets
+    `window.__vtiChartsReady`. Inject ONCE per deck, only when
+    ``deck_uses_charts`` is true (see creator.build_deck_html)."""
+    return echarts_specs.runtime_html()
+
+
 def compose_deck(slides: list) -> dict:
     """Render a list of slides into one deck blob, deduplicating CSS.
 

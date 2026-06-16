@@ -29,7 +29,7 @@
   top: -6px;
   left: 18px;
   font-family: 'Plus Jakarta Sans', Georgia, serif;
-  font-size: 64px;
+  font-size: var(--vti-fs-hero);  /* was 64px */
   line-height: 1;
   font-weight: 600;
   pointer-events: none;
@@ -44,13 +44,13 @@
   position: static;
   display: block;
   margin: 0 auto 4px;
-  font-size: 64px;
+  font-size: var(--vti-fs-hero);  /* was 64px */
 }
 
 .vti-quote-block__body {
   margin: 0;
   font-family: var(--font-h);
-  font-size: 24px;
+  font-size: var(--vti-fs-title);  /* was 24px */
   line-height: 1.45;
   font-weight: 500;
   color: var(--vti-ink);
@@ -58,7 +58,7 @@
 }
 
 .vti-quote-block--hero .vti-quote-block__body {
-  font-size: 24px;
+  font-size: var(--vti-fs-title);  /* was 24px */
   line-height: 1.4;
   font-weight: 400;
 }
@@ -72,7 +72,7 @@
   padding-top: 14px;
   border-top: 1px solid var(--vti-divider);
   font-family: var(--font-b);
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   color: var(--vti-ink-soft);
 }
 
@@ -85,7 +85,7 @@
 }
 
 .vti-quote-block__attribution-name {
-  font-size: 15px;
+  font-size: var(--vti-fs-body);  /* was 15px */
   font-weight: 600;
 }
 
@@ -94,6 +94,6 @@
 .vti-quote-block--sky  .vti-quote-block__attribution-name { color: var(--vti-bright); }
 
 .vti-quote-block__attribution-role {
-  font-size: 12px;
+  font-size: var(--vti-fs-caption);  /* was 12px */
   color: var(--vti-muted);
 }
