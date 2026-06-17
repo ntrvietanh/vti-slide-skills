@@ -3427,7 +3427,7 @@ _GRID_CSS = """
 }
 .layout-grid .vti-slide-content {
   position: absolute;
-  top: 70px;
+  top: 86px;            /* v4.5 — more breathing room below the taller stacked breadcrumb title */
   left: 56px;
   right: 56px;
   bottom: 64px;

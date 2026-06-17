@@ -11,7 +11,7 @@
    height of BOTH text lines. */
 .bc {
   position: absolute;
-  top: 16px;
+  top: 24px;            /* v4.5 — more breathing room from the top edge */
   left: 60px;
   display: flex;
   align-items: stretch;
@@ -39,7 +39,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: flex-start;
-  gap: 4px;
+  gap: 3px;
 }
 
 /* SECTION title — small, on top, muted. */
@@ -80,7 +80,7 @@
    offset that read as visually misaligned. */
 .logo-tr {
   position: absolute;
-  top: 31px;            /* v4.5 — dropped to sit level with the (lower) slide title line */
+  top: 28px;            /* v4.5 — centred against the whole breadcrumb block (section+title) */
   right: 60px;
   z-index: 10;
 }
