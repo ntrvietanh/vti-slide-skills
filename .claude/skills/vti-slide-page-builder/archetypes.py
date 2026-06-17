@@ -524,6 +524,80 @@ ARCHETYPES: dict[str, dict[str, Any]] = {
             ]},
         ],
     },
+
+    # ---- matrix of parallel structured items (codified v4.5) -------------
+    "matrix-rows": {
+        "intent": "matrix",
+        "summary": "An optional lead, then a full-width matrix of N parallel "
+                   "items — icon + title + detail + tag chips. The designed "
+                   "alternative to a plain table.",
+        "best_for": ["N comparable items each with a few facets "
+                     "(source · signal · target)", "feedback channels / sources"],
+        "avoid_when": ["a single flat list", "two-sided comparison (split-handover)"],
+        "whitespace": "The matrix fills the body as a centred band.",
+        "accent_policy": "Brand-blue rows with an accent left bar; tags as pills.",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "lead", "component": "lead-paragraph",
+                 "col_start": 1, "col_span": 8, "required": False},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "matrix", "component": "matrix",
+                 "col_start": 1, "col_span": 12, "required": True},
+            ]},
+        ],
+    },
+
+    # ---- two-sided handover / ownership split (codified v4.5) ------------
+    "split-handover": {
+        "intent": "comparison",
+        "summary": "An optional headline, then two solid panels (A & B) joined "
+                   "by a centre badge — a dense two-sided ownership / handover "
+                   "split with per-side checklists.",
+        "best_for": ["who-owns-what / RACI", "VTI vs you", "two-sided handover"],
+        "avoid_when": ["3+ options (use cards)", "a single list"],
+        "whitespace": "Two equal panels fill the body; the badge joins them.",
+        "accent_policy": "Left deep, right sky (or per-side tone).",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "headline", "component": "headline",
+                 "col_start": 1, "col_span": 10, "required": False},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "panels", "component": "panel-compare",
+                 "col_start": 1, "col_span": 12, "required": True},
+            ]},
+        ],
+    },
+
+    # ---- diagram/image banner + principle cards (codified v4.5) ----------
+    "banner-plus-cards": {
+        "intent": "diagram-cards",
+        "summary": "A wide diagram/image banner on top, then a row of 3-4 "
+                   "principle cards below — e.g. a gate/threshold diagram and "
+                   "its governing principles.",
+        "best_for": ["a gate / threshold diagram + its principles",
+                     "a process banner + supporting points"],
+        "avoid_when": ["no banner visual available"],
+        "whitespace": "Banner anchors the top; cards fill the base edge-to-edge.",
+        "accent_policy": "Banner carries the diagram; cards step brand tones.",
+        "rows": [
+            {"height": "auto", "cells": [
+                {"slot": "banner", "component": "image-tile",
+                 "col_start": 1, "col_span": 12, "required": True},
+            ]},
+            {"height": "1fr", "_fill_verified": True, "cells": [
+                {"slot": "card1", "component": "practice-card",
+                 "col_start": 1, "col_span": 3, "required": True},
+                {"slot": "card2", "component": "practice-card",
+                 "col_start": 4, "col_span": 3, "required": True},
+                {"slot": "card3", "component": "practice-card",
+                 "col_start": 7, "col_span": 3, "required": True},
+                {"slot": "card4", "component": "practice-card",
+                 "col_start": 10, "col_span": 3, "required": False},
+            ]},
+        ],
+    },
 }
 
 

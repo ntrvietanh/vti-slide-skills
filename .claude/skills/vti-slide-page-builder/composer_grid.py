@@ -3342,6 +3342,102 @@ def _resolve_logo_markers(html: str) -> str:
     return _LOGO_MARKER_RE.sub(_replace, html)
 
 
+# ---------------------------------------------------------------------------
+# v4.5 editorial components — matrix + panel-compare (codified from the proven
+# dense layouts; fit-aware via --fit-scale).
+# ---------------------------------------------------------------------------
+@register_component("matrix", meta={
+    "role": "Parallel structured rows (icon disc + bold title + detail + tag "
+            "chips) — the designed alternative to a plain table for N comparable "
+            "items (source/signal/target style).",
+    "kind": "data",
+    "good_for": ["N parallel items each with a few facets",
+                 "feedback channels / data sources / capability matrix"],
+    "bad_for": ["a single flat list (use bullet-list-checked)",
+                "two-sided comparison (use panel-compare)"],
+    "best_col_spans": [12],
+    "natural_height": "auto",
+    "schema_brief": "rows: list[{icon, title<=40, detail?<=120, tags?:list[str]}] "
+                    "(2-6); headers?: list[str] (up to 3 column labels)",
+    "font_levels_used":  ["lead", "body", "caption"],
+    "font_weights_used": [600, 700],
+    "capacity_chars_per_col": 60,
+    "picks_content_kinds": ["matrix"],
+})
+def _r_matrix(props: dict) -> str:
+    rows = _require(props, "rows", "matrix.props")
+    if not isinstance(rows, list) or not (2 <= len(rows) <= 6):
+        raise ValidationError("invalid_count", "matrix.props.rows",
+                              f"must have 2-6 rows, got {len(rows) if isinstance(rows, list) else '?'}")
+    headers = props.get("headers") or []
+    head = ""
+    if headers:
+        cells = "".join(f"<span>{_esc(h)}</span>"
+                        for h in ([""] + list(headers))[:4])
+        head = f'<div class="vti-matrix__hrow">{cells}</div>'
+    parts: list[str] = []
+    for r in rows:
+        icon = render_icon(r["icon"]) if r.get("icon") else ""
+        tags = "".join(f'<span class="vti-matrix__tag">{_esc(t)}</span>'
+                       for t in (r.get("tags") or []))
+        parts.append(
+            f'<div class="vti-matrix__row">'
+            f'<div class="vti-matrix__ic">{icon}</div>'
+            f'<div class="vti-matrix__title">{_esc(r.get("title", ""))}</div>'
+            f'<div class="vti-matrix__detail">{_esc(r.get("detail", ""))}</div>'
+            f'<div class="vti-matrix__tags">{tags}</div>'
+            f'</div>')
+    return f'<div class="vti-matrix">{head}{"".join(parts)}</div>'
+
+
+@register_component("panel-compare", meta={
+    "role": "Two solid titled panels (coloured header + check-list) joined by a "
+            "centre badge — the dense two-sided split (ownership / A & B / "
+            "handover). Denser than vs-compare.",
+    "kind": "comparison",
+    "good_for": ["who-owns-what / RACI", "VTI vs you", "two-sided handover"],
+    "bad_for": ["3+ options (use cards)", "a single list"],
+    "best_col_spans": [12],
+    "natural_height": "auto",
+    "schema_brief": "left/right: {label<=24, sub?<=60, icon?, items:list[str] "
+                    "(2-7), tone?:tone|hex}; connector?:str<=3 (default '&')",
+    "font_levels_used":  ["title", "body", "caption"],
+    "font_weights_used": [600, 700],
+    "capacity_chars_per_col": 50,
+    "picks_content_kinds": ["comparison"],
+})
+def _r_panel_compare(props: dict) -> str:
+    left = _require(props, "left", "panel-compare.props")
+    right = _require(props, "right", "panel-compare.props")
+    connector = _esc(props.get("connector", "&"))
+    check = render_icon("check")
+
+    def _panel(side: dict, default_tone: str) -> str:
+        tone = side.get("tone", default_tone)
+        if tone in _PRACTICE_TONE_MAP:
+            bg = _PRACTICE_TONE_MAP[tone]
+        elif re.match(r"^#[0-9A-Fa-f]{6}$", str(tone)):
+            bg = tone
+        else:
+            bg = _PRACTICE_TONE_MAP["deep"]
+        icon = (f'<div class="vti-pc__ic">{render_icon(side["icon"])}</div>'
+                if side.get("icon") else "")
+        sub = (f'<div class="vti-pc__sub">{_esc(side["sub"])}</div>'
+               if side.get("sub") else "")
+        lis = "".join(
+            f'<li><span class="vti-pc__chk">{check}</span><span>{_esc(it)}</span></li>'
+            for it in (side.get("items") or []))
+        return (f'<div class="vti-pc__panel">'
+                f'<div class="vti-pc__head" style="background: {bg};">{icon}'
+                f'<div><div class="vti-pc__label">{_esc(side.get("label", ""))}</div>'
+                f'{sub}</div></div>'
+                f'<ul class="vti-pc__list">{lis}</ul></div>')
+
+    return (f'<div class="vti-pc">{_panel(left, "deep")}'
+            f'<div class="vti-pc__amp">{connector}</div>'
+            f'{_panel(right, "sky")}</div>')
+
+
 def _render_chrome(slide_meta: dict,
                    logo_variant: str = "full-color") -> tuple[str, str, str]:
     """Return (header_html, footer_html, chrome_css) for one slide.
@@ -3594,6 +3690,20 @@ _GRID_CSS = """
 .layout-grid.has-bleed .logo-tr,
 .layout-grid.has-bleed .fbar,
 .layout-grid.has-bleed .fbar-copy { z-index: 4; }
+
+/* v4.5 PROPORTIONAL FIT — per-cell tier set by the composer (data-fit) from
+ * the content-vs-space ratio. THE DESIGN LAW in CSS:
+ *   sparse  → child sizes to its CONTENT and CENTRES (no hollow stretch); a
+ *             --fit-scale bump lets components grow type so light content gains
+ *             presence instead of floating tiny in a big box.
+ *   normal  → child fills the cell (unchanged behaviour).
+ *   dense   → slight tighten.
+ * This is universal: a sparse cell stops its child from stretching hollow even
+ * if the component hard-sets height:100% (this rule out-specifies it). */
+.layout-grid .vti-grid-cell { --fit-scale: 1; }
+.layout-grid .vti-grid-cell[data-fit="sparse"] { --fit-scale: 1.14; align-items: center; }
+.layout-grid .vti-grid-cell[data-fit="dense"]  { --fit-scale: 0.96; }
+.layout-grid .vti-grid-cell[data-fit="sparse"] > * { height: auto; max-height: 100%; }
 """
 
 
@@ -3874,7 +3984,7 @@ _VISUAL_FILL_COMPONENTS = {
 # they DO keep their per-cell char check, since their body text should be real.
 _STRUCTURED_ANCHOR_COMPONENTS = _VISUAL_FILL_COMPONENTS | {
     "practice-card", "practice-card-leveled", "catalog-column",
-    "callout", "vs-compare",
+    "callout", "vs-compare", "matrix", "panel-compare",
 }
 
 
@@ -4020,81 +4130,137 @@ def _validate_fill_honesty(rows: list, where_prefix: str,
     (the 'standard' profile). Slides with ``slide_meta.density_mode``
     set to 'sparse-ok' or 'dense' now relax/tighten accordingly.
     """
-    profile = _DENSITY_MODE_THRESHOLDS.get(density_mode)
-    if profile is None:
-        # Unknown mode — fall back to standard but emit a warning.
-        profile = _DENSITY_MODE_THRESHOLDS["standard"]
-    cell_min = profile["cell_fill_min"]
-    sparse_below = profile["slide_sparse_below"]
+    profile = _DENSITY_MODE_THRESHOLDS.get(density_mode) \
+        or _DENSITY_MODE_THRESHOLDS["standard"]
     overcrowded_above = profile["slide_overcrowded_above"]
 
     warnings: list[str] = []
 
-    # Per-cell honesty — uses fresh metrics, not the shared projection,
-    # because we need access to the row.height + _fill_verified flag.
-    for ri, row in enumerate(rows):
-        is_1fr_verified = (
-            str(row.get("height", "auto")) == "1fr"
-            and row.get("_fill_verified") is True
-        )
-        if not is_1fr_verified:
-            continue
-        for ci, cell in enumerate(row.get("cells", [])):
-            comp = cell.get("component")
-            if not comp:
-                continue
-            col_span = int(cell.get("col_span", 12))
-            props = cell.get("props") or {}
-            cap = _component_capacity(comp, col_span, props)
-            if cap <= 0:
-                continue
-            actual = _walk_chars(props)
-            fill = actual / cap
-            if fill < cell_min:
-                warnings.append(
-                    f"[gap-E fill-honesty] {where_prefix}[{ri}].cells[{ci}]: "
-                    f"row uses _fill_verified=True but '{comp}' projected "
-                    f"fill={fill:.0%} ({actual} / {cap} chars) is below "
-                    f"{cell_min:.0%} (mode={density_mode}). "
-                    f"Either drop _fill_verified=True (use auto), or expand "
-                    f"content to honour the declaration."
-                )
-
-    # Per-slide aggregate
+    # v4.5 — the char-based PER-CELL fill-honesty and PER-SLIDE sparse checks
+    # are RETIRED: they rewarded stretch-to-fill (the cause of hollow rows) and
+    # mis-judged visual content. The proportional-fit engine now governs fill
+    # (sparse cells size to content + centre + scale type), and visual_critic's
+    # pixel ink-ratio is the real emptiness guard. Only the OVERCROWDED hint
+    # (genuinely too much text for the space) is still useful, so we keep it.
     metrics = _project_slide_fill(rows)
     slide_capacity = metrics["slide_capacity"]
     slide_fill = metrics["slide_fill"]
     slide_actual = metrics["slide_actual"]
 
-    # v4.5 — a slide whose anchor is a visual-fill component (chart, diagram,
-    # mega stat, flow, KPI band) is NOT sparse just because its text is brief:
-    # the visual owns the canvas. Suppress the char-based slide-sparse hint
-    # for these; visual_critic's pixel ink-ratio is the real emptiness guard.
-    has_visual_anchor = any(
-        cell.get("component") in _STRUCTURED_ANCHOR_COMPONENTS
-        for row in rows for cell in row.get("cells", [])
-    )
-
-    if slide_capacity > 0:
-        if slide_fill < sparse_below and not has_visual_anchor:
-            warnings.append(
-                f"[gap-E slide-sparse] {where_prefix}: total slide fill "
-                f"{slide_fill:.0%} ({slide_actual} / {slide_capacity} chars) "
-                f"below {sparse_below:.0%} (mode={density_mode}). "
-                f"Per P7 Loop 2, slides under this threshold should: "
-                f"(1) add real content, or (2) restructure layout. Decoration "
-                f"is now handled by the post-compose ``vti-slide-decorator`` skill."
-            )
-        elif slide_fill > overcrowded_above:
-            warnings.append(
-                f"[gap-E slide-overcrowded] {where_prefix}: total slide fill "
-                f"{slide_fill:.0%} ({slide_actual} / {slide_capacity} chars) "
-                f"above {overcrowded_above:.0%} (mode={density_mode}). "
-                f"Per P6, slides over this threshold are too dense; consider "
-                f"splitting into two slides or moving content to an appendix."
-            )
+    if slide_capacity > 0 and slide_fill > overcrowded_above:
+        warnings.append(
+            f"[gap-E slide-overcrowded] {where_prefix}: total slide fill "
+            f"{slide_fill:.0%} ({slide_actual} / {slide_capacity} chars) "
+            f"above {overcrowded_above:.0%} (mode={density_mode}). "
+            f"Per P6, slides over this threshold are too dense; consider "
+            f"splitting into two slides or moving content to an appendix."
+        )
 
     return warnings
+
+
+# ---------------------------------------------------------------------------
+# v4.5 — PROPORTIONAL FIT ENGINE
+#
+# The DESIGN LAW: content fills its space by SCALING (type + element size +
+# bounded spacing) to a comfortable rhythm, then the block is CENTRED — never
+# stretch a container around light content (hollow), never spread items past a
+# capped gap (disconnected), never shrink text into a big box.
+#
+# This is deterministic: the composer knows each row's height spec, so it
+# estimates every cell's available height vs. its content's natural height and
+# tags the cell with data-fit = sparse | normal | dense. Component CSS keys off
+# that tag to pick a type tier + gap + alignment. No cqh / container-type:size
+# (which would collapse auto-height rows).
+# ---------------------------------------------------------------------------
+CONTENT_AREA_H_PX = 570   # 720 − 86 (chrome top, v4.5) − 64 (footer)
+_GRID_GAP_PX = 18
+
+
+def _estimate_component_h(comp: str, props: dict | None, col_span: int) -> float:
+    """Rough natural rendered height (px) of a component — enough to choose a
+    fit tier, not pixel-exact. Visual-fill components are treated as filling
+    whatever cell they're given."""
+    p = props or {}
+    if comp in _VISUAL_FILL_COMPONENTS:
+        return 1e4
+    if comp in ("narrative-paragraph", "lead-paragraph", "body"):
+        paras = p.get("paragraphs") or ([p["text"]] if p.get("text") else [])
+        chars = sum(len(str(x)) for x in paras)
+        cpl = max(1, col_span) * 8           # ~chars per line at this width
+        lines = max(1, -(-chars // cpl))     # ceil
+        return 18 + lines * 26
+    if comp in ("bullet-list-checked", "numbered-list"):
+        return 8 + len(p.get("items") or []) * 32
+    if comp == "icon-list":
+        return 8 + len(p.get("items") or []) * 58
+    if comp == "catalog-column":
+        return 58 + len(p.get("items") or []) * 30
+    if comp in ("practice-card", "practice-card-leveled"):
+        return 150
+    if comp == "callout":
+        return 96
+    if comp == "definition-list":
+        return 12 + len(p.get("items") or []) * 30
+    if comp == "table":
+        return 44 + len(p.get("rows") or []) * 40
+    if comp == "matrix":
+        return 50 + len(p.get("rows") or []) * 64
+    if comp == "panel-compare":
+        l = len((p.get("left") or {}).get("items") or [])
+        r = len((p.get("right") or {}).get("items") or [])
+        return 90 + max(l, r) * 40
+    if comp in ("headline", "kicker", "section-header", "tags", "pull-quote"):
+        return 56
+    return 120
+
+
+def _estimate_row_heights(rows: list) -> list[float]:
+    """Estimate each row's rendered height (px) within the content area, given
+    its height spec ('auto' | '1fr' | 'Npx'). 1fr rows split the remainder."""
+    n = len(rows)
+    if not n:
+        return []
+    avail = CONTENT_AREA_H_PX - _GRID_GAP_PX * max(0, n - 1)
+    nat = [0.0] * n
+    kind = [""] * n
+    fixed = 0.0
+    onefr = 0
+    for i, r in enumerate(rows):
+        cells = r.get("cells") or [{}]
+        nat[i] = min(avail, max(
+            (_estimate_component_h(c.get("component", ""), c.get("props"),
+                                   int(c.get("col_span", 12))) for c in cells),
+            default=0.0))
+        h = str(r.get("height", "auto"))
+        if h.endswith("px"):
+            kind[i] = "px"; fixed += float(h[:-2])
+        elif h == "1fr":
+            kind[i] = "fr"; onefr += 1
+        else:
+            kind[i] = "auto"; fixed += nat[i]
+    rem = max(0.0, avail - fixed)
+    out = [0.0] * n
+    for i, r in enumerate(rows):
+        if kind[i] == "px":
+            out[i] = float(str(r["height"])[:-2])
+        elif kind[i] == "auto":
+            out[i] = nat[i]
+        else:
+            out[i] = rem / onefr if onefr else nat[i]
+    return out
+
+
+def _fit_tier(nat_h: float, cell_h: float) -> str:
+    """sparse | normal | dense from the content-to-space ratio."""
+    if cell_h <= 0:
+        return "normal"
+    r = nat_h / cell_h
+    if r < 0.55:
+        return "sparse"
+    if r > 0.92:
+        return "dense"
+    return "normal"
 
 
 def _compose_grid_body(rows: list, where_prefix: str = "rows",
@@ -4144,6 +4310,11 @@ def _compose_grid_body(rows: list, where_prefix: str = "rows",
     # v3.5 — clear esc-warning buffer; render loop will populate it -----
     _LAST_ESC_WARNINGS.clear()
 
+    # v4.5 — proportional-fit: estimate each row's rendered height so every
+    # cell can be tagged data-fit = sparse|normal|dense (drives component
+    # type/gap/centering via CSS).
+    row_h_est = _estimate_row_heights(rows)
+
     for ri, row in enumerate(rows):
         if not isinstance(row, dict):
             raise ValidationError("invalid_type", f"{where_prefix}[{ri}]",
@@ -4173,6 +4344,14 @@ def _compose_grid_body(rows: list, where_prefix: str = "rows",
 
             comp_html = render_component(comp_name, props)
             top_level_components.add(comp_name)
+
+            # v4.5 — proportional-fit tier for this cell (drives component
+            # type/gap/centering so light content scales up + centres instead
+            # of going hollow, and dense content tightens).
+            _nat_h = _estimate_component_h(comp_name, props,
+                                           int(cell.get("col_span", 12)))
+            _cell_h = row_h_est[ri] if ri < len(row_h_est) else 0.0
+            fit_tier = _fit_tier(_nat_h, _cell_h)
 
             grid_style = (
                 f"grid-column: {cell.get('col_start', 1)} / span "
@@ -4204,7 +4383,8 @@ def _compose_grid_body(rows: list, where_prefix: str = "rows",
                         f"must be one of {sorted(_VALID_CELL_VALIGN)} — ignored"
                     )
             cell_html_parts.append(
-                f'<div class="{cell_cls}" style="{grid_style}">'
+                f'<div class="{cell_cls}" data-fit="{fit_tier}" '
+                f'style="{grid_style}">'
                 f'{comp_html}'
                 f'</div>'
             )
@@ -4413,7 +4593,7 @@ def catalog(*, verbose: bool = False) -> dict:
     """
     base = {
         "skill":      "vti-slide-page-builder",
-        "version":    "4.4.0",
+        "version":    "4.5.0",
         "components": sorted(_COMPONENT_RENDERERS.keys()),
         "icons":      sorted(ICON_SVGS.keys()),
     }

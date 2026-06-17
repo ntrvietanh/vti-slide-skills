@@ -41,7 +41,8 @@
 }
 .vti-stat-mini__value {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: var(--vti-fs-title);  /* was 24px */
+  /* v4.5 — KPI value scales with proportional-fit (bigger in a roomy band). */
+  font-size: calc(var(--vti-fs-title) * var(--fit-scale, 1));
   font-weight: 600;
   color: var(--vti-blue-deep, #0844A4);
   line-height: 1;

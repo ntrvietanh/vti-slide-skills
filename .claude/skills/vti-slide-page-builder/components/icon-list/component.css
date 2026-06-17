@@ -37,12 +37,13 @@
 .vti-icon-list__title {
   font-family: var(--font-h);
   font-weight: 600;
-  font-size: var(--vti-fs-small);  /* was 12px */
+  /* v4.5 — title at body tier, scales with proportional-fit. */
+  font-size: calc(var(--vti-fs-body) * var(--fit-scale, 1));
   color: var(--vti-ink);
   line-height: 1.3;
 }
 .vti-icon-list__body {
-  font-size: var(--vti-fs-small);  /* was 12px */
+  font-size: calc(var(--vti-fs-small) * var(--fit-scale, 1));
   color: #4B5563;
   line-height: 1.45;
 }

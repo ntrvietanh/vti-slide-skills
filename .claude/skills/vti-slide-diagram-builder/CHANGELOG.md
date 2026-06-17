@@ -1,5 +1,17 @@
 # vti-slide-diagram-builder — CHANGELOG
 
+## v0.7.0 (2026-06-17) — `cycle` primitive (closed-loop / feedback diagram)
+
+- **New `make_cycle(stages, *, title, subtitle, hub, ...)`** — a closed cycle of
+  3–8 stages around a ring with a centre hub and clockwise direction chevrons.
+  The right hero for CYCLIC processes (feedback loops, governance loops,
+  lifecycles) where a linear `flow_diagram` misrepresents "it comes back
+  around". Native SVG (token-driven colours, soft shadow), viewBox 1168×566
+  with margins so no stage label clips. Registered in `_PRIMITIVES`,
+  `_PRIMITIVE_META`, `PYTHON_BACKED`, and intents (`loop`, `feedback-loop`,
+  `lifecycle`, `closed-loop`, `cycle`). Codifies the per-deck loop SVG that was
+  previously hand-generated.
+
 ## v0.6.0 (2026-06-16) — M2: depth pass (gradients + soft shadow + icon set)
 
 Fixes "diagram không đẹp": the native SVG primitives were flat (white box +

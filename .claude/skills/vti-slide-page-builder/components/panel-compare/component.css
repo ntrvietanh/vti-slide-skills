@@ -1,0 +1,45 @@
+/* panel-compare — two solid titled panels (coloured header + check-list) joined
+   by a centre badge. The dense two-sided split (ownership / A & B / handover).
+   Fit-aware: list text scales with --fit-scale; items centre with a bounded
+   gap (no space-evenly spread). Both panels stretch to equal height. */
+.vti-pc {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 64px 1fr;
+  align-items: stretch;
+}
+.vti-pc__panel {
+  display: flex; flex-direction: column;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: var(--vti-shadow-md);
+  border: 0.5px solid var(--vti-border);
+}
+.vti-pc__head {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 20px; color: #fff; flex-shrink: 0;
+}
+.vti-pc__ic { width: 34px; height: 34px; flex-shrink: 0; }
+.vti-pc__ic svg { width: 34px; height: 34px; stroke: #fff; fill: none; stroke-width: 1.6; }
+.vti-pc__label {
+  font-size: calc(var(--vti-fs-title) * var(--fit-scale, 1));
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.vti-pc__sub { font-size: var(--vti-fs-caption); opacity: 0.85; margin-top: 2px; }
+.vti-pc__list {
+  flex: 1; margin: 0; list-style: none; padding: 26px 22px; background: #fff;
+  /* Two solid panels are meant to FILL: distribute items evenly down the
+     panel (capped min-gap) rather than cluster centred with a void. */
+  display: flex; flex-direction: column; justify-content: space-evenly;
+  gap: clamp(10px, calc(12px * var(--fit-scale, 1)), 20px);
+}
+.vti-pc__list li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: calc(var(--vti-fs-body) * var(--fit-scale, 1));
+  line-height: 1.4; color: var(--vti-ink);
+}
+.vti-pc__chk { flex: 0 0 auto; width: 20px; height: 20px; color: var(--vti-green); margin-top: 1px; }
+.vti-pc__chk svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+.vti-pc__amp {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: var(--vti-muted);
+}

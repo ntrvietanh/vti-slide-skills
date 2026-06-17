@@ -1,0 +1,52 @@
+/* matrix — parallel structured rows (icon disc + title + detail + tag chips).
+   The designed alternative to a plain table for N comparable items. Fit-aware:
+   row text + padding scale with --fit-scale; the block centres (no spread). */
+.vti-matrix {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: clamp(8px, calc(11px * var(--fit-scale, 1)), 18px);
+  justify-content: center;
+}
+.vti-matrix__hrow,
+.vti-matrix__row {
+  display: grid;
+  grid-template-columns: 62px 1.5fr 2.2fr 1.5fr;
+  align-items: center;
+  gap: 16px;
+}
+.vti-matrix__hrow { padding: 0 18px; }
+.vti-matrix__hrow > span {
+  font-size: var(--vti-fs-caption);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--vti-muted);
+  text-transform: uppercase;
+}
+.vti-matrix__row {
+  background: var(--vti-paleblue);
+  border-left: 4px solid var(--vti-blue-deep);
+  border-radius: 10px;
+  padding: calc(13px * var(--fit-scale, 1)) 18px;
+  box-shadow: var(--vti-shadow-sm);
+}
+.vti-matrix__ic {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: var(--vti-blue-deep); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.vti-matrix__ic svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+.vti-matrix__title {
+  font-size: calc(var(--vti-fs-lead) * var(--fit-scale, 1));
+  font-weight: 700; color: var(--vti-navy); line-height: 1.25;
+}
+.vti-matrix__detail {
+  font-size: calc(var(--vti-fs-body) * var(--fit-scale, 1));
+  color: var(--vti-ink-soft); line-height: 1.45;
+}
+.vti-matrix__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.vti-matrix__tag {
+  font-size: var(--vti-fs-caption); font-weight: 600;
+  color: var(--vti-blue-deep); background: #fff;
+  border: 1px solid var(--vti-border); border-radius: 999px; padding: 4px 11px;
+}

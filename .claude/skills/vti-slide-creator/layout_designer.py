@@ -46,7 +46,7 @@ from typing import Any
 # area, producing the visual "content chồng nhau" regression. Fixed here.
 SLIDE_W_PX = 1280
 SLIDE_H_PX = 720
-CHROME_TOP_PX    = 70      # breadcrumb bar (composer_grid.py top: 70px)
+CHROME_TOP_PX    = 86      # breadcrumb bar (composer_grid.py top: 86px, v4.5 — taller stacked title)
 CHROME_BOTTOM_PX = 64      # footer        (composer_grid.py bottom: 64px)
 CHROME_LR_PX     = 56      # left/right padding inside slide
 COL_COUNT = 12

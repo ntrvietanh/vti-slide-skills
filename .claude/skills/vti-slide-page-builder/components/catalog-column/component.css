@@ -36,7 +36,9 @@
 }
 .vti-catalog-column__label-text {
   font-family: var(--vti-font-display, "Inter", sans-serif);
-  font-size: var(--vti-fs-body);  /* was 15px */
+  /* v4.5 — header at lead tier, scales with proportional-fit so a sparse
+     column reads with presence, not tiny-in-a-big-box. */
+  font-size: calc(var(--vti-fs-lead) * var(--fit-scale, 1));
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -56,15 +58,18 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;   /* v4.5 — items as a centred block (no spread) */
   background: #FFFFFF;
 }
 .vti-catalog-column__item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 16px;
+  /* v4.5 — body bumped to body tier + vertical padding scales with fit so a
+     sparse column's rows breathe instead of clustering tiny at the top. */
+  padding: calc(8px * var(--fit-scale, 1)) 16px;
   font-family: var(--vti-font-body, "Inter", sans-serif);
-  font-size: var(--vti-fs-small);  /* was 12px */
+  font-size: calc(var(--vti-fs-body) * var(--fit-scale, 1));
   color: var(--vti-ink, #2C2C2A);
   line-height: 1.4;
 }

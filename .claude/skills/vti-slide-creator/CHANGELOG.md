@@ -1,5 +1,27 @@
 # vti-slide-creator — CHANGELOG
 
+## v4.9.0 (2026-06-17) — wire the art-director engine into the entry point
+
+The root disconnect: the M3 archetype / art-direction layer (and the new
+proportional-fit + pixel-audit layer in page-builder v4.5) was implemented but
+**creator.py imported none of it**, so the pipeline never ran it from the
+creator side.
+
+- **Engine re-exported** so a thin Phase-4/5 driver can `from creator import …`
+  it: `realize_archetype` / `list_archetypes` / `describe_archetype` / `slots_for`
+  (archetypes), `make_brief` / `brief_guidance` / `ration_archetypes`
+  (art_direction), `richness_floor` / `critique` / `auto_repair` / `render_review`
+  (visual_critic). (`audit_visual_balance` / `audit_block_distribution` already
+  exported.)
+- **Durable bridges**: `realize_layout_plan(archetype_id, slots, slide_meta)` —
+  one seam that realises an archetype + carries the full chrome meta (closes the
+  historic dropped-page_number bug); `suggest_archetype(intent, …)` — intent →
+  archetype, variety-aware via `ration_archetypes` (volume now handled by the
+  page-builder fit engine, so selection just matches shape + keeps rhythm);
+  `richness_gate(slide_inputs)` — deck-level visual-anchor/flatness verdict.
+- **Contract sync**: `layout_designer.CHROME_TOP_PX` 70 → **86** to match the
+  page-builder v4.5 content-area top, so Phase-4 height math stays correct.
+
 ## v4.8.0 (2026-06-16) — M2 chart runtime + M3 art-director (DESIGN phase)
 
 - **M2** — `build_deck_html` injects the ECharts runtime (vendored bundle +

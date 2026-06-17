@@ -72,9 +72,9 @@ from svg_primitives import (
     svg_connector_horizontal,
     even_split_x,
 )
-from tokens_bridge import accent
+from tokens_bridge import accent, token
 
-VERSION = "0.6.0"
+VERSION = "0.7.0"
 
 # Default backend for the 5 dual-backend primitives. Can be overridden
 # per-call (kwarg ``backend=``) or globally via env var
@@ -172,6 +172,7 @@ MERMAID_BACKED: frozenset[str] = DUAL_BACKEND
 PYTHON_BACKED: frozenset[str] = frozenset({
     "footprint_map",
     "data_path",
+    "cycle",
 })
 
 
@@ -636,6 +637,118 @@ def make_data_path(
 
 
 # ===========================================================================
+# cycle — closed loop of 3-8 stages around a ring + centre hub (v0.7)
+# ===========================================================================
+def make_cycle(
+    stages: list[dict],
+    *,
+    title: str | None = None,
+    subtitle: str | None = None,
+    hub: dict | None = None,
+    width: int = 1168,
+    height: int = 566,
+) -> dict[str, Any]:
+    """A CLOSED CYCLE: 3-8 stages arranged around a ring with a centre hub and
+    clockwise directional arrows. The right hero for CYCLIC processes — feedback
+    loops, governance loops, lifecycles — where a linear flow would misrepresent
+    the "it comes back around" nature.
+
+    Each stage = ``{num?: str, title: str, desc?: str}`` (title = short
+    action/state name; desc = a brief qualifier, kept non-quantitative per the
+    brand content discipline). ``hub`` = ``{title?, lines?: list[str]}`` for the
+    centre. Native SVG only (no Mermaid ring renders cleanly). Geometry leaves a
+    margin so no stage label clips the canvas edge.
+    """
+    import math as _math
+    n = len(stages)
+    if not (3 <= n <= 8):
+        raise ValueError(f"make_cycle needs 3-8 stages, got {n}")
+    navy, deep, med = token("vti-navy"), token("vti-blue-deep"), token("vti-blue-medium")
+    ink, inks, border = token("vti-ink"), token("vti-ink-soft"), token("vti-border")
+    white = token("vti-white")
+    cx, cy = width / 2, height / 2 + 22
+    R = min((height - 200) / 2, (width - 360) / 2)
+    NODE_R = max(34, min(48, R * 0.27))
+    HUB_R = max(60, R * 0.50)
+    hub = hub or {}
+    start = -90
+    angles = [start + i * (360 / n) for i in range(n)]
+
+    def _pos(a, r):
+        t = _math.radians(a)
+        return cx + r * _math.cos(t), cy + r * _math.sin(t)
+
+    P = [f'<svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" '
+         f'font-family="Plus Jakarta Sans, Arial, sans-serif">']
+    P.append(
+        '<defs>'
+        f'<linearGradient id="cyhub" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{med}"/><stop offset="1" stop-color="{navy}"/></linearGradient>'
+        f'<linearGradient id="cynode" x1="0" y1="0" x2="0" y2="1">'
+        f'<stop offset="0" stop-color="{med}"/><stop offset="1" stop-color="{deep}"/></linearGradient>'
+        '<filter id="cysoft" x="-40%" y="-40%" width="180%" height="180%">'
+        f'<feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="{navy}" flood-opacity="0.18"/></filter>'
+        '</defs>')
+    if title:
+        P.append(f'<text x="40" y="54" font-size="30" font-weight="700" fill="{navy}" '
+                 f'letter-spacing="0.4">{title}</text>')
+    if subtitle:
+        P.append(f'<text x="42" y="82" font-size="15" font-weight="500" fill="{inks}">{subtitle}</text>')
+    # orbit + clockwise direction chevrons
+    P.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{R:.0f}" fill="none" stroke="{border}" '
+             f'stroke-width="2" stroke-dasharray="2 9" stroke-linecap="round"/>')
+    for i in range(n):
+        mid = angles[i] + (360 / n) / 2
+        x, y = _pos(mid, R)
+        t = _math.radians(mid)
+        rot = _math.degrees(_math.atan2(_math.cos(t), -_math.sin(t)))
+        P.append(f'<g transform="translate({x:.1f},{y:.1f}) rotate({rot:.1f})">'
+                 f'<path d="M -7 -7 L 7 0 L -7 7" fill="none" stroke="{med}" stroke-width="3" '
+                 f'stroke-linecap="round" stroke-linejoin="round"/></g>')
+    # hub
+    P.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{HUB_R:.0f}" fill="url(#cyhub)" filter="url(#cysoft)"/>')
+    hub_lines = ([hub["title"]] if hub.get("title") else []) + list(hub.get("lines") or [])
+    if hub_lines:
+        ly = cy - (len(hub_lines) - 1) * 9
+        for j, line in enumerate(hub_lines):
+            big = (j == 0 and hub.get("title"))
+            ls_attr = 'letter-spacing="1.4"' if big else ''
+            fill_c = white if big else "#9FC6FF"
+            P.append(f'<text x="{cx:.0f}" y="{ly + j*19:.0f}" text-anchor="middle" '
+                     f'font-size="{13 if big else 11}" font-weight="{700 if big else 500}" '
+                     f'fill="{fill_c}" {ls_attr}>{line}</text>')
+    # stage nodes
+    for i, st in enumerate(stages):
+        a = angles[i]
+        x, y = _pos(a, R)
+        num = str(st.get("num") or (i + 1)).zfill(2)
+        P.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{NODE_R:.0f}" fill="url(#cynode)" filter="url(#cysoft)"/>')
+        P.append(f'<text x="{x:.1f}" y="{y+9:.1f}" text-anchor="middle" font-size="26" '
+                 f'font-weight="700" fill="{white}">{num}</text>')
+        ca = _math.cos(_math.radians(a))
+        ttl, desc = st.get("title", ""), st.get("desc", "")
+        if abs(ca) < 0.2:                       # top / bottom node
+            up = _math.sin(_math.radians(a)) < 0
+            ty = y - NODE_R - 16 if up else y + NODE_R + 26
+            P.append(f'<text x="{x:.1f}" y="{ty:.1f}" text-anchor="middle" font-size="19" '
+                     f'font-weight="700" fill="{navy}" letter-spacing="0.6">{ttl}</text>')
+            if desc:
+                P.append(f'<text x="{x:.1f}" y="{ty+20:.1f}" text-anchor="middle" font-size="13" '
+                         f'font-weight="500" fill="{inks}">{desc}</text>')
+        else:
+            right = ca > 0
+            anc = "start" if right else "end"
+            lx = x + (NODE_R + 18) if right else x - (NODE_R + 18)
+            P.append(f'<text x="{lx:.1f}" y="{y-2:.1f}" text-anchor="{anc}" font-size="19" '
+                     f'font-weight="700" fill="{navy}" letter-spacing="0.6">{ttl}</text>')
+            if desc:
+                P.append(f'<text x="{lx:.1f}" y="{y+18:.1f}" text-anchor="{anc}" font-size="13" '
+                         f'font-weight="500" fill="{inks}">{desc}</text>')
+    P.append('</svg>')
+    return _native_result("\n".join(P), width, height, "cycle")
+
+
+# ===========================================================================
 # Discovery + dispatch
 # ===========================================================================
 _PRIMITIVES: dict[str, Any] = {
@@ -646,6 +759,7 @@ _PRIMITIVES: dict[str, Any] = {
     "fanout_pipeline":  make_fanout_pipeline,
     "hybrid_swimlane":  make_hybrid_swimlane,
     "data_path":        make_data_path,
+    "cycle":            make_cycle,
 }
 
 
@@ -664,6 +778,19 @@ _PRIMITIVE_META: dict[str, dict] = {
             "subtitle":    "optional",
             "captions":    "optional list[str] rendered as a strip "
                            "below the SVG (one per step). Put numbers here.",
+        },
+    },
+    "cycle": {
+        "name":            "cycle",
+        "backend":         "python (native SVG)",
+        "hint_size":       "1168x566",
+        "good_for":        ["feedback loops", "governance / closed loops", "lifecycles"],
+        "content_profile": "action_label_only",
+        "params":          {
+            "stages":   "list[{num?, title<=20, desc?<=40}] (3-8) around a ring",
+            "hub":      "optional {title?, lines?[]} for the centre",
+            "title":    "optional (top-left)",
+            "subtitle": "optional",
         },
     },
     "quadrant": {
@@ -776,6 +903,11 @@ _INTENT_TO_PRIMITIVE: dict[str, str] = {
     "device-cloud":          "data_path",
     "rpm":                   "data_path",
     "data-path":             "data_path",
+    "cycle":                 "cycle",
+    "loop":                  "cycle",
+    "feedback-loop":         "cycle",
+    "lifecycle":             "cycle",
+    "closed-loop":           "cycle",
 }
 
 
@@ -845,6 +977,7 @@ __all__ = [
     "make_fanout_pipeline",
     "make_hybrid_swimlane",
     "make_data_path",
+    "make_cycle",
     "list_primitives",
     "describe_primitive",
     "primitive_for_intent",

@@ -121,7 +121,61 @@ from deck_planner import (                                       # noqa: F401
     renumber_slide_ids,                                          # v3.14
 )
 
-__version__ = "4.8.0"
+# --- v4.9 — wire the dormant ART-DIRECTOR ENGINE into the entry point -------
+# Root disconnect (pre-v4.9): creator.py imported NONE of these, so the rich
+# archetype / art-direction / fit / pixel-audit layer was unreachable from the
+# creator side and the pipeline never ran it. Re-export so a thin Phase-4/5
+# driver can `from creator import ...` the whole engine.
+from art_direction import (                                       # noqa: F401
+    make_brief, brief_guidance, ration_archetypes,
+)
+from archetypes import (                                          # noqa: F401
+    ARCHETYPES, list_archetypes, describe_archetype, slots_for,
+    realize_archetype,
+)
+from visual_critic import (                                       # noqa: F401
+    richness_floor, critique, auto_repair, render_review,
+)
+
+__version__ = "4.9.0"
+
+
+def realize_layout_plan(archetype_id: str, slots: dict, slide_meta: dict | None = None,
+                        *, overrides: dict | None = None) -> dict:
+    """Phase 4→5 bridge (durable): realise an archetype into a ``slide_input``.
+
+    ``realize_archetype`` already merges the archetype's ``slide_meta_defaults``
+    under the caller's ``slide_meta`` (caller wins), so the proportional-fit
+    engine + chrome receive a complete meta. This wrapper exists so every driver
+    goes through ONE durable seam instead of re-implementing the merge (the
+    historic source of dropped page_number/doc_title chrome fields).
+    """
+    return realize_archetype(archetype_id, slots, slide_meta or {}, overrides=overrides)
+
+
+def suggest_archetype(intent: str, *, used_counts: dict | None = None,
+                      recent: list | None = None) -> str | None:
+    """Pick an archetype for a slide's content SHAPE (intent), varying the
+    layout rhythm across the deck via ``ration_archetypes`` (it deprioritises
+    recently/often-used ids). Returns an archetype id or None.
+
+    NB volume-awareness is now largely handled downstream: the proportional-fit
+    engine makes any chosen layout fit its content (light → scale-up + centre),
+    so selection only needs to match shape + keep variety.
+    """
+    cands = ration_archetypes(intent, used_counts or {}, recent or [])
+    if not cands:
+        return None
+    top = cands[0]
+    return top["id"] if isinstance(top, dict) else top
+
+
+def richness_gate(slide_inputs: list) -> dict:
+    """Deck-level richness verdict over ``slide_input`` descriptors — static
+    visual-anchor / not-flat floor (``visual_critic.richness_floor``). Pixel
+    density is measured separately by ``visual_critic.critique`` after render.
+    """
+    return richness_floor(slide_inputs)
 
 
 def info() -> dict:

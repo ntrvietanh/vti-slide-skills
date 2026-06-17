@@ -1,5 +1,49 @@
 # vti-slide-page-builder — CHANGELOG
 
+## v4.5.0 (2026-06-17) — proportional-fit engine + editorial vocabulary
+
+The DESIGN LAW fix: content fills space by SCALING (type + element + bounded
+spacing) to a comfortable rhythm and CENTRING — never by stretching a container
+around light content (hollow), spreading items past a capped gap, or shrinking
+text into a big box.
+
+- **Proportional-fit engine** (`composer_grid.py`): the composer estimates each
+  row's rendered height (`_estimate_row_heights`) vs. each cell's natural
+  content height (`_estimate_component_h`) and tags every cell
+  `data-fit = sparse | normal | dense` (`_fit_tier`). Universal `_GRID_CSS`
+  rule: a **sparse** cell sizes its child to content + centres it (kills the
+  hollow stretch even when a component hard-sets `height:100%`) and exposes
+  `--fit-scale` (1.14 sparse / 0.96 dense). Components multiply type + gaps by
+  `--fit-scale` so light content gains presence instead of floating tiny.
+- **Components made fit-aware**: catalog-column, practice-card,
+  bullet-list-checked, icon-list, stat-mini scale type/gap with `--fit-scale`
+  and bump their too-small base tiers; lists distribute as a centred block (no
+  `space-evenly` spread).
+- **Editorial vocabulary**: `--vti-fs-mega` type tier; dark **stage** /
+  **stage-grad** cell surfaces + whole-slide `slide_meta.stage` (reusing the
+  `.vti-on-dark` flip; KPI/stat tokens lightened for legibility); full-bleed
+  `slide_meta.bg_image` + scrim; accent-policy tokens; `stat-hero scale:"mega"`;
+  8 editorial archetypes (stage-divider, mega-stat, image-bleed-overlay,
+  split-anchor-60-40, chart-lead, triad-bold, process-band, stage-kpi-band);
+  `realize_archetype` merges archetype `slide_meta_defaults`; `editorial`
+  layout-class (4 type tiers); `mega` registered in the type-budget aggregator.
+- **Header redesign** (`chrome/`): stacked breadcrumb — small section title
+  above, large brand-blue slide title below, accent bar spanning both lines;
+  enlarged + block-centred logo; content area top 70→**86px** for breathing
+  room under the taller title.
+- **Audit corrected** (`visual_critic.py` + `composer_grid.py`): removed
+  `richness_floor` R4 (it rewarded stretch-to-fill) and retired the char-based
+  per-cell / slide-sparse warnings (they mis-judged visual content); pixel
+  ink-ratio/centroid + overflow are the real density guard. `richness_floor`
+  keeps R2 (visual anchor) + R3 (not flat).
+- **Two new fit-aware components** (codified from the proven dense proofs):
+  `matrix` (icon disc + title + detail + tag-chip rows — the designed
+  alternative to a plain table) and `panel-compare` (two solid titled panels +
+  centre badge — dense two-sided ownership/handover split). Plus archetypes
+  `matrix-rows`, `split-handover`, `banner-plus-cards` (image banner + principle
+  cards). Both components scale type with `--fit-scale` and are registered as
+  structured anchors + estimated by the fit engine.
+
 ## v4.4.0 (2026-06-16) — finish ECharts migration + cell vertical-align
 
 - **gauge-dial / progress-bar / funnel → ECharts** (the last three SVG

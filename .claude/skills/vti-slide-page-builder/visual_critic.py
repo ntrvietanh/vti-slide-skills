@@ -442,17 +442,11 @@ def richness_floor(slides: list[dict]) -> dict:
             any(comp not in _TEXT_KIND_COMPONENTS for comp in comps if comp)
             or has_surface_stage or has_bleed
         )
-        # R4 is satisfied by EITHER a 1fr _fill_verified row OR an explicit
-        # vertical_align="center" (a centred band balances space top+bottom, so
-        # content isn't "dumped at the top with dead space below").
-        has_fill = (
-            meta.get("vertical_align") == "center"
-            or any(
-                str(r.get("height")) == "1fr" and r.get("_fill_verified") is True
-                for r in rows
-            )
-        )
-        is_flat = (len(rows) <= 2 and not has_anchor and not has_fill)
+        # v4.5 — R4 ("must have a 1fr _fill_verified row") REMOVED: it rewarded
+        # stretch-to-fill, the very thing that produced hollow rows. The
+        # proportional-fit engine now governs fill (sparse cells size to content
+        # + centre), so "no 1fr fill" is no longer a defect.
+        is_flat = (len(rows) <= 2 and not has_anchor)
 
         if any(c.get("component") == "stat-hero"
                and (c.get("props") or {}).get("scale") == "mega" for c in cells):
@@ -462,16 +456,12 @@ def richness_floor(slides: list[dict]) -> dict:
         status = "pass"
         if is_flat:
             status = "fail"
-            reasons.append("R3 flat: ≤2 all-text rows, no anchor, no 1fr fill "
+            reasons.append("R3 flat: ≤2 all-text rows with no visual anchor "
                            "— the 'narrative + one row' failure shape")
         if not has_anchor and not sparse_ok:
             status = "fail"
             reasons.append("R2 no visual anchor: slide is all plain-prose "
                            "components (add a chart/diagram/stat/cards/dark stage)")
-        if not has_fill and not sparse_ok and status != "fail":
-            status = "warn"
-            reasons.append("R4 no 1fr fill: no _fill_verified 1fr row — content "
-                           "will float and leave dead space")
         if not reasons:
             reasons.append("ok")
         per_slide.append({"index": i + 1, "status": status, "reasons": reasons})
